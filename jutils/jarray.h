@@ -4,8 +4,8 @@
 
 #include <vector>
 
-#include "int_defines.h"
-#include "jmath.h"
+#include "type_defines.h"
+#include "math/jmath.h"
 
 namespace jutils
 {
@@ -66,7 +66,7 @@ namespace jutils
         }
 
         int32 getSize() const { return static_cast<int32>(this->base_class::size()); }
-        bool isValidIndex(const int32 index) const { return jutils::math::isWithin(index, 0, getSize()); }
+        bool isValidIndex(const int32 index) const { return jutils::math::isWithin(index, 0, getSize() - 1); }
         bool isEmpty() const { return this->base_class::empty(); }
         
         T* getData() noexcept { return this->base_class::data(); }
@@ -141,7 +141,7 @@ namespace jutils
         }
         void remove(const T& value)
         {
-            uint32 index = 0;
+            int32 index = 0;
             while (isValidIndex(index))
             {
                 if (get(index) == value)

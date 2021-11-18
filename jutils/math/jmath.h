@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "type_checks.h"
+#include "../type_checks.h"
 
 namespace jutils
 {
