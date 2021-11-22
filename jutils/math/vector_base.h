@@ -8,7 +8,9 @@ namespace jutils
 {
     namespace math
     {
-        template<int8 Size, typename Type>
-        class vector;
+        using vector_size_type = int8;
+
+        template<vector_size_type Size, typename Type>
+        class vector_base;
     }
 }

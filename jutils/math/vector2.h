@@ -8,8 +8,8 @@ namespace jutils
 {
     namespace math
     {
-        using vector2 = vector<2, float>;
-        using ivector2 = vector<2, int32>;
-        using uvector2 = vector<2, uint32>;
+        using vector2 = vector_base<2, float>;
+        using ivector2 = vector_base<2, int32>;
+        using uvector2 = vector_base<2, uint32>;
     }
 }
