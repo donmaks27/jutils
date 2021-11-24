@@ -9,6 +9,19 @@ namespace jutils
 {
     namespace math
     {
+        template<vector_size_type Size, typename Type1, typename Type2>
+        constexpr bool isVectorsEqual(const math::vector<Size, Type1>& value1, const math::vector<Size, Type2>& value2, const float eps = EPSILON_DEFAULT)
+        {
+            for (vector_size_type i = 0; i < Size; i++)
+            {
+                if (!math::isEqual(static_cast<float>(value1[i]), static_cast<float>(value2[i]), eps))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         template<typename Type>
         constexpr float lengthSqr(const vector<2, Type>& value) { return value.x * value.x + value.y * value.y; }
         template<typename Type>

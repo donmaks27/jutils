@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "vector2_base.h"
+#include "base_types/vector2_base.h"
 
 namespace jutils
 {
