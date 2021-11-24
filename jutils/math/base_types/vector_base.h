@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../type_defines.h"
+#include "../../type_defines.h"
 
 namespace jutils
 {
@@ -11,6 +11,6 @@ namespace jutils
         using vector_size_type = int8;
 
         template<vector_size_type Size, typename Type>
-        class vector_base;
+        class vector;
     }
 }
