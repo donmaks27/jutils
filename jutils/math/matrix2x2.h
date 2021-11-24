@@ -9,5 +9,7 @@ namespace jutils
     namespace math
     {
         using matrix2x2 = matrix<2, 2, float>;
+
+        using matrix2 = matrix2x2;
     }
 }
