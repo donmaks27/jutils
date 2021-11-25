@@ -38,16 +38,22 @@ namespace jutils
             return math::isEqual(lenSqr, 0.0f, eps) ? vector<Size, float>(0.0f) : value / math::sqrt(lenSqr);
         }
 
-        template<vector_size_type Size>
-        constexpr float dot(const vector<Size, float>& value1, const vector<Size, float>& value2)
+        template<typename Type1, typename Type2>
+        constexpr Type1 dot(const vector<2, Type1>& value1, const vector<2, Type2>& value2)
         {
-            float sum = 0.0f;
-            for (vector_size_type i = 0; i < Size; i++)
-            {
-                sum += value1[i] * value2[i];
-            }
-            return sum;
+            return value1.x * static_cast<Type1>(value2.x) + value1.y * static_cast<Type1>(value2.y);
         }
+        template<typename Type1, typename Type2>
+        constexpr Type1 dot(const vector<3, Type1>& value1, const vector<3, Type2>& value2)
+        {
+            return value1.x * static_cast<Type1>(value2.x) + value1.y * static_cast<Type1>(value2.y) + value1.z * static_cast<Type1>(value2.z);
+        }
+        template<typename Type1, typename Type2>
+        constexpr Type1 dot(const vector<4, Type1>& value1, const vector<4, Type2>& value2)
+        {
+            return value1.x * static_cast<Type1>(value2.x) + value1.y * static_cast<Type1>(value2.y) + value1.z * static_cast<Type1>(value2.z) + value1.w * static_cast<Type1>(value2.w);
+        }
+
         constexpr vector3 cross(const vector3& value1, const vector3& value2)
         {
             return {

@@ -8,7 +8,7 @@ namespace jutils
 {
     namespace math
     {
-        template<vector_size_type Columns, vector_size_type Rows, typename Type>
+        template<vector_size_type Rows, vector_size_type Columns, typename Type>
         class matrix;
     }
 }

@@ -28,16 +28,16 @@ namespace jutils
             explicit constexpr vector(const type value)
                 : x(value), y(value)
             {}
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
+            template<typename OtherType>
             constexpr vector(const vector<2, OtherType>& value)
                 : x(static_cast<type>(value.x)), y(static_cast<type>(value.y))
             {}
-            template<vector_size_type Size, typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type> && (Size > 2))>
+            template<vector_size_type Size, typename OtherType, TEMPLATE_ENABLE((Size > 2))>
             explicit constexpr vector(const vector<Size, OtherType>& value)
                 : x(static_cast<type>(value.x)), y(static_cast<type>(value.y))
             {}
 
-            template<vector_size_type Size, typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type> && (Size >= 2))>
+            template<vector_size_type Size, typename OtherType, TEMPLATE_ENABLE((Size >= 2))>
             constexpr vector& operator=(const vector<Size, OtherType>& value)
             {
                 if (this != &value)
@@ -63,16 +63,16 @@ namespace jutils
             constexpr type& operator[](const vector_size_type index) { return get(index); }
             constexpr const type& operator[](const vector_size_type index) const { return get(index); }
 
-            constexpr type* getData() { return &get(0); }
-            constexpr const type* getData() const { return &get(0); }
+            constexpr type* getData() { return &x; }
+            constexpr const type* getData() const { return &x; }
 
             template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
             constexpr vector& operator+=(OtherType value);
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
+            template<typename OtherType>
             constexpr vector& operator+=(const vector<2, OtherType>& value);
             template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
             constexpr vector& operator-=(OtherType value);
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
+            template<typename OtherType>
             constexpr vector& operator-=(const vector<2, OtherType>& value);
             template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
             constexpr vector& operator*=(OtherType value);
@@ -84,12 +84,12 @@ namespace jutils
             constexpr vector operator++(int);
             constexpr vector operator--(int);
 
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
+            template<typename OtherType>
             constexpr bool operator==(const vector<2, OtherType>& value) const
             {
                 return (x == static_cast<type>(value.x)) && (y == static_cast<type>(value.y));
             }
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
+            template<typename OtherType>
             constexpr bool operator!=(const vector<2, OtherType>& value) const { return !this->operator==(value); }
 
             jstring toString() const { return JSTR("{ ") + TO_JSTR(x) + JSTR("; ") + TO_JSTR(y) + JSTR(" }"); }
@@ -99,14 +99,14 @@ namespace jutils
         constexpr vector<2, Type1> operator+(const vector<2, Type1>& value1, Type2 value2);
         template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
         constexpr vector<2, Type1> operator+(Type1 value1, const vector<2, Type2>& value2);
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
+        template<typename Type1, typename Type2>
         constexpr vector<2, Type1> operator+(const vector<2, Type1>& value1, const vector<2, Type2>& value2);
 
         template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
         constexpr vector<2, Type1> operator-(const vector<2, Type1>& value1, Type2 value2);
         template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
         constexpr vector<2, Type1> operator-(Type1 value1, const vector<2, Type2>& value2);
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
+        template<typename Type1, typename Type2>
         constexpr vector<2, Type1> operator-(const vector<2, Type1>& value1, const vector<2, Type2>& value2);
 
         template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
@@ -129,7 +129,7 @@ namespace jutils
             return *this;
         }
         template<typename Type>
-        template<typename OtherType, TEMPLATE_ENABLE_IMPL(is_castable<OtherType, Type>)>
+        template<typename OtherType>
         constexpr vector<2, Type>& vector<2, Type>::operator+=(const vector<2, OtherType>& value)
         {
             x += static_cast<type>(value.x); y += static_cast<type>(value.y);
@@ -143,7 +143,7 @@ namespace jutils
             return *this;
         }
         template<typename Type>
-        template<typename OtherType, TEMPLATE_ENABLE_IMPL(is_castable<OtherType, Type>)>
+        template<typename OtherType>
         constexpr vector<2, Type>& vector<2, Type>::operator-=(const vector<2, OtherType>& value)
         {
             x -= static_cast<type>(value.x); y -= static_cast<type>(value.y);
@@ -197,7 +197,7 @@ namespace jutils
         {
             return { value1 + static_cast<Type1>(value2.x), value1 + static_cast<Type1>(value2.y) };
         }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE_IMPL(is_castable<Type2, Type1>)>
+        template<typename Type1, typename Type2>
         constexpr vector<2, Type1> operator+(const vector<2, Type1>& value1, const vector<2, Type2>& value2)
         {
             return { value1.x + static_cast<Type1>(value2.x), value1.y + static_cast<Type1>(value2.y) };
@@ -213,7 +213,7 @@ namespace jutils
         {
             return { value1 - static_cast<Type1>(value2.x), value1 - static_cast<Type1>(value2.y) };
         }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE_IMPL(is_castable<Type2, Type1>)>
+        template<typename Type1, typename Type2>
         constexpr vector<2, Type1> operator-(const vector<2, Type1>& value1, const vector<2, Type2>& value2)
         {
             return { value1.x - static_cast<Type1>(value2.x), value1.y - static_cast<Type1>(value2.y) };
