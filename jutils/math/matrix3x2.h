@@ -2,14 +2,12 @@
 
 #pragma once
 
-#include "base_types/matrix3x3_base.h"
+#include "base_types/matrix3x2_base.h"
 
 namespace jutils
 {
     namespace math
     {
-        using matrix3x3 = matrix<3, 3, float>;
-
-        using matrix3 = matrix3x3;
+        using matrix3x2 = matrix<3, 2, float>;
     }
 }
