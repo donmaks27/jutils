@@ -18,7 +18,7 @@ namespace jutils
             static constexpr vector_size_type size = 4;
 
             constexpr vector() = default;
-            constexpr vector(const type x, const type y, const type z, const type w = 0)
+            constexpr vector(const type x, const type y, const type z, const type w)
                 : x(x), y(y), z(z), w(w)
             {}
             explicit constexpr vector(const type value)

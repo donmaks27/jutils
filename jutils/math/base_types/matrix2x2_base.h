@@ -27,7 +27,7 @@ namespace jutils
             using transpose_type = matrix<columns_count, rows_count, type>;
 
             constexpr matrix() = default;
-            constexpr explicit matrix(const type value)
+            explicit constexpr matrix(const type value)
                 : rows{ row_type(value, 0), row_type(0, value) }
             {}
             constexpr matrix(const type x1, const type y1, const type x2, const type y2)
@@ -74,17 +74,40 @@ namespace jutils
             constexpr column_type getColumn(const vector_size_type index) const
             {
                 assert((index >= 0) && (index < columns_count));
-                return index == 0 ? column_type(rows[0].x, rows[1].x) : column_type(rows[0].y, rows[1].y);
+                switch (index)
+                {
+                case 0: return column_type(rows[0].x, rows[1].x);
+                default: ;
+                }
+                return column_type(rows[0].y, rows[1].y);
             }
 
             template<typename OtherType>
-            constexpr matrix& operator+=(const matrix<2, 2, OtherType>& value);
+            constexpr matrix& operator+=(const matrix<2, 2, OtherType>& value)
+            {
+                rows[0] += value.rows[0];
+                rows[1] += value.rows[1];
+                return *this;
+            }
             template<typename OtherType>
-            constexpr matrix& operator-=(const matrix<2, 2, OtherType>& value);
+            constexpr matrix& operator-=(const matrix<2, 2, OtherType>& value)
+            {
+                rows[0] -= value.rows[0];
+                rows[1] -= value.rows[1];
+                return *this;
+            }
             template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr matrix& operator*=(const OtherType& value);
+            constexpr matrix& operator*=(const OtherType& value)
+            {
+                rows[0] *= value;
+                rows[1] *= value;
+                return *this;
+            }
             template<typename OtherType>
-            constexpr matrix& operator*=(const matrix<2, 2, OtherType>& value);
+            constexpr matrix& operator*=(const matrix<2, 2, OtherType>& value)
+            {
+                return *this = *this * value;
+            }
 
             template<typename OtherType>
             constexpr bool operator==(const matrix<2, 2, OtherType>& value) const
@@ -98,36 +121,5 @@ namespace jutils
 
             constexpr transpose_type transpose() const { return { rows[0].x, rows[1].x, rows[0].y, rows[1].y }; }
         };
-
-        template<typename Type>
-        template<typename OtherType>
-        constexpr matrix<2, 2, Type>& matrix<2, 2, Type>::operator+=(const matrix<2, 2, OtherType>& value)
-        {
-            this->rows[0] += value.rows[0];
-            this->rows[1] += value.rows[1];
-            return *this;
-        }
-        template<typename Type>
-        template<typename OtherType>
-        constexpr matrix<2, 2, Type>& matrix<2, 2, Type>::operator-=(const matrix<2, 2, OtherType>& value)
-        {
-            this->rows[0] -= value.rows[0];
-            this->rows[1] -= value.rows[1];
-            return *this;
-        }
-        template<typename Type>
-        template<typename OtherType, TEMPLATE_ENABLE_IMPL(is_castable<OtherType, Type>)>
-        constexpr matrix<2, 2, Type>& matrix<2, 2, Type>::operator*=(const OtherType& value)
-        {
-            this->rows[0] *= value;
-            this->rows[1] *= value;
-            return *this;
-        }
-        template<typename Type>
-        template<typename OtherType>
-        constexpr matrix<2, 2, Type>& matrix<2, 2, Type>::operator*=(const matrix<2, 2, OtherType>& value)
-        {
-            return *this = *this * value;
-        }
     }
 }
