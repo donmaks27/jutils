@@ -226,17 +226,16 @@ namespace jutils
         {
             if (!isValidIndex(index))
             {
-                throwOutOfRange();
+                throw std::out_of_range("Invalid jlist<T> index!");
             }
         }
         void checkIfEmpty() const
         {
             if (isEmpty())
             {
-                throwOutOfRange();
+                throw std::length_error("jlist<T> is empty!");
             }
         }
-        static void throwOutOfRange() { throw std::out_of_range("Invalid jlist<T> index!"); }
 
         iterator getIterByIndexInternal(const int32 index)
         {

@@ -215,17 +215,16 @@ namespace jutils
         {
             if (!isValidIndex(index))
             {
-                throwOutOfRange();
+                throw std::out_of_range("Invalid jarray<T> index!");
             }
         }
         void checkIfEmpty() const
         {
             if (isEmpty())
             {
-                throwOutOfRange();
+                throw std::length_error("jarray<T> is empty!");
             }
         }
-        static void throwOutOfRange() { throw std::out_of_range("Invalid jarray<T> index!"); }
 
         iterator getIterByIndex(int32 index);
         iterator getIterByValue(const type& value);
