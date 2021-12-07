@@ -9,44 +9,34 @@
 
 namespace jutils
 {
-    template<typename T, typename Allocator = std::allocator<T>>
-    class jarray : std::vector<T, Allocator>
+    template<typename T>
+    class jarray : std::vector<T>
     {
-        using base_class = std::vector<T, Allocator>;
+        using base_class = std::vector<T>;
 
     public:
 
         using type = T;
-        using allocator = Allocator;
         using iterator = typename base_class::iterator;
         using const_iterator = typename base_class::const_iterator;
 
         jarray()
             : base_class()
         {}
-        explicit jarray(const allocator& alloc)
-            : base_class(alloc)
+        explicit jarray(const int32 size)
+            : base_class(jutils::math::max(0, size))
         {}
-        explicit jarray(const int32 size, const allocator& alloc = allocator())
-            : base_class(jutils::math::max(0, size), alloc)
+        explicit jarray(const int32 size, const type& defaultValue)
+            : base_class(size, defaultValue)
         {}
-        explicit jarray(const int32 size, const type& defaultValue, const allocator& alloc = allocator())
-            : base_class(size, defaultValue, alloc)
-        {}
-        jarray(std::initializer_list<type> list, const allocator& alloc = allocator())
-            : base_class(list, alloc)
+        jarray(std::initializer_list<type> list)
+            : base_class(list)
         {}
         jarray(const jarray& value)
             : base_class(value)
         {}
-        jarray(const jarray& value, const allocator& alloc)
-            : base_class(value, alloc)
-        {}
         jarray(jarray&& value) noexcept
             : base_class(std::move(value))
-        {}
-        jarray(jarray&& value, const allocator& alloc)
-            : base_class(std::move(value), alloc)
         {}
 
         jarray& operator=(std::initializer_list<type> list)
@@ -125,7 +115,20 @@ namespace jutils
             return index != -1 ? &getInternal(index) : nullptr;
         }
 
-        int32 indexOf(const type& value) const;
+        int32 indexOf(const type& value) const
+        {
+            if (!isEmpty())
+            {
+                for (int32 index = 0; index < getSize(); index++)
+                {
+                    if (getInternal(index) == value)
+                    {
+                        return index;
+                    }
+                }
+            }
+            return -1;
+        }
         bool contains(const type& value) const { return indexOf(value) != -1; }
 
         template<typename... Args>
@@ -170,7 +173,19 @@ namespace jutils
                 removeAtInternal(index);
             }
         }
-        int32 remove(const type& value);
+        int32 remove(const type& value)
+        {
+            int32 count = 0;
+            for (int32 index = getSize() - 1; index >= 0; --index)
+            {
+                if (getInternal(index) == value)
+                {
+                    removeAtInternal(index);
+                    count++;
+                }
+            }
+            return count;
+        }
         void clear() { return this->base_class::clear(); }
 
         jarray& operator+=(const type& value)
@@ -191,8 +206,7 @@ namespace jutils
             }
             return *this;
         }
-        template<typename OtherAllocator>
-        jarray& operator+=(const jarray<type, OtherAllocator>& value)
+        jarray& operator+=(const jarray& value)
         {
             if ((this != &value) && !value.isEmpty())
             {
@@ -203,11 +217,6 @@ namespace jutils
             }
             return *this;
         }
-
-        template<typename OtherAllocator>
-        bool operator==(const jarray<type, OtherAllocator>& value) const;
-        template<typename OtherAllocator>
-        bool operator!=(const jarray<type, OtherAllocator>& value) const { return !this->operator==(value); }
 
     private:
 
@@ -226,10 +235,54 @@ namespace jutils
             }
         }
 
-        iterator getIterByIndex(int32 index);
-        iterator getIterByValue(const type& value);
-        const_iterator getIterByIndex(int32 index) const;
-        const_iterator getIterByValue(const type& value) const;
+        iterator getIterByIndex(const int32 index)
+        {
+            if (!isValidIndex(index))
+            {
+                return end();
+            }
+            auto iter = begin();
+            for (int32 i = 0; i < index; i++)
+            {
+                ++iter;
+            }
+            return iter;
+        }
+        iterator getIterByValue(const type& value)
+        {
+            for (auto iter = begin(); iter != end(); ++iter)
+            {
+                if (*iter == value)
+                {
+                    return iter;
+                }
+            }
+            return end();
+        }
+        const_iterator getIterByIndex(const int32 index) const
+        {
+            if (!isValidIndex(index))
+            {
+                return end();
+            }
+            auto iter = begin();
+            for (int32 i = 0; i < index; i++)
+            {
+                ++iter;
+            }
+            return iter;
+        }
+        const_iterator getIterByValue(const type& value) const
+        {
+            for (auto iter = begin(); iter != end(); ++iter)
+            {
+                if (*iter == value)
+                {
+                    return iter;
+                }
+            }
+            return end();
+        }
 
         type& getInternal(const int32 index) { return this->base_class::operator[](index); }
         const type& getInternal(const int32 index) const { return this->base_class::operator[](index); }
@@ -237,118 +290,10 @@ namespace jutils
         void removeAtInternal(const int32 index) { this->base_class::erase(begin() + index); }
     };
     
-    template<typename T, typename Allocator>
-    jarray<T, Allocator> operator+(const jarray<T, Allocator>& value1, const T& value2) { return jarray<T, Allocator>(value1) += value2; }
-    template<typename T, typename Allocator, typename OtherAllocator>
-    jarray<T, Allocator> operator+(const jarray<T, Allocator>& value1, const jarray<T, OtherAllocator>& value2) { return jarray<T, Allocator>(value1) += value2; }
-
-
-
-    template<typename T, typename Allocator>
-    typename jarray<T, Allocator>::iterator jarray<T, Allocator>::getIterByIndex(const int32 index)
-    {
-        if (!isValidIndex(index))
-        {
-            return end();
-        }
-        auto iter = begin();
-        for (int32 i = 0; i < index; i++)
-        {
-            ++iter;
-        }
-        return iter;
-    }
-    template<typename T, typename Allocator>
-    typename jarray<T, Allocator>::iterator jarray<T, Allocator>::getIterByValue(const type& value)
-    {
-        for (auto iter = begin(); iter != end(); ++iter)
-        {
-            if (*iter == value)
-            {
-                return iter;
-            }
-        }
-        return end();
-    }
-
-    template<typename T, typename Allocator>
-    typename jarray<T, Allocator>::const_iterator jarray<T, Allocator>::getIterByIndex(const int32 index) const
-    {
-        if (!isValidIndex(index))
-        {
-            return end();
-        }
-        auto iter = begin();
-        for (int32 i = 0; i < index; i++)
-        {
-            ++iter;
-        }
-        return iter;
-    }
-    template<typename T, typename Allocator>
-    typename jarray<T, Allocator>::const_iterator jarray<T, Allocator>::getIterByValue(const type& value) const
-    {
-        for (auto iter = begin(); iter != end(); ++iter)
-        {
-            if (*iter == value)
-            {
-                return iter;
-            }
-        }
-        return end();
-    }
-
-    template<typename T, typename Allocator>
-    int32 jarray<T, Allocator>::indexOf(const type& value) const
-    {
-        if (!isEmpty())
-        {
-            for (int32 index = 0; index < getSize(); index++)
-            {
-                if (getInternal(index) == value)
-                {
-                    return index;
-                }
-            }
-        }
-        return -1;
-    }
-
-    template<typename T, typename Allocator>
-    int32 jarray<T, Allocator>::remove(const type& value)
-    {
-        int32 count = 0;
-        for (int32 index = getSize() - 1; index >= 0; --index)
-        {
-            if (getInternal(index) == value)
-            {
-                removeAtInternal(index);
-                count++;
-            }
-        }
-        return count;
-    }
-
-    template<typename T, typename Allocator>
-    template<typename OtherAllocator>
-    bool jarray<T, Allocator>::operator==(const jarray<type, OtherAllocator>& value) const
-    {
-        const int32 size = getSize();
-        if (size != value.getSize())
-        {
-            return false;
-        }
-        if (size == 0)
-        {
-            return true;
-        }
-        for (int32 index = 0; index < size; index++)
-        {
-            if (getInternal(index) != value[index])
-            {
-                return false;
-            }
-        }
-        return true;
-    }
+    template<typename T>
+    jarray<T> operator+(const jarray<T>& value1, const T& value2) { return jarray<T>(value1) += value2; }
+    template<typename T>
+    jarray<T> operator+(const T& value1, const jarray<T>& value2) { return (jarray<T>() += value1) += value2; }
+    template<typename T>
+    jarray<T> operator+(const jarray<T>& value1, const jarray<T>& value2) { return jarray<T>(value1) += value2; }
 }

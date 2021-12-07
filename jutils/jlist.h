@@ -9,44 +9,34 @@
 
 namespace jutils
 {
-    template<typename T, typename Allocator = std::allocator<T>>
-    class jlist : std::list<T, Allocator>
+    template<typename T>
+    class jlist : std::list<T>
     {
-        using base_class = std::list<T, Allocator>;
+        using base_class = std::list<T>;
 
     public:
 
         using type = T;
-        using allocator = Allocator;
         using iterator = typename base_class::iterator;
         using const_iterator = typename base_class::const_iterator;
 
         jlist()
             : base_class()
         {}
-        explicit jlist(const allocator& alloc)
-            : base_class(alloc)
+        explicit jlist(const int32 size)
+            : base_class(jutils::math::max(0, size))
         {}
-        explicit jlist(const int32 size, const allocator& alloc = allocator())
-            : base_class(jutils::math::max(0, size), alloc)
+        jlist(const int32 size, const type& defaultValue)
+            : base_class(size, defaultValue)
         {}
-        jlist(const int32 size, const type& defaultValue, const allocator& alloc = allocator())
-            : base_class(size, defaultValue, alloc)
-        {}
-        jlist(std::initializer_list<type> list, const allocator& alloc = allocator())
-            : base_class(list, alloc)
+        jlist(std::initializer_list<type> list)
+            : base_class(list)
         {}
         jlist(const jlist& value)
             : base_class(value)
         {}
-        jlist(const jlist& value, const allocator& alloc)
-            : base_class(value, alloc)
-        {}
         jlist(jlist&& value) noexcept
             : base_class(std::move(value))
-        {}
-        jlist(jlist&& value, const allocator& alloc)
-            : base_class(std::move(value), alloc)
         {}
 
         jlist& operator=(std::initializer_list<type> list)
@@ -78,8 +68,34 @@ namespace jutils
         iterator getIterByIndex(const int32 index) { return isValidIndex(index) ? getIterByIndexInternal(index) : end(); }
         const_iterator getIterByIndex(const int32 index) const { return isValidIndex(index) ? getIterByIndexInternal(index) : end(); }
 
-        iterator getIterByValue(const type& value);
-        const_iterator getIterByValue(const type& value) const;
+        iterator getIterByValue(const type& value)
+        {
+            if (!isEmpty())
+            {
+                for (auto iter = begin(); iter != end(); ++iter)
+                {
+                    if (*iter == value)
+                    {
+                        return iter;
+                    }
+                }
+            }
+            return end();
+        }
+        const_iterator getIterByValue(const type& value) const
+        {
+            if (!isEmpty())
+            {
+                for (auto iter = begin(); iter != end(); ++iter)
+                {
+                    if (*iter == value)
+                    {
+                        return iter;
+                    }
+                }
+            }
+            return end();
+        }
 
         type& get(const int32 index)
         {
@@ -128,7 +144,22 @@ namespace jutils
             return iter != end() ? &*iter : nullptr;
         }
 
-        int32 indexOf(const type& value) const;
+        int32 indexOf(const type& value) const
+        {
+            if (!isEmpty())
+            {
+                int32 index = 0;
+                for (const auto& element : *this)
+                {
+                    if (element == value)
+                    {
+                        return index;
+                    }
+                    index++;
+                }
+            }
+            return -1;
+        }
         bool contains(const type& value) const { return getIterByValue(value) != end(); }
 
         template<typename... Args>
@@ -171,6 +202,7 @@ namespace jutils
         type& addAt(const int32 index, type&& value) { return putAt(index, std::move(value)); }
         type& addDefaultAt(const int32 index) { return putAt(index); }
 
+        void reserve(const int32 size) { this->base_class::reserve(jutils::math::max(0, size)); }
         void resize(const int32 size) { this->base_class::resize(jutils::math::max(0, size)); }
         void resize(const int32 size, const type& defaultValue) { this->base_class::resize(jutils::math::max(0, size), defaultValue); }
 
@@ -181,7 +213,27 @@ namespace jutils
             removeAt(getIterByIndexInternal(index));
         }
 
-        int32 remove(const type& value);
+        int32 remove(const type& value)
+        {
+            int32 count = 0;
+            if (!isEmpty())
+            {
+                auto iter = begin();
+                while (iter != end())
+                {
+                    if (*iter == value)
+                    {
+                        iter = this->base_class::erase(iter);
+                        count++;
+                    }
+                    else
+                    {
+                        ++iter;
+                    }
+                }
+            }
+            return count;
+        }
         void clear() { return this->base_class::clear(); }
 
         jlist& operator+=(const type& value)
@@ -202,8 +254,7 @@ namespace jutils
             }
             return *this;
         }
-        template<typename OtherAllocator>
-        jlist& operator+=(const jlist<type, OtherAllocator>& value)
+        jlist& operator+=(const jlist& value)
         {
             if ((this != &value) && !value.isEmpty())
             {
@@ -214,11 +265,6 @@ namespace jutils
             }
             return *this;
         }
-
-        template<typename OtherAllocator>
-        bool operator==(const jlist<type, OtherAllocator>& value) const;
-        template<typename OtherAllocator>
-        bool operator!=(const jlist<type, OtherAllocator>& value) const { return !this->operator==(value); }
 
     private:
         
@@ -257,106 +303,10 @@ namespace jutils
         }
     };
     
-    template<typename T, typename Allocator>
-    jlist<T, Allocator> operator+(const jlist<T, Allocator>& value1, const T& value2) { return jlist<T, Allocator>(value1) += value2; }
-    template<typename T, typename Allocator, typename OtherAllocator>
-    jlist<T, Allocator> operator+(const jlist<T, Allocator>& value1, const jlist<T, OtherAllocator>& value2) { return jlist<T, Allocator>(value1) += value2; }
-
-
-
-    template<typename T, typename Allocator>
-    typename jlist<T, Allocator>::iterator jlist<T, Allocator>::getIterByValue(const type& value)
-    {
-        if (!isEmpty())
-        {
-            for (auto iter = begin(); iter != end(); ++iter)
-            {
-                if (*iter == value)
-                {
-                    return iter;
-                }
-            }
-        }
-        return end();
-    }
-    template<typename T, typename Allocator>
-    typename jlist<T, Allocator>::const_iterator jlist<T, Allocator>::getIterByValue(const type& value) const
-    {
-        if (!isEmpty())
-        {
-            for (auto iter = begin(); iter != end(); ++iter)
-            {
-                if (*iter == value)
-                {
-                    return iter;
-                }
-            }
-        }
-        return end();
-    }
-
-    template<typename T, typename Allocator>
-    int32 jlist<T, Allocator>::indexOf(const type& value) const
-    {
-        if (!isEmpty())
-        {
-            int32 index = 0;
-            for (const auto& element : *this)
-            {
-                if (element == value)
-                {
-                    return index;
-                }
-                index++;
-            }
-        }
-        return -1;
-    }
-
-    template<typename T, typename Allocator>
-    int32 jlist<T, Allocator>::remove(const type& value)
-    {
-        int32 count = 0;
-        if (!isEmpty())
-        {
-            auto iter = begin();
-            while (iter != end())
-            {
-                if (*iter == value)
-                {
-                    iter = this->base_class::erase(iter);
-                    count++;
-                }
-                else
-                {
-                    ++iter;
-                }
-            }
-        }
-        return count;
-    }
-
-    template<typename T, typename Allocator>
-    template<typename OtherAllocator>
-    bool jlist<T, Allocator>::operator==(const jlist<type, OtherAllocator>& value) const
-    {
-        const int32 size = getSize();
-        if (size != value.getSize())
-        {
-            return false;
-        }
-        if (size == 0)
-        {
-            return true;
-        }
-        auto iter = value.begin();
-        for (const auto& element : *this)
-        {
-            if (element != *iter++)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
+    template<typename T>
+    jlist<T> operator+(const jlist<T>& value1, const T& value2) { return jlist<T>(value1) += value2; }
+    template<typename T>
+    jlist<T> operator+(const T& value1, const jlist<T>& value2) { return (jlist<T>() += value1) += value2; }
+    template<typename T>
+    jlist<T> operator+(const jlist<T>& value1, const jlist<T>& value2) { return jlist<T>(value1) += value2; }
 }
