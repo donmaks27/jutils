@@ -3,14 +3,13 @@
 #pragma once
 
 #include "type_defines.h"
-#include "type_checks.h"
 
 #include <limits>
 #include <stdexcept>
 
 namespace jutils
 {
-    template<typename T, TEMPLATE_ENABLE(is_not_same<T, void>)>
+    template<typename T>
     class jpool
     {
     public:
@@ -18,7 +17,14 @@ namespace jutils
         using type = T;
 
         jpool() = default;
-        jpool(const int32 size) { init(size); }
+        jpool(const uint64 segmentSize, const uint64 defaultSegmentsCount = 0)
+            : segmentSize(jutils::math::max(segmentSize, 1))
+        {
+            for (uint64 segmentIndex = 0; segmentIndex < defaultSegmentsCount; segmentIndex++)
+            {
+                createSegment();
+            }
+        }
         jpool(const jpool&) = delete;
         jpool(jpool&&) = delete;
         ~jpool() { clear(); }
@@ -26,25 +32,14 @@ namespace jutils
         jpool& operator=(const jpool&) = delete;
         jpool& operator=(jpool&&) = delete;
 
-        bool isValid() const { return poolSize > 0; }
-
-        bool init(const int32 size)
-        {
-            if (isValid() || (size <= 0))
-            {
-                return false;
-            }
-            initializePoolData(size);
-            return true;
-        }
         void clear()
         {
-            if (isValid())
+            pool_segment* segment = firstSegment;
+            while (segment != nullptr)
             {
-                emptyNodesList = jpool_allocator_empty_nodes_list();
-                ::operator delete(poolData, sizeof(T) * poolSize);
-                poolData = nullptr;
-                poolSize = 0;
+                pool_segment* nextSegment = segment->nextSegment;
+                deleteSegment(segment);
+                segment = nextSegment;
             }
         }
 
@@ -69,158 +64,200 @@ namespace jutils
 
     private:
 
+        struct pool_segment;
+
         template<typename IndexType>
-        class jpool_allocator_empty_nodes_list_index
+        struct jpool_empty_nodes_getter_index
         {
-        public:
+            static void init(pool_segment* segment, uint64 size);
+            static type* getFreeNode(pool_segment* segment);
+            static void returnNode(pool_segment* segment, type* node);
 
-            type* firstPoolNode = nullptr;
-            type* firstEmptyNode = nullptr;
-
-            void init(int32 size, type* data);
-            type* getFreeNode();
-            void returnNode(type* node);
+        private:
 
             static void setNextNode(type* node, const IndexType index) { memcpy(node, &index, sizeof(IndexType)); }
-            static IndexType getNextNode(const type* node);
+            static IndexType getNextNode(const type* node)
+            {
+                IndexType index = 0;
+                memcpy(&index, node, sizeof(IndexType));
+                return index;
+            }
         };
-        class jpool_allocator_empty_nodes_list_pointer
+        struct jpool_empty_nodes_getter_pointer
         {
-        public:
+            static void init(pool_segment* segment, uint64 size);
+            static type* getFreeNode(pool_segment* segment);
+            static void returnNode(pool_segment* segment, type* node);
 
-            type* firstEmptyNode = nullptr;
-
-            void init(int32 size, type* data);
-            type* getFreeNode();
-            void returnNode(type* node);
+        private:
 
             static void setNextNode(type* node, const type* nextNode) { memcpy(node, &nextNode, sizeof(type*)); }
-            static type* getNextNode(const type* node);
+            static type* getNextNode(const type* node)
+            {
+                type* nextNode = nullptr;
+                memcpy(&nextNode, node, sizeof(type*));
+                return nextNode;
+            }
         };
-        class jpool_allocator_empty_nodes_list : public std::conditional_t<sizeof(type) >= sizeof(type*), jpool_allocator_empty_nodes_list_pointer,
-            jpool_allocator_empty_nodes_list_index<std::conditional_t<sizeof(type) == 1, uint8, std::conditional_t<sizeof(type) < 4, uint16, uint32>>>
-        > {};
+        using jpool_empty_nodes_getter = std::conditional_t<sizeof(type) >= sizeof(type*), jpool_empty_nodes_getter_pointer,
+            jpool_empty_nodes_getter_index<std::conditional_t<sizeof(type) == 1, uint8, std::conditional_t<sizeof(type) < 4, uint16, uint32>>>
+        >;
 
-
-        int32 poolSize = 0;
-        type* poolData = nullptr;
-        jpool_allocator_empty_nodes_list emptyNodesList;
-
-
-        void initializePoolData(const int32 size)
+        struct pool_segment
         {
-            poolSize = size;
-            poolData = static_cast<type*>(::operator new(sizeof(T) * size));
-            emptyNodesList.init(poolSize, poolData);
+            type* data = nullptr;
+            type* firstEmptyNode = nullptr;
+            pool_segment* nextSegment = nullptr;
+
+            bool isFull() const { return firstEmptyNode == nullptr; }
+        };
+
+        uint64 segmentSize = 1;
+        pool_segment* firstSegment;
+
+
+        pool_segment* createSegment()
+        {
+            pool_segment* segment = new pool_segment();
+            segment->data = static_cast<type*>(::operator new(sizeof(type) * segmentSize));
+            jpool_empty_nodes_getter::init(segment, segmentSize);
+
+            if (firstSegment == nullptr)
+            {
+                firstSegment = segment;
+            }
+            else
+            {
+                pool_segment* prevSegment = firstSegment;
+                while (prevSegment->nextSegment != nullptr)
+                {
+                    prevSegment = prevSegment->nextSegment;
+                }
+                prevSegment->nextSegment = segment;
+            }
+            return segment;
         }
+        void removeSegment(pool_segment* segment)
+        {
+            if ((segment == nullptr) || (firstSegment == nullptr))
+            {
+                return;
+            }
+            if (firstSegment != segment)
+            {
+                pool_segment* prevSegment = firstSegment;
+                while ((prevSegment != nullptr) && (prevSegment->nextSegment != segment))
+                {
+                    prevSegment = prevSegment->nextSegment;
+                }
+                if (prevSegment == nullptr)
+                {
+                    return;
+                }
+
+                prevSegment->nextSegment = segment->nextSegment;
+            }
+            else
+            {
+                firstSegment = firstSegment->nextSegment;
+            }
+            deleteSegment(segment);
+        }
+        void deleteSegment(pool_segment* segment)
+        {
+            ::operator delete(segment->data, sizeof(T) * segmentSize);
+            delete segment;
+        }
+
         type* allocateObjectNode()
         {
-            type* result = emptyNodesList.getFreeNode();
-            if (result != nullptr)
+            pool_segment* segment = firstSegment;
+            while ((segment != nullptr) && (segment->firstEmptyNode == nullptr))
             {
-                poolSize++;
+                segment = segment->nextSegment;
             }
-            return result;
+            if (segment == nullptr)
+            {
+                segment = createSegment();
+            }
+            return jpool_empty_nodes_getter::getFreeNode(segment);
         }
         void deallocateObjectNode(type* node)
         {
-            if (node != nullptr)
+            pool_segment* segment = firstSegment;
+            while (segment != nullptr)
             {
-                emptyNodesList.returnNode(node);
-                poolSize--;
+                if ((node >= segment->data) && (node < segment->data + segmentSize))
+                {
+                    jpool_empty_nodes_getter::returnNode(segment, node);
+                    break;
+                }
+                segment = segment->nextSegment;
             }
         }
     };
 
-    template<typename T, TEMPLATE_ENABLE_IMPL(is_not_same<T, void>) Condition>
+    template<typename T>
     template<typename IndexType>
-    void jpool<T, Condition>::jpool_allocator_empty_nodes_list_index<IndexType>::init(const int32 size, type* data)
+    void jpool<T>::jpool_empty_nodes_getter_index<IndexType>::init(pool_segment* segment, const uint64 size)
     {
         if (size > std::numeric_limits<IndexType>::max())
         {
-            throw std::length_error("Size to big for index type!");
+            throw std::exception("Segment size can't be bigger then max index");
         }
-
-        for (int32 i = 0; i < size - 1; i++)
+        for (uint64 i = 0; i < size - 1; i++)
         {
-            setNextNode(data + i, i + 2);
+            setNextNode(segment->data + i, i + 2);
         }
-        setNextNode(data + size - 1, 0);
-
-        firstPoolNode = data;
-        firstEmptyNode = firstPoolNode;
+        setNextNode(segment->data + size - 1, 0);
+        segment->firstEmptyNode = segment->data;
     }
-    template<typename T, TEMPLATE_ENABLE_IMPL(is_not_same<T, void>) Condition>
+    template<typename T>
     template<typename IndexType>
-    T* jpool<T, Condition>::jpool_allocator_empty_nodes_list_index<IndexType>::getFreeNode()
+    T* jpool<T>::jpool_empty_nodes_getter_index<IndexType>::getFreeNode(pool_segment* segment)
     {
-        if (firstEmptyNode == nullptr)
+        if (segment->firstEmptyNode == nullptr)
         {
             return nullptr;
         }
-
-        type* result = firstEmptyNode;
-        const IndexType nextNodeIndex = getNextNode(firstEmptyNode);
-        if (nextNodeIndex <= 0)
-        {
-            firstEmptyNode = nullptr;
-        }
-        else
-        {
-            firstEmptyNode = firstPoolNode + nextNodeIndex - 1;
-        }
+        type* result = segment->firstEmptyNode;
+        const IndexType nextNodeIndex = getNextNode(segment->firstEmptyNode);
+        segment->firstEmptyNode = nextNodeIndex > 0 ? segment->data + nextNodeIndex - 1 : nullptr;
         return result;
     }
-    template<typename T, TEMPLATE_ENABLE_IMPL(is_not_same<T, void>) Condition>
+    template<typename T>
     template<typename IndexType>
-    void jpool<T, Condition>::jpool_allocator_empty_nodes_list_index<IndexType>::returnNode(type* node)
+    void jpool<T>::jpool_empty_nodes_getter_index<IndexType>::returnNode(pool_segment* segment, type* node)
     {
-        setNextNode(node, firstEmptyNode != nullptr ? firstEmptyNode - firstPoolNode + 1 : 0);
-        firstEmptyNode = node;
-    }
-    template<typename T, TEMPLATE_ENABLE_IMPL(is_not_same<T, void>) Condition>
-    template <typename IndexType>
-    IndexType jpool<T, Condition>::jpool_allocator_empty_nodes_list_index<IndexType>::getNextNode(const type* node)
-    {
-        IndexType index = 0;
-        memcpy(&index, node, sizeof(IndexType));
-        return index;
+        setNextNode(node, segment->firstEmptyNode != nullptr ? segment->firstEmptyNode - segment->data + 1 : 0);
+        segment->firstEmptyNode = node;
     }
 
-    template<typename T, TEMPLATE_ENABLE_IMPL(is_not_same<T, void>) Condition>
-    void jpool<T, Condition>::jpool_allocator_empty_nodes_list_pointer::init(const int32 size, type* data)
+    template<typename T>
+    void jpool<T>::jpool_empty_nodes_getter_pointer::init(pool_segment* segment, const uint64 size)
     {
-        for (int32 i = 0; i < size - 1; i++)
+        for (uint64 i = 0; i < size - 1; i++)
         {
-            setNextNode(data + i, data + i + 1);
+            setNextNode(segment->data + i, segment->data + i + 1);
         }
-        setNextNode(data + size - 1, nullptr);
-
-        firstEmptyNode = data;
+        setNextNode(segment->data + size - 1, nullptr);
+        segment->firstEmptyNode = segment->data;
     }
-    template<typename T, TEMPLATE_ENABLE_IMPL(is_not_same<T, void>) Condition>
-    T* jpool<T, Condition>::jpool_allocator_empty_nodes_list_pointer::getFreeNode()
+    template<typename T>
+    T* jpool<T>::jpool_empty_nodes_getter_pointer::getFreeNode(pool_segment* segment)
     {
-        if (firstEmptyNode == nullptr)
+        if (segment->firstEmptyNode == nullptr)
         {
             return nullptr;
         }
-
-        type* result = firstEmptyNode;
-        firstEmptyNode = getNextNode(firstEmptyNode);
+        type* result = segment->firstEmptyNode;
+        segment->firstEmptyNode = getNextNode(segment->firstEmptyNode);
         return result;
     }
-    template<typename T, TEMPLATE_ENABLE_IMPL(is_not_same<T, void>) Condition>
-    void jpool<T, Condition>::jpool_allocator_empty_nodes_list_pointer::returnNode(type* node)
+    template<typename T>
+    void jpool<T>::jpool_empty_nodes_getter_pointer::returnNode(pool_segment* segment, type* node)
     {
-        setNextNode(node, firstEmptyNode);
-        firstEmptyNode = node;
-    }
-    template<typename T, TEMPLATE_ENABLE_IMPL(is_not_same<T, void>) Condition>
-    T* jpool<T, Condition>::jpool_allocator_empty_nodes_list_pointer::getNextNode(const type* node)
-    {
-        type* nextNode = nullptr;
-        memcpy(&nextNode, node, sizeof(type*));
-        return nextNode;
+        setNextNode(node, segment->firstEmptyNode);
+        segment->firstEmptyNode = node;
     }
 }
