@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "type_defines.h"
 #include "jarray.h"
 #include "juid.h"
 
@@ -18,8 +17,18 @@ namespace jutils
         using uid_type = uint32;
         using uid_generator_type = juid<uid_type>;
 
-        struct pointer
+        class pointer
         {
+            friend jpool_allocator;
+
+        public:
+            pointer() = default;
+            pointer(const pointer& value) = default;
+        private:
+            pointer(const int32 segment, const segment_size_type node, uid_type uid)
+                : segmentIndex(segment), nodeIndex(node), UID(uid)
+            {}
+
             int32 segmentIndex = -1;
             segment_size_type nodeIndex = 0;
             uid_type UID = uid_generator_type::invalidUID;
@@ -70,16 +79,16 @@ namespace jutils
         {
             if (isValid(pointer))
             {
-                getObjectNode(pointer)->~T();
+                getObjectNode(pointer)->~type();
                 deallocateObjectNode(pointer);
             }
         }
 
-        void clear()
+        void clear(const bool deconstructObjects = true)
         {
             for (const auto& segment : segments)
             {
-                deleteSegment(segment);
+                deleteSegment(segment, deconstructObjects);
             }
             segments.clear();
         }
@@ -150,9 +159,19 @@ namespace jutils
 
             return segment;
         }
-        void deleteSegment(pool_segment* segment)
+        void deleteSegment(pool_segment* segment, const bool deconstructObjects)
         {
-            ::operator delete(segment->data, sizeof(T) * segmentSize);
+            if (deconstructObjects)
+            {
+                for (segment_size_type nodeIndex = 0; nodeIndex < segmentSize; nodeIndex++)
+                {
+                    if (segment->nodeUIDs[nodeIndex] != uid_generator_type::invalidUID)
+                    {
+                        segment->data[nodeIndex].~type();
+                    }
+                }
+            }
+            ::operator delete(segment->data, sizeof(type) * segmentSize);
             delete[] segment->nodeUIDs;
             delete segment;
         }
