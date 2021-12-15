@@ -11,6 +11,9 @@ namespace jutils
     {
     public:
 
+        using index_type = uint32;
+        using object_size_type = uint16;
+
         jstack_allocator() = default;
         jstack_allocator(const uint32 stackSize)
         {
@@ -47,40 +50,47 @@ namespace jutils
 
     private:
 
-        using index_type = uint32;
-        using object_size_type = uint16;
-
         uint8* data = nullptr;
         index_type size = 0;
         index_type headIndex = 0;
 
 
         template<typename T>
-        static constexpr bool isTypeAllowed = (alignof(T) <= 256) && (sizeof(T) <= std::numeric_limits<object_size_type>::max());
+        static constexpr uint8 getPowForAlign()
+        {
+            uint8 pow = 0;
+            uint16 align = alignof(T);
+            while (align > 0)
+            {
+                align >>= 1;
+                pow++;
+            }
+            return pow;
+        }
+
+        index_type getAlignedIndex(const index_type index, const uint16 align) const
+        {
+            const uintptr_t dataPtr = reinterpret_cast<uintptr_t>(data);
+            return static_cast<index_type>(((dataPtr + index + align - 1) & ~(align - 1)) - dataPtr);
+        }
+
         template<typename T>
         T* allocateObject()
         {
-            if (!isTypeAllowed<T>)
+            const index_type objectIndex = getAlignedIndex(headIndex + 1, alignof(T));
+            if ((objectIndex <= headIndex) || ((objectIndex - headIndex) > std::numeric_limits<uint8>::max()))
             {
-                return nullptr;
-            }
-
-            const index_type objectIndex = (headIndex + alignof(T)) & ~(alignof(T) - 1);
-            if (objectIndex <= headIndex)
-            {
-                // Overflow
-                return nullptr;
-            }
-
-            const object_size_type objectSize = sizeof(T);
-            const index_type nodeSize = objectIndex - headIndex + objectSize + sizeof(object_size_type);
-            if ((size + 1 - headIndex) < nodeSize)
-            {
-                // Not enough free space
                 return nullptr;
             }
 
             const uint8 offset = static_cast<uint8>(objectIndex - headIndex);
+            const object_size_type objectSize = sizeof(T);
+            const index_type nodeSize = static_cast<index_type>(offset) + objectSize + sizeof(object_size_type);
+            if ((size - headIndex) < nodeSize)
+            {
+                // Not enough free space
+                return nullptr;
+            }
             headIndex += nodeSize;
 
             data[objectIndex - 1] = offset != 256 ? offset : 0;

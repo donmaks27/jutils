@@ -67,17 +67,17 @@ namespace jutils
             ::new (static_cast<void*>(getObjectNode(nodePointer))) type(std::forward<Args>(args)...);
             return nodePointer;
         }
-        bool isValid(const pointer& pointer) const
+        bool isObjectValid(const pointer& pointer) const
         {
             return segments.isValidIndex(pointer.segmentIndex) && 
                 (pointer.nodeIndex < segmentSize) &&
                 (pointer.UID != uid_generator_type::invalidUID) &&
                 (pointer.UID == segments.getData()[pointer.segmentIndex]->nodeUIDs[pointer.nodeIndex]);
         }
-        type* getObject(const pointer& nodePointer) const { return isValid(nodePointer) ? getObjectNode(nodePointer) : nullptr; }
+        type* getObject(const pointer& nodePointer) const { return isObjectValid(nodePointer) ? getObjectNode(nodePointer) : nullptr; }
         void destroyObject(const pointer& pointer)
         {
-            if (isValid(pointer))
+            if (isObjectValid(pointer))
             {
                 getObjectNode(pointer)->~type();
                 deallocateObjectNode(pointer);

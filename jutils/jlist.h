@@ -20,13 +20,15 @@ namespace jutils
         using iterator = typename base_class::iterator;
         using const_iterator = typename base_class::const_iterator;
 
+        using index_type = int32;
+
         jlist()
             : base_class()
         {}
-        explicit jlist(const int32 size)
+        explicit jlist(const index_type size)
             : base_class(jutils::math::max(0, size))
         {}
-        jlist(const int32 size, const type& defaultValue)
+        jlist(const index_type size, const type& defaultValue)
             : base_class(size, defaultValue)
         {}
         jlist(std::initializer_list<type> list)
@@ -55,9 +57,9 @@ namespace jutils
             return *this;
         }
         
-        int32 getSize() const { return static_cast<int32>(this->base_class::size()); }
+        index_type getSize() const { return static_cast<index_type>(this->base_class::size()); }
         bool isEmpty() const { return this->base_class::empty(); }
-        bool isValidIndex(const int32 index) const { return jutils::math::isWithin(index, 0, getSize() - 1); }
+        bool isValidIndex(const index_type index) const { return jutils::math::isWithin(index, 0, getSize() - 1); }
         
         iterator begin() noexcept { return this->base_class::begin(); }
         iterator end() noexcept { return this->base_class::end(); }
@@ -65,8 +67,8 @@ namespace jutils
         const_iterator begin() const noexcept { return this->base_class::begin(); }
         const_iterator end() const noexcept { return this->base_class::end(); }
         
-        iterator getIterByIndex(const int32 index) { return isValidIndex(index) ? getIterByIndexInternal(index) : end(); }
-        const_iterator getIterByIndex(const int32 index) const { return isValidIndex(index) ? getIterByIndexInternal(index) : end(); }
+        iterator getIterByIndex(const index_type index) { return isValidIndex(index) ? getIterByIndexInternal(index) : end(); }
+        const_iterator getIterByIndex(const index_type index) const { return isValidIndex(index) ? getIterByIndexInternal(index) : end(); }
 
         iterator getIterByValue(const type& value)
         {
@@ -97,18 +99,18 @@ namespace jutils
             return end();
         }
 
-        type& get(const int32 index)
+        type& get(const index_type index)
         {
             checkIsValidIndex(index);
             return *getIterByIndexInternal(index);
         }
-        const type& get(const int32 index) const
+        const type& get(const index_type index) const
         {
             checkIsValidIndex(index);
             return *getIterByIndexInternal(index);
         }
-        type& operator[](const int32 index) { return get(index); }
-        const type& operator[](const int32 index) const { return get(index); }
+        type& operator[](const index_type index) { return get(index); }
+        const type& operator[](const index_type index) const { return get(index); }
         
         type& getFirst()
         {
@@ -131,24 +133,24 @@ namespace jutils
             return this->base_class::back();
         }
 
-        type* findByIndex(const int32 index) { return isValidIndex(index) ? &*getIterByIndexInternal(index) : nullptr; }
+        type* findByIndex(const index_type index) { return isValidIndex(index) ? &*getIterByIndexInternal(index) : nullptr; }
         type* findByValue(const type& value)
         {
             auto iter = getIterByValue(value);
             return iter != end() ? &*iter : nullptr;
         }
-        const type* findByIndex(const int32 index) const { return isValidIndex(index) ? &*getIterByIndexInternal(index) : nullptr; }
+        const type* findByIndex(const index_type index) const { return isValidIndex(index) ? &*getIterByIndexInternal(index) : nullptr; }
         const type* findByValue(const type& value) const
         {
             auto iter = getIterByValue(value);
             return iter != end() ? &*iter : nullptr;
         }
 
-        int32 indexOf(const type& value) const
+        index_type indexOf(const type& value) const
         {
             if (!isEmpty())
             {
-                int32 index = 0;
+                index_type index = 0;
                 for (const auto& element : *this)
                 {
                     if (element == value)
@@ -174,7 +176,7 @@ namespace jutils
             return *this->base_class::emplace(iter, std::forward<Args>(args)...);
         }
         template<typename... Args>
-        type& putAt(const int32 index, Args&&... args)
+        type& putAt(const index_type index, Args&&... args)
         {
             checkIsValidIndex(index);
             return putAt(getIterByIndexInternal(index), std::forward<Args>(args)...);
@@ -198,24 +200,24 @@ namespace jutils
         type& addAt(const_iterator iter, type&& value) { return putAt(iter, std::move(value)); }
         type& addDefaultAt(const_iterator iter) { return putAt(iter); }
 
-        type& addAt(const int32 index, const type& value) { return putAt(index, value); }
-        type& addAt(const int32 index, type&& value) { return putAt(index, std::move(value)); }
-        type& addDefaultAt(const int32 index) { return putAt(index); }
+        type& addAt(const index_type index, const type& value) { return putAt(index, value); }
+        type& addAt(const index_type index, type&& value) { return putAt(index, std::move(value)); }
+        type& addDefaultAt(const index_type index) { return putAt(index); }
 
-        void reserve(const int32 size) { this->base_class::reserve(jutils::math::max(0, size)); }
-        void resize(const int32 size) { this->base_class::resize(jutils::math::max(0, size)); }
-        void resize(const int32 size, const type& defaultValue) { this->base_class::resize(jutils::math::max(0, size), defaultValue); }
+        void reserve(const index_type size) { this->base_class::reserve(jutils::math::max(0, size)); }
+        void resize(const index_type size) { this->base_class::resize(jutils::math::max(0, size)); }
+        void resize(const index_type size, const type& defaultValue) { this->base_class::resize(jutils::math::max(0, size), defaultValue); }
 
         void removeAt(const_iterator iter) { this->base_class::erase(iter); }
-        void removeAt(const int32 index)
+        void removeAt(const index_type index)
         {
             checkIsValidIndex(index);
             removeAt(getIterByIndexInternal(index));
         }
 
-        int32 remove(const type& value)
+        index_type remove(const type& value)
         {
-            int32 count = 0;
+            index_type count = 0;
             if (!isEmpty())
             {
                 auto iter = begin();
@@ -268,7 +270,7 @@ namespace jutils
 
     private:
         
-        void checkIsValidIndex(const int32 index) const
+        void checkIsValidIndex(const index_type index) const
         {
             if (!isValidIndex(index))
             {
@@ -283,19 +285,19 @@ namespace jutils
             }
         }
 
-        iterator getIterByIndexInternal(const int32 index)
+        iterator getIterByIndexInternal(const index_type index)
         {
             auto iter = begin();
-            for (int32 i = 0; i < index; i++)
+            for (index_type i = 0; i < index; i++)
             {
                 ++iter;
             }
             return iter;
         }
-        const_iterator getIterByIndexInternal(const int32 index) const
+        const_iterator getIterByIndexInternal(const index_type index) const
         {
             auto iter = begin();
-            for (int32 i = 0; i < index; i++)
+            for (index_type i = 0; i < index; i++)
             {
                 ++iter;
             }
