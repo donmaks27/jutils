@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// Copyright 2021 Leonov Maksim. All Rights Reserved.
+
+#pragma once
 
 #include "type_defines.h"
 #include "type_checks.h"
