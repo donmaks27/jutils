@@ -43,6 +43,13 @@ namespace jutils
         template<typename T>
         constexpr T abs(const T& value) { return value < static_cast<T>(0) ? -value : value; }
 
+        template<typename R = int32, TEMPLATE_ENABLE(std::is_integral_v<R>)>
+        R round(const float value) { return static_cast<R>(::round(value)); }
+        template<typename R = int32, TEMPLATE_ENABLE(std::is_integral_v<R>)>
+        R roundDown(const float value) { return static_cast<R>(::floor(value)); }
+        template<typename R = int32, TEMPLATE_ENABLE(std::is_integral_v<R>)>
+        R roundUp(const float value) { return static_cast<R>(::ceil(value)); }
+
         constexpr bool isEqual(const float value1, const float value2, const float eps = EPSILON_DEFAULT) { return math::abs(value2 - value1) <= eps; }
         constexpr bool isEqual(const double value1, const double value2, const double eps = EPSILON_DOUBLE_DEFAULT) { return math::abs(value2 - value1) <= eps; }
     }

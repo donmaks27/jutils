@@ -148,7 +148,7 @@ namespace jutils
         {
             pool_segment* segment = segments.add(new pool_segment());
 
-            segment->data = static_cast<type*>(::operator new(sizeof(type) * segmentSize));
+            segment->data = static_cast<type*>(::operator new(sizeof(type) * segmentSize, static_cast<std::align_val_t>(alignof(type))));
             jpool_empty_nodes_getter::init(segment, segmentSize);
 
             segment->nodeUIDs = new uid_type[segmentSize];
@@ -171,7 +171,7 @@ namespace jutils
                     }
                 }
             }
-            ::operator delete(segment->data, sizeof(type) * segmentSize);
+            ::operator delete(segment->data, sizeof(type) * segmentSize, static_cast<std::align_val_t>(alignof(type)));
             delete[] segment->nodeUIDs;
             delete segment;
         }
