@@ -75,8 +75,8 @@ namespace jutils
 
         public:
 
-            const type& operator*() const { return this->arrayPtr->data[this->objectIndex]; }
-            const type* operator->() const { return this->_isValid() ? this->arrayPtr->data + this->objectIndex : nullptr; }
+            type& operator*() const { return this->arrayPtr->data[this->objectIndex]; }
+            type* operator->() const { return this->_isValid() ? this->arrayPtr->data + this->objectIndex : nullptr; }
             
             const_iterator& operator++() { this->objectIndex++; return *this; }
             const_iterator operator++(int) { const_iterator temp = *this; ++*this; return temp; }
@@ -92,6 +92,14 @@ namespace jutils
         };
 
         jarray() = default;
+        jarray(const index_type size)
+        {
+            resize(size);
+        }
+        jarray(const index_type size, const type& defaultValue)
+        {
+            resize(size, defaultValue);
+        }
         jarray(std::initializer_list<type> list)
         {
             append(list);
@@ -390,7 +398,7 @@ namespace jutils
     {
         if (std::is_trivially_copyable_v<type>)
         {
-            ::memmove(data + dataIndex, data + dataIndex + 1, dataSize - dataIndex - 1);
+            ::memmove(data + dataIndex, data + dataIndex + 1, sizeof(type) * (dataSize - dataIndex - 1));
         }
         else
         {
@@ -406,7 +414,7 @@ namespace jutils
     {
         if (std::is_trivially_copyable_v<type>)
         {
-            ::memmove(data + dataIndex + 1, data + dataIndex, dataSize - dataIndex);
+            ::memmove(data + dataIndex + 1, data + dataIndex, sizeof(type) * (dataSize - dataIndex));
         }
         else
         {
