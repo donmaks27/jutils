@@ -1,186 +1,256 @@
-﻿// Copyright 2021 Leonov Maksim. All Rights Reserved.
+﻿// Copyright 2022 Leonov Maksim. All Rights Reserved.
 
 #pragma once
-
-#include <list>
 
 #include "type_defines.h"
 #include "math/jmath.h"
 
+#include <stdexcept>
+
 namespace jutils
 {
     template<typename T>
-    class jlist : std::list<T>
+    class jlist
     {
-        using base_class = std::list<T>;
-
     public:
 
         using type = T;
-        using iterator = typename base_class::iterator;
-        using const_iterator = typename base_class::const_iterator;
-
         using index_type = int32;
 
-        jlist()
-            : base_class()
-        {}
-        explicit jlist(const index_type size)
-            : base_class(jutils::math::max(0, size))
-        {}
-        jlist(const index_type size, const type& defaultValue)
-            : base_class(size, defaultValue)
-        {}
+    private:
+
+        struct list_node
+        {
+            type object;
+            list_node* nextNode = nullptr;
+            list_node* prevNode = nullptr;
+
+            bool isUnused() const { return prevNode == this; }
+        };
+
+    public:
+
+        friend class iterator;
+        friend class const_iterator;
+        class const_iterator
+        {
+            friend jlist;
+
+        public:
+            const_iterator() = default;
+            const_iterator(const const_iterator&) = default;
+        protected:
+            const_iterator(list_node* nodePtr)
+                : listNodePtr(nodePtr)
+            {}
+
+        public:
+
+            const type& operator*() const { return listNodePtr->object; }
+            const type* operator->() const { return _isValid() ? &listNodePtr->object : nullptr; }
+
+            const_iterator& operator++() { _incrementIterator(); return *this; }
+            const_iterator operator++(int) { iterator temp = *this; ++*this; return temp; }
+
+            const_iterator& operator--() { _decrementIterator(); return *this; }
+            const_iterator operator--(int) { iterator temp = *this; --*this; return temp; }
+
+            const_iterator& operator+=(const index_type offset) { _offsetIterator(offset); return *this; }
+            const_iterator& operator-=(const index_type offset) { _offsetIterator(-offset); return *this; }
+
+            const_iterator operator+(const index_type offset) const { return iterator(&this) += offset; }
+            const_iterator operator-(const index_type offset) const { return iterator(&this) -= offset; }
+
+            bool operator==(const const_iterator& iter) const { return _isValid() ? (listNodePtr == iter.listNodePtr) : !iter._isValid(); }
+            bool operator!=(const const_iterator& iter) const { return !this->operator==(iter); }
+
+        protected:
+
+            list_node* listNodePtr = nullptr;
+
+
+            bool _isValid() const { return (listNodePtr != nullptr) && !listNodePtr->isUnused(); }
+            void _offsetIterator(index_type offset);
+            void _incrementIterator();
+            void _decrementIterator();
+        };
+        class iterator : public const_iterator
+        {
+            friend jlist;
+
+        public:
+            iterator() = default;
+            iterator(const iterator&) = default;
+        private:
+            iterator(list_node* nodePtr)
+                : const_iterator(nodePtr)
+            {}
+
+        public:
+
+            type& operator*() const { return this->listNodePtr->object; }
+            type* operator->() const { return this->_isValid() ? &this->listNodePtr->object : nullptr; }
+
+            iterator& operator++() { this->_incrementIterator(); return *this; }
+            iterator operator++(int) { iterator temp = *this; ++*this; return temp; }
+
+            iterator& operator--() { this->_decrementIterator(); return *this; }
+            iterator operator--(int) { iterator temp = *this; --*this; return temp; }
+
+            iterator& operator+=(const index_type offset) { this->_offsetIterator(offset); return *this; }
+            iterator& operator-=(const index_type offset) { this->_offsetIterator(-offset); return *this; }
+
+            iterator operator+(const index_type offset) const { return iterator(&this) += offset; }
+            iterator operator-(const index_type offset) const { return iterator(&this) -= offset; }
+        };
+
+        jlist() = default;
         jlist(std::initializer_list<type> list)
-            : base_class(list)
-        {}
-        jlist(const jlist& value)
-            : base_class(value)
-        {}
-        jlist(jlist&& value) noexcept
-            : base_class(std::move(value))
-        {}
+        {
+            append(list);
+        }
+        jlist(const jlist& list)
+        {
+            _appendList(list);
+        }
+        jlist(jlist&& list) noexcept
+        {
+            firstNode = list.firstNode;
+            lastNode = list.lastNode;
+            nodeCount = list.nodeCount;
+            firstUnusedNode = list.firstUnusedNode;
+            unusedNodeCount = list.unusedNodeCount;
 
-        jlist& operator=(std::initializer_list<type> list)
+            list.firstNode = nullptr;
+            list.lastNode = nullptr;
+            list.nodeCount = 0;
+            list.firstUnusedNode = nullptr;
+            list.unusedNodeCount = 0;
+        }
+        ~jlist()
         {
-            this->base_class::operator=(list);
+            list_node* node = firstNode;
+            while (node != nullptr)
+            {
+                list_node* nextNode = node->nextNode;
+                _destroyObject(node);
+                _deallocateNode(node);
+                node = nextNode;
+            }
+
+            node = firstUnusedNode;
+            while (node != nullptr)
+            {
+                list_node* nextNode = node->nextNode;
+                _deallocateNode(node);
+                node = nextNode;
+            }
+
+            firstNode = nullptr;
+            lastNode = nullptr;
+            nodeCount = 0;
+            firstUnusedNode = nullptr;
+            unusedNodeCount = 0;
+        }
+
+        jlist& operator=(const jlist& list)
+        {
+            if (this != &list)
+            {
+                clear();
+                _appendList(list);
+            }
             return *this;
         }
-        jlist& operator=(jlist&& value) noexcept
+        jlist& operator=(jlist&& list) noexcept
         {
-            this->base_class::operator=(std::move(value));
+            clear();
+
+            firstNode = list.firstNode;
+            lastNode = list.lastNode;
+            nodeCount = list.nodeCount;
+            firstUnusedNode = list.firstUnusedNode;
+            unusedNodeCount = list.unusedNodeCount;
+
+            list.firstNode = nullptr;
+            list.lastNode = nullptr;
+            list.nodeCount = 0;
+            list.firstUnusedNode = nullptr;
+            list.unusedNodeCount = 0;
+
             return *this;
         }
-        jlist& operator=(const jlist& value)
-        {
-            this->base_class::operator=(value);
-            return *this;
-        }
-        
-        index_type getSize() const { return static_cast<index_type>(this->base_class::size()); }
-        bool isEmpty() const { return this->base_class::empty(); }
+
+        index_type getSize() const { return nodeCount; }
+        bool isEmpty() const { return getSize() == 0; }
         bool isValidIndex(const index_type index) const { return jutils::math::isWithin(index, 0, getSize() - 1); }
-        
-        iterator begin() noexcept { return this->base_class::begin(); }
-        iterator end() noexcept { return this->base_class::end(); }
 
-        const_iterator begin() const noexcept { return this->base_class::begin(); }
-        const_iterator end() const noexcept { return this->base_class::end(); }
-        
-        iterator getIterByIndex(const index_type index) { return isValidIndex(index) ? getIterByIndexInternal(index) : end(); }
-        const_iterator getIterByIndex(const index_type index) const { return isValidIndex(index) ? getIterByIndexInternal(index) : end(); }
+        iterator begin() noexcept { return iterator(firstNode); }
+        iterator end() noexcept { return iterator(); }
 
-        iterator getIterByValue(const type& value)
-        {
-            if (!isEmpty())
-            {
-                for (auto iter = begin(); iter != end(); ++iter)
-                {
-                    if (*iter == value)
-                    {
-                        return iter;
-                    }
-                }
-            }
-            return end();
-        }
-        const_iterator getIterByValue(const type& value) const
-        {
-            if (!isEmpty())
-            {
-                for (auto iter = begin(); iter != end(); ++iter)
-                {
-                    if (*iter == value)
-                    {
-                        return iter;
-                    }
-                }
-            }
-            return end();
-        }
+        const_iterator begin() const noexcept { return const_iterator(firstNode); }
+        const_iterator end() const noexcept { return const_iterator(); }
 
-        type& get(const index_type index)
-        {
-            checkIsValidIndex(index);
-            return *getIterByIndexInternal(index);
-        }
-        const type& get(const index_type index) const
-        {
-            checkIsValidIndex(index);
-            return *getIterByIndexInternal(index);
-        }
+        iterator getIterByIndex(const index_type index) { return isValidIndex(index) ? _getIteratorByIndex(index) : end(); }
+        const_iterator getIterByIndex(const index_type index) const { return isValidIndex(index) ? _getIteratorByIndex(index) : end(); }
+
+        iterator getIterByValue(const type& value);
+        const_iterator getIterByValue(const type& value) const;
+
+        type& get(const index_type index) { return *_getIteratorByIndex(index); }
+        const type& get(const index_type index) const { return *_getIteratorByIndex(index); }
         type& operator[](const index_type index) { return get(index); }
         const type& operator[](const index_type index) const { return get(index); }
-        
-        type& getFirst()
-        {
-            checkIfEmpty();
-            return this->base_class::front();
-        }
-        type& getLast()
-        {
-            checkIfEmpty();
-            return this->base_class::back();
-        }
-        const type& getFirst() const
-        {
-            checkIfEmpty();
-            return this->base_class::front();
-        }
-        const type& getLast() const
-        {
-            checkIfEmpty();
-            return this->base_class::back();
-        }
 
-        type* findByIndex(const index_type index) { return isValidIndex(index) ? &*getIterByIndexInternal(index) : nullptr; }
+        type& getFirst() { return firstNode->object; }
+        type& getLast() { return lastNode->object; }
+        const type& getFirst() const { return firstNode->object; }
+        const type& getLast() const { return lastNode->object; }
+
+        type* findByIndex(const index_type index) { return isValidIndex(index) ? &*_getIteratorByIndex(index) : nullptr; }
         type* findByValue(const type& value)
         {
             auto iter = getIterByValue(value);
-            return iter != end() ? &*iter : nullptr;
+            return iter._isValid() ? &*iter : nullptr;
         }
-        const type* findByIndex(const index_type index) const { return isValidIndex(index) ? &*getIterByIndexInternal(index) : nullptr; }
+        const type* findByIndex(const index_type index) const { return isValidIndex(index) ? &*_getIteratorByIndex(index) : nullptr; }
         const type* findByValue(const type& value) const
         {
             auto iter = getIterByValue(value);
-            return iter != end() ? &*iter : nullptr;
+            return iter._isValid() ? &*iter : nullptr;
         }
 
-        index_type indexOf(const type& value) const
+        index_type indexOf(const type& value) const;
+        bool contains(const type& value) const { return getIterByValue(value)._isValid(); }
+        
+        void reserve(const index_type size) { _reserveNodes(size - nodeCount - unusedNodeCount); }
+        template<typename... Args>
+        void resize(const index_type size, Args&&... args)
         {
-            if (!isEmpty())
+            while (nodeCount < size)
             {
-                index_type index = 0;
-                for (const auto& element : *this)
-                {
-                    if (element == value)
-                    {
-                        return index;
-                    }
-                    index++;
-                }
+                _putBack(std::forward<Args>(args)...);
             }
-            return -1;
         }
-        bool contains(const type& value) const { return getIterByValue(value) != end(); }
 
         template<typename... Args>
         type& put(Args&&... args)
         {
-            this->base_class::emplace_back(std::forward<Args>(args)...);
-            return this->base_class::back();
+            _putBack(std::forward<Args>(args)...);
+            return getLast();
         }
         template<typename... Args>
-        type& putAt(const_iterator iter, Args&&... args)
+        type& putAt(const const_iterator& iter, Args&&... args)
         {
-            return *this->base_class::emplace(iter, std::forward<Args>(args)...);
+            if (!iter._isValid())
+            {
+                throw std::out_of_range("Invalid jlist<T> iterator!");
+            }
+            _putAt(iter, std::forward<Args>(args)...);
+            return iter.listNodePtr->prevNode->object;
         }
         template<typename... Args>
-        type& putAt(const index_type index, Args&&... args)
-        {
-            checkIsValidIndex(index);
-            return putAt(getIterByIndexInternal(index), std::forward<Args>(args)...);
-        }
+        type& putAt(const index_type index, Args&&... args) { return putAt(getIterByIndex(index), std::forward<Args>(args)); }
 
         type& add(const type& value) { return put(value); }
         type& add(type&& value) { return put(std::move(value)); }
@@ -188,127 +258,356 @@ namespace jutils
         type& addUnique(const type& value)
         {
             auto iter = getIterByValue(value);
-            return iter != end() ? add(value) : *iter;
+            return !iter._isValid() ? add(value) : *iter;
         }
         type& addUnique(type&& value)
         {
             auto iter = getIterByValue(value);
-            return iter != end() ? add(std::move(value)) : *iter;
+            return !iter._isValid() ? add(std::move(value)) : *iter;
         }
 
-        type& addAt(const_iterator iter, const type& value) { return putAt(iter, value); }
-        type& addAt(const_iterator iter, type&& value) { return putAt(iter, std::move(value)); }
-        type& addDefaultAt(const_iterator iter) { return putAt(iter); }
+        type& addAt(const const_iterator& iter, const type& value) { return putAt(iter, value); }
+        type& addAt(const const_iterator& iter, type&& value) { return putAt(iter, std::move(value)); }
+        type& addDefaultAt(const const_iterator& iter) { return putAt(iter); }
 
         type& addAt(const index_type index, const type& value) { return putAt(index, value); }
         type& addAt(const index_type index, type&& value) { return putAt(index, std::move(value)); }
         type& addDefaultAt(const index_type index) { return putAt(index); }
 
-        void reserve(const index_type size) { this->base_class::reserve(jutils::math::max(0, size)); }
-        void resize(const index_type size) { this->base_class::resize(jutils::math::max(0, size)); }
-        void resize(const index_type size, const type& defaultValue) { this->base_class::resize(jutils::math::max(0, size), defaultValue); }
+        void append(std::initializer_list<type> list)
+        {
+            for (const auto& value : list)
+            {
+                _putBack(value);
+            }
+        }
+        void append(const jlist& list)
+        {
+            if (&list != this)
+            {
+                _appendList(list);
+            }
+        }
 
-        void removeAt(const_iterator iter) { this->base_class::erase(iter); }
+        void removeAt(const const_iterator& iter) { _removeAt(iter); }
         void removeAt(const index_type index)
         {
-            checkIsValidIndex(index);
-            removeAt(getIterByIndexInternal(index));
-        }
-
-        index_type remove(const type& value)
-        {
-            index_type count = 0;
-            if (!isEmpty())
+            if (isValidIndex(index))
             {
-                auto iter = begin();
-                while (iter != end())
-                {
-                    if (*iter == value)
-                    {
-                        iter = this->base_class::erase(iter);
-                        count++;
-                    }
-                    else
-                    {
-                        ++iter;
-                    }
-                }
+                _removeAt(_getIteratorByIndex(index));
             }
-            return count;
         }
-        void clear() { return this->base_class::clear(); }
+        index_type remove(const type& value);
+
+        void clear();
 
         jlist& operator+=(const type& value)
         {
-            add(value);
+            _putBack(value);
             return *this;
         }
         jlist& operator+=(type&& value)
         {
-            add(std::move(value));
+            _putBack(std::move(value));
             return *this;
         }
         jlist& operator+=(std::initializer_list<type> list)
         {
-            for (auto& value : list)
-            {
-                add(value);
-            }
+            append(list);
             return *this;
         }
         jlist& operator+=(const jlist& value)
         {
-            if ((this != &value) && !value.isEmpty())
-            {
-                for (const auto& element : value)
-                {
-                    add(element);
-                }
-            }
+            append(value);
             return *this;
         }
 
     private:
-        
-        void checkIsValidIndex(const index_type index) const
+
+        list_node* firstNode = nullptr;
+        list_node* lastNode = nullptr;
+        index_type nodeCount = 0;
+
+        list_node* firstUnusedNode = nullptr;
+        index_type unusedNodeCount = 0;
+
+
+        static list_node* _allocateNode()
         {
-            if (!isValidIndex(index))
-            {
-                throw std::out_of_range("Invalid jlist<T> index!");
-            }
+            return static_cast<list_node*>(::operator new(sizeof(list_node), static_cast<std::align_val_t>(alignof(list_node))));
         }
-        void checkIfEmpty() const
+        static void _deallocateNode(list_node* node)
         {
-            if (isEmpty())
+            ::operator delete(node, sizeof(list_node), static_cast<std::align_val_t>(alignof(list_node)));
+        }
+
+        template<typename... Args>
+        static void _constructObject(list_node* node, Args&&... args) { ::new (&node->object) type(std::forward<Args>(args)...); }
+        static void _destroyObject(list_node* node) { node->object.~type(); }
+
+        iterator _getIteratorByIndex(const index_type index) { return begin() += index; }
+        const_iterator _getIteratorByIndex(const index_type index) const { return begin() += index; }
+
+        void _reserveNodes(index_type count);
+        list_node* _getNewNode();
+        void _returnNode(list_node* node);
+
+        template<typename... Args>
+        void _putBack(Args&&... args);
+        template<typename... Args>
+        void _putAt(const const_iterator& iter, Args&&... args);
+
+        void _appendList(const jlist& list)
+        {
+            list_node* node = list.firstNode;
+            while (node != nullptr)
             {
-                throw std::length_error("jlist<T> is empty!");
+                _putBack(node->object);
+                node = node->nextNode;
             }
         }
 
-        iterator getIterByIndexInternal(const index_type index)
-        {
-            auto iter = begin();
-            for (index_type i = 0; i < index; i++)
-            {
-                ++iter;
-            }
-            return iter;
-        }
-        const_iterator getIterByIndexInternal(const index_type index) const
-        {
-            auto iter = begin();
-            for (index_type i = 0; i < index; i++)
-            {
-                ++iter;
-            }
-            return iter;
-        }
+        const_iterator _removeAt(const const_iterator& iterator);
     };
-    
+
     template<typename T>
-    jlist<T> operator+(const jlist<T>& value1, const T& value2) { return jlist<T>(value1) += value2; }
+    void jlist<T>::const_iterator::_offsetIterator(index_type offset)
+    {
+        if (offset > 0)
+        {
+            while ((offset > 0) && _isValid())
+            {
+                listNodePtr = listNodePtr->nextNode;
+                offset--;
+            }
+        }
+        else
+        {
+            while ((offset < 0) && _isValid())
+            {
+                listNodePtr = listNodePtr->prevNode;
+                offset++;
+            }
+        }
+    }
     template<typename T>
-    jlist<T> operator+(const T& value1, const jlist<T>& value2) { return (jlist<T>() += value1) += value2; }
+    void jlist<T>::const_iterator::_incrementIterator()
+    {
+        if (_isValid())
+        {
+            listNodePtr = listNodePtr->nextNode;
+        }
+    }
     template<typename T>
-    jlist<T> operator+(const jlist<T>& value1, const jlist<T>& value2) { return jlist<T>(value1) += value2; }
+    void jlist<T>::const_iterator::_decrementIterator()
+    {
+        if (_isValid())
+        {
+            listNodePtr = listNodePtr->prevNode;
+        }
+    }
+
+    template<typename T>
+    typename jlist<T>::iterator jlist<T>::getIterByValue(const type& value)
+    {
+        if (!isEmpty())
+        {
+            for (auto iter = begin(); iter != end(); ++iter)
+            {
+                if (*iter == value)
+                {
+                    return iter;
+                }
+            }
+        }
+        return end();
+    }
+    template<typename T>
+    typename jlist<T>::const_iterator jlist<T>::getIterByValue(const type& value) const
+    {
+        if (!isEmpty())
+        {
+            for (auto iter = begin(); iter != end(); ++iter)
+            {
+                if (*iter == value)
+                {
+                    return iter;
+                }
+            }
+        }
+        return end();
+    }
+
+    template<typename T>
+    typename jlist<T>::index_type jlist<T>::indexOf(const type& value) const
+    {
+        if (!isEmpty())
+        {
+            index_type index = 0;
+            for (const auto& element : *this)
+            {
+                if (element == value)
+                {
+                    return index;
+                }
+                index++;
+            }
+        }
+        return -1;
+    }
+
+    template<typename T>
+    void jlist<T>::_reserveNodes(index_type count)
+    {
+        if (count <= 0)
+        {
+            return;
+        }
+
+        unusedNodeCount += count;
+        while (count > 0)
+        {
+            count--;
+
+            list_node* newNode = _allocateNode();
+            newNode->prevNode = newNode;
+            newNode->nextNode = firstUnusedNode;
+            firstUnusedNode = newNode;
+        }
+    }
+    template<typename T>
+    typename jlist<T>::list_node* jlist<T>::_getNewNode()
+    {
+        if (unusedNodeCount == 0)
+        {
+            return _allocateNode();
+        }
+
+        list_node* result = firstUnusedNode;
+        firstUnusedNode = firstUnusedNode->nextNode;
+        unusedNodeCount--;
+        return result;
+    }
+    template<typename T>
+    void jlist<T>::_returnNode(list_node* node)
+    {
+        node->prevNode = node;
+        node->nextNode = firstUnusedNode;
+        firstUnusedNode = node;
+        unusedNodeCount++;
+    }
+
+    template<typename T>
+    template<typename ... Args>
+    void jlist<T>::_putBack(Args&&... args)
+    {
+        list_node* newNode = _getNewNode();
+        newNode->prevNode = lastNode;
+        newNode->nextNode = nullptr;
+        lastNode = newNode;
+        nodeCount++;
+
+        _constructObject(newNode, std::forward<Args>(args)...);
+    }
+    template<typename T>
+    template<typename ... Args>
+    void jlist<T>::_putAt(const const_iterator& iter, Args&&... args)
+    {
+        if (iter.listNodePtr == lastNode)
+        {
+            _putBack(std::forward<Args>(args)...);
+        }
+        else
+        {
+            list_node* newNode = _getNewNode();
+            if (firstNode == iter.listNodePtr)
+            {
+                newNode->prevNode = nullptr;
+                newNode->nextNode = firstNode;
+                firstNode->prevNode = newNode;
+                firstNode = newNode;
+            }
+            else
+            {
+                newNode->prevNode = iter.listNodePtr->prevNode;
+                newNode->nextNode = iter.listNodePtr;
+                iter.listNodePtr->prevNode = newNode;
+            }
+            nodeCount++;
+
+            _constructObject(newNode, std::forward<Args>(args)...);
+        }
+    }
+
+    template<typename T>
+    typename jlist<T>::const_iterator jlist<T>::_removeAt(const const_iterator& iterator)
+    {
+        if (!iterator._isValid())
+        {
+            return iterator;
+        }
+
+        list_node* node = iterator.listNodePtr;
+        list_node* next_node = node->nextNode;
+        if (node != firstNode)
+        {
+            node->prevNode->nextNode = node->nextNode;
+        }
+        else
+        {
+            firstNode = node->nextNode;
+        }
+        if (node != lastNode)
+        {
+            node->nextNode->prevNode = node->prevNode;
+        }
+        else
+        {
+            lastNode = node->prevNode;
+        }
+        nodeCount--;
+
+        _destroyObject(node);
+        _returnNode(node);
+        return const_iterator(next_node);
+    }
+    template<typename T>
+    typename jlist<T>::index_type jlist<T>::remove(const type& value)
+    {
+        index_type count = 0;
+        if (!isEmpty())
+        {
+            auto iter = begin();
+            while (iter._isValid())
+            {
+                if (*iter == value)
+                {
+                    iter = _removeAt(iter);
+                    count++;
+                }
+                else
+                {
+                    ++iter;
+                }
+            }
+        }
+        return count;
+    }
+
+    template<typename T>
+    void jlist<T>::clear()
+    {
+        if (nodeCount > 0)
+        {
+            list_node* node = firstNode;
+            while (node != nullptr)
+            {
+                list_node* nextNode = node->nextNode;
+                _returnNode(node);
+                node = nextNode;
+            }
+            firstNode = nullptr;
+            nodeCount = 0;
+        }
+    }
 }
