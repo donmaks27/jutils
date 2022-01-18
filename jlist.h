@@ -105,6 +105,14 @@ namespace jutils
         };
 
         jlist() = default;
+        jlist(const index_type size)
+        {
+            resize(size);
+        }
+        jlist(const index_type size, const type& defaultValue)
+        {
+            resize(size, defaultValue);
+        }
         jlist(std::initializer_list<type> list)
         {
             append(list);
@@ -153,6 +161,12 @@ namespace jutils
             unusedNodeCount = 0;
         }
 
+        jlist& operator=(std::initializer_list<type> list)
+        {
+            clear();
+            append(list);
+            return *this;
+        }
         jlist& operator=(const jlist& list)
         {
             if (this != &list)
@@ -610,4 +624,11 @@ namespace jutils
             nodeCount = 0;
         }
     }
+
+    template<typename T>
+    jlist<T> operator+(const jlist<T>& container, const T& value) { return jlist<T>(container) += value; }
+    template<typename T>
+    jlist<T> operator+(const T& value, const jlist<T>& container) { return jlist<T>(1, value) += container; }
+    template<typename T>
+    jlist<T> operator+(const jlist<T>& container1, const jlist<T>& container2) { return jlist<T>(container1) += container2; }
 }

@@ -1,102 +1,107 @@
-﻿// Copyright 2021 Leonov Maksim. All Rights Reserved.
+﻿// Copyright 2022 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
-#include <set>
-
-#include "type_defines.h"
+#include "jtree_red_black.h"
 
 namespace jutils
 {
-    template<typename T, typename ComparePred = std::less<>>
-    class jset : std::set<T, ComparePred>
+    template<typename T>
+    class jset
     {
-        using base_class = std::set<T, ComparePred>;
+        using container_type = jtree_red_black<T>;
 
     public:
 
         using type = T;
-        using compare_predicate_type = ComparePred;
-        using iterator = typename base_class::iterator;
-        using const_iterator = typename base_class::const_iterator;
+        using iterator = typename container_type::iterator;
+        using const_iterator = typename container_type::const_iterator;
+        using index_type = int32;
 
-        jset()
-            : base_class()
-        {}
+        jset() = default;
         jset(std::initializer_list<type> list)
-            : base_class(list)
+            : container(list)
         {}
         jset(const jset& value)
-            : base_class(value)
+            : container(value.container)
         {}
         jset(jset&& value) noexcept
-            : base_class(std::move(value))
+            : container(std::move(value.container))
         {}
+        ~jset() = default;
 
         jset& operator=(std::initializer_list<type> list)
         {
-            this->base_class::operator=(list);
+            container = list;
             return *this;
         }
         jset& operator=(const jset& value)
         {
-            this->base_class::operator=(value);
+            if (this != &value)
+            {
+                container = value.container;
+            }
             return *this;
         }
         jset& operator=(jset&& value) noexcept
         {
-            this->base_class::operator=(std::move(value));
+            container = std::move(value.container);
             return *this;
         }
 
-        int32 getSize() const { return static_cast<int32>(this->base_class::size()); }
-        bool isEmpty() const { return this->base_class::empty(); }
+        index_type getSize() const { return container.getSize(); }
+        bool isEmpty() const { return getSize() == 0; }
 
-        iterator begin() { return this->base_class::begin(); }
-        iterator end() { return this->base_class::end(); }
+        iterator begin() noexcept { return container.begin(); }
+        iterator end() noexcept { return container.end(); }
 
-        const_iterator begin() const { return this->base_class::begin(); }
-        const_iterator end() const { return this->base_class::end(); }
+        const_iterator begin() const noexcept { return container.begin(); }
+        const_iterator end() const noexcept { return container.end(); }
 
-        bool contains(const type& value) const { return this->base_class::find(value) != end(); }
+        bool contains(const type& value) const { return container.contains(value); }
 
         template<typename... Args>
-        const type& put(Args&&... args) { return *this->base_class::emplace(std::forward<Args>(args)...).first; }
+        const type& put(Args&&... args) { return add(type(std::forward<Args>(args)...)); }
 
-        const type& add(const type& value) { return put(value); }
-        const type& add(type&& value) { return put(std::move(value)); }
+        const type& add(const type& value) { return container.add(value); }
+        const type& add(type&& value) { return container.add(std::move(value)); }
 
-        void remove(const type& value) { this->base_class::erase(value); }
-        void clear() { return this->base_class::clear(); }
+        void append(std::initializer_list<type> list) { append(list); }
+        void append(const jset& value) { container.append(value.container); }
+
+        void remove(const type& value) { container.remove(value); }
+        void clear() { container.clear(); }
 
         jset& operator+=(const type& value)
         {
             add(value);
             return *this;
         }
+        jset& operator+=(type&& value)
+        {
+            add(std::move(value));
+            return *this;
+        }
         jset& operator+=(std::initializer_list<type> list)
         {
-            for (const auto& value : list)
-            {
-                add(value);
-            }
+            append(list);
             return *this;
         }
-        template<typename OtherComparePred>
-        jset& operator+=(const jset<type, OtherComparePred>& value)
+        jset& operator+=(const jset& value)
         {
-            for (const auto& key : value)
-            {
-                add(key);
-            }
+            append(value);
             return *this;
         }
+
+    private:
+
+        container_type container = container_type();
     };
-    
-    template<typename Type, typename ComparePred>
-    jset<Type, ComparePred> operator+(const jset<Type, ComparePred>& value1, const Type& value2) { return jset<Type, ComparePred>(value1) += value2; }
-    template<typename Type, typename ComparePred>
-    jset<Type, ComparePred> operator+(const Type& value1, const jset<Type, ComparePred>& value2) { return (jset<Type, ComparePred>() += value1) += value2; }
-    template<typename Type, typename ComparePred, typename OtherComparePred>
-    jset<Type, ComparePred> operator+(const jset<Type, ComparePred>& value1, const jset<Type, OtherComparePred>& value2) { return jset<Type, ComparePred>(value1) += value2; }
+
+    template<typename T>
+    jset<T> operator+(const jset<T>& container, const T& value) { return jset<T>(container) += value; }
+    template<typename T>
+    jset<T> operator+(const T& value, const jset<T>& container) { return jset<T>(1, value) += container; }
+    template<typename T>
+    jset<T> operator+(const jset<T>& container1, const jset<T>& container2) { return jset<T>(container1) += container2; }
 }

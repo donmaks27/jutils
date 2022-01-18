@@ -3,35 +3,25 @@
 #pragma once
 
 #include "type_defines.h"
-#include "math/jmath.h"
+
+#include <functional>
 
 namespace jutils
 {
-    template<typename T>
-    struct jtree_value_description
-    {
-        using type = T;
-        using key_type = T;
-
-        static constexpr const key_type& getKey(const type& value) { return value; }
-    };
-
     template<typename T, typename ComparePred = std::less<>>
     class jtree_red_black
     {
     public:
 
-        using value_type = T;
+        using type = T;
         using compare_predicate = ComparePred;
-        using value_description = jtree_value_description<value_type>;
-        using key_type = typename value_description::key_type;
         using index_type = int32;
 
     private:
 
         struct tree_node
         {
-            value_type object;
+            type object;
 
             bool isRed = true;
             tree_node* parent = nullptr;
@@ -59,8 +49,8 @@ namespace jutils
 
         public:
 
-            const value_type& operator*() const { return node->object; }
-            const value_type* operator->() const { return _isValid() ? &node->object : nullptr; }
+            const type& operator*() const { return node->object; }
+            const type* operator->() const { return _isValid() ? &node->object : nullptr; }
 
             const_iterator& operator++() { _moveToNextNode(); return *this; }
             const_iterator operator++(int) { const_iterator temp = *this; ++*this; return temp; }
@@ -102,8 +92,8 @@ namespace jutils
 
         public:
 
-            value_type& operator*() const { return this->node->object; }
-            value_type* operator->() const { return this->_isValid() ? &this->node->object : nullptr; }
+            type& operator*() const { return this->node->object; }
+            type* operator->() const { return this->_isValid() ? &this->node->object : nullptr; }
 
             iterator& operator++() { this->_moveToNextNode(); return *this; }
             iterator operator++(int) { iterator temp = *this; ++*this; return temp; }
@@ -119,6 +109,10 @@ namespace jutils
         };
 
         jtree_red_black() = default;
+        jtree_red_black(std::initializer_list<type> list)
+        {
+            append(list);
+        }
         jtree_red_black(const jtree_red_black& value)
         {
             append(value);
@@ -140,6 +134,12 @@ namespace jutils
             _clearData();
         }
 
+        jtree_red_black& operator=(std::initializer_list<type> list)
+        {
+            clear();
+            append(list);
+            return *this;
+        }
         jtree_red_black& operator=(const jtree_red_black& value)
         {
             if (this != &value)
@@ -168,7 +168,6 @@ namespace jutils
 
         index_type getSize() const { return size; }
         bool isEmpty() const { return size == 0; }
-        bool isValidIndex(const index_type index) const { return jutils::math::isWithin(index, 0, size - 1); }
 
         iterator begin() noexcept { return iterator(rootNode); }
         iterator end() noexcept { return iterator(); }
@@ -176,35 +175,37 @@ namespace jutils
         const_iterator begin() const noexcept { return const_iterator(rootNode); }
         const_iterator end() const noexcept { return const_iterator(); }
 
-        const value_type* find(const key_type& key) const
+        const type* find(const type& key) const
         {
             const tree_node* node = _findNode(key);
             return node != nullptr ? &node->object : nullptr;
         }
-        bool contains(const key_type& key) const { return _findNode(key) != nullptr; }
+        bool contains(const type& key) const { return _findNode(key) != nullptr; }
 
         void reserve(const index_type capacity) { _reserveNodes(capacity - size - unusedNodesCount); }
 
-        void add(const value_type& value)
+        const type& add(const type& value)
         {
             tree_node* node;
-            if (_putValue(value_description::getKey(value), node))
+            if (_putValue(value, node))
             {
                 size++;
                 _constructNodeObject(node, value);
             }
+            return node->object;
         }
-        void add(value_type&& value)
+        const type& add(type&& value)
         {
             tree_node* node;
-            if (_putValue(value_description::getKey(value), node))
+            if (_putValue(value, node))
             {
                 size++;
                 _constructNodeObject(node, std::move(value));
             }
+            return node->object;
         }
 
-        void append(std::initializer_list<value_type> list)
+        void append(std::initializer_list<type> list)
         {
             _reserveNodes(list.size() - unusedNodesCount);
             for (const auto& value : list)
@@ -224,7 +225,7 @@ namespace jutils
             }
         }
 
-        void remove(const key_type& key)
+        void remove(const type& key)
         {
             tree_node* node = _findNode(key);
             if (node != nullptr)
@@ -235,17 +236,17 @@ namespace jutils
         }
         void clear();
 
-        jtree_red_black& operator+=(const value_type& value)
+        jtree_red_black& operator+=(const type& value)
         {
             add(value);
             return *this;
         }
-        jtree_red_black& operator+=(value_type&& value)
+        jtree_red_black& operator+=(type&& value)
         {
             add(std::move(value));
             return *this;
         }
-        jtree_red_black& operator+=(std::initializer_list<value_type> list)
+        jtree_red_black& operator+=(std::initializer_list<type> list)
         {
             append(list);
             return *this;
@@ -269,13 +270,13 @@ namespace jutils
         static void _deallocateNode(tree_node* node) { ::operator delete(node, sizeof(tree_node), static_cast<std::align_val_t>(alignof(tree_node))); }
 
         template<typename... Args>
-        static void _constructNodeObject(tree_node* node, Args&&... args) { ::new (&node->object) value_type(std::forward<Args>(args)...); }
-        static void _destroyNodeObject(tree_node* node) { node->object.~value_type(); }
+        static void _constructNodeObject(tree_node* node, Args&&... args) { ::new (&node->object) type(std::forward<Args>(args)...); }
+        static void _destroyNodeObject(tree_node* node) { node->object.~type(); }
         static void _copyNodeObject(tree_node* srcNode, tree_node* dstNode)
         {
-            if (std::is_trivially_copyable_v<value_type>)
+            if (std::is_trivially_copyable_v<type>)
             {
-                ::memcpy(&dstNode->object, &srcNode->object, sizeof(value_type));
+                ::memcpy(&dstNode->object, &srcNode->object, sizeof(type));
             }
             else
             {
@@ -283,12 +284,12 @@ namespace jutils
             }
         }
 
-        static constexpr bool _compareObjects(const key_type& key1, const key_type& key2)
+        static constexpr bool _compareObjects(const type& key1, const type& key2)
         {
             static constexpr compare_predicate predicate;
             return predicate(key1, key2);
         }
-        tree_node* _findNode(const key_type& key) const;
+        tree_node* _findNode(const type& key) const;
 
         tree_node* _getNode();
         void _returnNode(tree_node* node);
@@ -298,7 +299,7 @@ namespace jutils
         static bool _rotateRight(tree_node* node);
         void _rotateNode(tree_node* node, const bool left);
 
-        bool _putValue(const key_type& key, tree_node*& outNode);
+        bool _putValue(const type& key, tree_node*& outNode);
         void _restoreBallanceAfterPut(tree_node* node);
 
         void _removeValue(tree_node* node);
@@ -394,16 +395,16 @@ namespace jutils
     }
 
     template<typename T, typename ComparePred>
-    typename jtree_red_black<T, ComparePred>::tree_node* jtree_red_black<T, ComparePred>::_findNode(const key_type& key) const
+    typename jtree_red_black<T, ComparePred>::tree_node* jtree_red_black<T, ComparePred>::_findNode(const type& key) const
     {
         tree_node* node = rootNode;
         while (node != nullptr)
         {
-            if (_compareObjects(key, value_description::getKey(node->object)))
+            if (_compareObjects(key, node->object))
             {
                 node = node->childLeft;
             }
-            else if (_compareObjects(value_description::getKey(node->object), key))
+            else if (_compareObjects(node->object, key))
             {
                 node = node->childRight;
             }
@@ -544,7 +545,7 @@ namespace jutils
     }
 
     template<typename T, typename ComparePred>
-    bool jtree_red_black<T, ComparePred>::_putValue(const key_type& key, tree_node*& outNode)
+    bool jtree_red_black<T, ComparePred>::_putValue(const type& key, tree_node*& outNode)
     {
         if (rootNode == nullptr)
         {
@@ -558,7 +559,7 @@ namespace jutils
         tree_node* node = rootNode;
         while (true)
         {
-            if (_compareObjects(key, value_description::getKey(node->object)))
+            if (_compareObjects(key, node->object))
             {
                 if (node->childLeft != nullptr)
                 {
@@ -575,7 +576,7 @@ namespace jutils
                     return true;
                 }
             }
-            else if (_compareObjects(value_description::getKey(node->object), key))
+            else if (_compareObjects(node->object, key))
             {
                 if (node->childRight != nullptr)
                 {
@@ -874,4 +875,11 @@ namespace jutils
         rootNode = nullptr;
         size = 0;
     }
+
+    template<typename T, typename ComparePred>
+    jtree_red_black<T, ComparePred> operator+(const jtree_red_black<T, ComparePred>& container, const T& value) { return jtree_red_black<T, ComparePred>(container) += value; }
+    template<typename T, typename ComparePred>
+    jtree_red_black<T, ComparePred> operator+(const T& value, const jtree_red_black<T, ComparePred>& container) { return container + value; }
+    template<typename T, typename ComparePred>
+    jtree_red_black<T, ComparePred> operator+(const jtree_red_black<T, ComparePred>& container1, const jtree_red_black<T, ComparePred>& container2) { return jtree_red_black<T, ComparePred>(container1) += container2; }
 }

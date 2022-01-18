@@ -130,6 +130,12 @@ namespace jutils
             }
         }
 
+        jarray& operator=(std::initializer_list<type> list)
+        {
+            clear();
+            append(list);
+            return *this;
+        }
         jarray& operator=(const jarray& value)
         {
             if (this != &value)
@@ -577,4 +583,11 @@ namespace jutils
         }
         size = newSize;
     }
+
+    template<typename T>
+    jarray<T> operator+(const jarray<T>& container, const T& value) { return jarray<T>(container) += value; }
+    template<typename T>
+    jarray<T> operator+(const T& value, const jarray<T>& container) { return jarray<T>(1, value) += container; }
+    template<typename T>
+    jarray<T> operator+(const jarray<T>& container1, const jarray<T>& container2) { return jarray<T>(container1) += container2; }
 }
