@@ -207,7 +207,7 @@ namespace jutils
 
         void append(std::initializer_list<type> list)
         {
-            _reserveNodes(list.size() - unusedNodesCount);
+            _reserveNodes(static_cast<index_type>(list.size()) - unusedNodesCount);
             for (const auto& value : list)
             {
                 add(value);
