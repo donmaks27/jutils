@@ -9,11 +9,10 @@ namespace jutils
     template<typename T>
     class jset
     {
-        using container_type = jtree_red_black<T>;
-
     public:
 
         using type = T;
+        using container_type = jtree_red_black<type>;
         using iterator = typename container_type::iterator;
         using const_iterator = typename container_type::const_iterator;
         using index_type = int32;
@@ -22,9 +21,7 @@ namespace jutils
         jset(std::initializer_list<type> list)
             : container(list)
         {}
-        jset(const jset& value)
-            : container(value.container)
-        {}
+        jset(const jset&) = default;
         jset(jset&& value) noexcept
             : container(std::move(value.container))
         {}
@@ -35,14 +32,7 @@ namespace jutils
             container = list;
             return *this;
         }
-        jset& operator=(const jset& value)
-        {
-            if (this != &value)
-            {
-                container = value.container;
-            }
-            return *this;
-        }
+        jset& operator=(const jset&) = default;
         jset& operator=(jset&& value) noexcept
         {
             container = std::move(value.container);
@@ -59,14 +49,13 @@ namespace jutils
         const_iterator end() const noexcept { return container.end(); }
 
         bool contains(const type& value) const { return container.contains(value); }
-
-        template<typename... Args>
-        const type& put(Args&&... args) { return add(type(std::forward<Args>(args)...)); }
+        
+        void reserve(const index_type capacity) { container.reserve(capacity); }
 
         const type& add(const type& value) { return container.add(value); }
         const type& add(type&& value) { return container.add(std::move(value)); }
 
-        void append(std::initializer_list<type> list) { append(list); }
+        void append(std::initializer_list<type> list) { container.append(list); }
         void append(const jset& value) { container.append(value.container); }
 
         void remove(const type& value) { container.remove(value); }

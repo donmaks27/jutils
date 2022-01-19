@@ -175,35 +175,37 @@ namespace jutils
         const_iterator begin() const noexcept { return const_iterator(rootNode); }
         const_iterator end() const noexcept { return const_iterator(); }
 
-        const type* find(const type& key) const
+        template<typename KeyType>
+        type* find(const KeyType& key)
+        {
+            tree_node* node = _findNode(key);
+            return node != nullptr ? &node->object : nullptr;
+        }
+        template<typename KeyType>
+        const type* find(const KeyType& key) const
         {
             const tree_node* node = _findNode(key);
             return node != nullptr ? &node->object : nullptr;
         }
-        bool contains(const type& key) const { return _findNode(key) != nullptr; }
+        template<typename KeyType>
+        bool contains(const KeyType& key) const { return _findNode(key) != nullptr; }
 
         void reserve(const index_type capacity) { _reserveNodes(capacity - size - unusedNodesCount); }
 
-        const type& add(const type& value)
+        template<typename KeyType, typename... Args>
+        type& put(const KeyType& key, Args&&... args)
         {
             tree_node* node;
-            if (_putValue(value, node))
+            if (_putValue(key, node))
             {
                 size++;
-                _constructNodeObject(node, value);
+                _constructNodeObject(node, std::forward<Args>(args)...);
             }
             return node->object;
         }
-        const type& add(type&& value)
-        {
-            tree_node* node;
-            if (_putValue(value, node))
-            {
-                size++;
-                _constructNodeObject(node, std::move(value));
-            }
-            return node->object;
-        }
+
+        type& add(const type& value) { return put(value, value); }
+        type& add(type&& value) { return put(value, std::move(value)); }
 
         void append(std::initializer_list<type> list)
         {
@@ -225,7 +227,8 @@ namespace jutils
             }
         }
 
-        void remove(const type& key)
+        template<typename KeyType>
+        void remove(const KeyType& key)
         {
             tree_node* node = _findNode(key);
             if (node != nullptr)
@@ -284,12 +287,14 @@ namespace jutils
             }
         }
 
-        static constexpr bool _compareObjects(const type& key1, const type& key2)
+        template<typename Type1, typename Type2>
+        static constexpr bool _compareObjects(const Type1& key1, const Type2& key2)
         {
             static constexpr compare_predicate predicate;
             return predicate(key1, key2);
         }
-        tree_node* _findNode(const type& key) const;
+        template<typename KeyType>
+        tree_node* _findNode(const KeyType& key) const;
 
         tree_node* _getNode();
         void _returnNode(tree_node* node);
@@ -299,7 +304,8 @@ namespace jutils
         static bool _rotateRight(tree_node* node);
         void _rotateNode(tree_node* node, const bool left);
 
-        bool _putValue(const type& key, tree_node*& outNode);
+        template<typename KeyType>
+        bool _putValue(const KeyType& key, tree_node*& outNode);
         void _restoreBallanceAfterPut(tree_node* node);
 
         void _removeValue(tree_node* node);
@@ -395,7 +401,8 @@ namespace jutils
     }
 
     template<typename T, typename ComparePred>
-    typename jtree_red_black<T, ComparePred>::tree_node* jtree_red_black<T, ComparePred>::_findNode(const type& key) const
+    template<typename KeyType>
+    typename jtree_red_black<T, ComparePred>::tree_node* jtree_red_black<T, ComparePred>::_findNode(const KeyType& key) const
     {
         tree_node* node = rootNode;
         while (node != nullptr)
@@ -545,7 +552,8 @@ namespace jutils
     }
 
     template<typename T, typename ComparePred>
-    bool jtree_red_black<T, ComparePred>::_putValue(const type& key, tree_node*& outNode)
+    template<typename KeyType>
+    bool jtree_red_black<T, ComparePred>::_putValue(const KeyType& key, tree_node*& outNode)
     {
         if (rootNode == nullptr)
         {

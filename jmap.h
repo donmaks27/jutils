@@ -1,155 +1,164 @@
-﻿// Copyright 2021 Leonov Maksim. All Rights Reserved.
+﻿// Copyright 2022 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
-#include <map>
-
-#include "jarray.h"
+#include "jtree_red_black.h"
 
 namespace jutils
 {
-    template<typename K, typename V, typename ComparePred = std::less<>>
-    class jmap : std::map<K, V, ComparePred>
+    template<typename KeyType, typename ValueType>
+    class jmap
     {
-        using base_class = std::map<K, V, ComparePred>;
-
     public:
 
-        using key_type = K;
-        using value_type = V;
-        using compare_predicate_type = ComparePred;
-        using iterator = typename base_class::iterator;
-        using const_iterator = typename base_class::const_iterator;
+        using key_type = KeyType;
+        using value_type = ValueType;
 
-        jmap()
-            : base_class()
+        struct pair
+        {
+            constexpr pair() = default;
+            template<typename... Args>
+            constexpr pair(const key_type& key, Args&&... valueArgs)
+                : key(key), value(std::forward<Args>(valueArgs)...)
+            {}
+            template<typename... Args>
+            constexpr pair(key_type&& key, Args&&... valueArgs)
+                : key(std::move(key)), value(std::forward<Args>(valueArgs)...)
+            {}
+            constexpr pair(const pair& value) = default;
+            constexpr pair(pair&& value) noexcept = default;
+
+            constexpr pair& operator=(const pair& otherPair) = default;
+            constexpr pair& operator=(pair&& otherPair) noexcept = default;
+
+            key_type key;
+            value_type value;
+        };
+        struct compare_predicator
+        {
+            constexpr bool operator()(const key_type& value1, const key_type& value2) const
+            {
+                static constexpr std::less<> predicator;
+                return predicator(value1, value2);
+            }
+            constexpr bool operator()(const pair& value1, const pair& value2) const { return this->operator()(value1.key, value2.key); }
+            constexpr bool operator()(const pair& value1, const key_type& value2) const { return this->operator()(value1.key, value2); }
+            constexpr bool operator()(const key_type& value1, const pair& value2) const { return this->operator()(value1, value2.key); }
+        };
+
+        using container_type = jtree_red_black<pair, compare_predicator>;
+        using iterator = typename container_type::iterator;
+        using const_iterator = typename container_type::const_iterator;
+        using index_type = int32;
+
+        jmap() = default;
+        jmap(std::initializer_list<pair> list)
+            : container(list)
         {}
-        jmap(std::initializer_list<std::pair<const key_type, value_type>> initializer)
-            : base_class(initializer)
-        {}
-        jmap(const jmap& value)
-            : base_class(value)
-        {}
+        jmap(const jmap&) = default;
         jmap(jmap&& value) noexcept
-            : base_class(std::move(value))
+            : container(std::move(value.container))
         {}
+        ~jmap() = default;
 
-        jmap& operator=(std::initializer_list<std::pair<const key_type, value_type>> initializer)
+        jmap& operator=(std::initializer_list<pair> list)
         {
-            this->base_class::operator=(initializer);
+            container = list;
             return *this;
         }
-        jmap& operator=(const jmap& value)
-        {
-            this->base_class::operator=(value);
-            return *this;
-        }
+        jmap& operator=(const jmap&) = default;
         jmap& operator=(jmap&& value) noexcept
         {
-            this->base_class::operator=(std::move(value));
+            container = std::move(value.container);
             return *this;
         }
 
-        int32 getSize() const { return static_cast<int32>(this->base_class::size()); }
-        bool isEmpty() const { return this->base_class::empty(); }
+        index_type getSize() const { return container.getSize(); }
+        bool isEmpty() const { return getSize() == 0; }
 
-        iterator begin() { return this->base_class::begin(); }
-        iterator end() { return this->base_class::end(); }
+        iterator begin() noexcept { return container.begin(); }
+        iterator end() noexcept { return container.end(); }
 
-        const_iterator begin() const { return this->base_class::begin(); }
-        const_iterator end() const { return this->base_class::end(); }
-        
-        value_type& get(const key_type& key) { return this->base_class::find(key)->second; }
-        const value_type& get(const key_type& key) const { return this->base_class::find(key)->second; }
-        value_type& getOrAdd(const key_type& key) { return this->base_class::try_emplace(key).first->second; }
-        value_type& operator[](const key_type& key) { return getOrAdd(key); }
+        const_iterator begin() const noexcept { return container.begin(); }
+        const_iterator end() const noexcept { return container.end(); }
+
+        value_type& get(const key_type& key) { return container.find(key)->value; }
+        const value_type& get(const key_type& key) const { return container.find(key)->value; }
+        value_type& operator[](const key_type& key) { return put(key); }
         const value_type& operator[](const key_type& key) const { return get(key); }
 
         value_type* find(const key_type& key)
         {
-            auto iter = this->base_class::find(key);
-            return iter != end() ? &iter->second : nullptr;
+            pair* value = container.find(key);
+            return value != nullptr ? &value->value : nullptr;
         }
         const value_type* find(const key_type& key) const
         {
-            auto iter = this->base_class::find(key);
-            return iter != end() ? &iter->second : nullptr;
-        }
-        template<typename Pred>
-        jarray<key_type> findByPredicate(Pred predicate) const
-        {
-            jarray<key_type> result;
-            for (const auto keyAndValue : *this)
-            {
-                if (predicate(keyAndValue.first, keyAndValue.second))
-                {
-                    result.add(keyAndValue.first);
-                }
-            }
-            return result;
-        }
-        template<typename Pred>
-        const key_type* findFirstByPredicate(Pred predicate) const
-        {
-            for (const auto keyAndValue : *this)
-            {
-                if (predicate(keyAndValue.first, keyAndValue.second))
-                {
-                    return &keyAndValue.first;
-                }
-            }
-            return nullptr;
+            const pair* value = container.find(key);
+            return value != nullptr ? &value->value : nullptr;
         }
 
-        bool contains(const key_type& key) const { return find(key) != nullptr; }
-        template<typename Pred>
-        bool containsByPredicate(Pred predicate) const { return findFirstByPredicate(predicate) != nullptr; }
+        bool contains(const key_type& key) const { return container.find(key) != nullptr; }
+
+        void reserve(const index_type capacity) { container.reserve(capacity); }
 
         template<typename... Args>
-        value_type& assign(const key_type& key, Args&&... args) { return this->base_class::insert_or_assign(key, value_type(std::forward<Args>(args)...)).first->second; }
+        value_type& put(const key_type& key, Args&&... args) { return container.put(key, key, std::forward<Args>(args)...).value; }
         template<typename... Args>
-        value_type& assign(key_type&& key, Args&&... args) { return this->base_class::insert_or_assign(std::move(key), value_type(std::forward<Args>(args)...)).first->second; }
+        value_type& put(key_type&& key, Args&&... args) { return container.put(key, std::move(key), std::forward<Args>(args)...).value; }
 
-        value_type& set(const key_type& key, const value_type& value) { return assign(key, value); }
-        value_type& set(const key_type& key, value_type&& value) { return this->base_class::insert_or_assign(key, std::move(value)).first->second; }
-        value_type& set(key_type&& key, const value_type& value) { return assign(std::move(key), value); }
-        value_type& set(key_type&& key, value_type&& value) { return this->base_class::insert_or_assign(std::move(key), std::move(value)).first->second; }
+        value_type& add(const key_type& key, const value_type& value) { return put(key, value); }
+        value_type& add(const key_type& key, value_type&& value) { return put(key, std::move(value)); }
+        value_type& add(key_type&& key, const value_type& value) { return put(std::move(key), value); }
+        value_type& add(key_type&& key, value_type&& value) { return put(std::move(key), std::move(value)); }
+        value_type& add(const pair& value) { return put(value.key, value); }
+        value_type& add(pair&& value) { return put(value.key, std::move(value)); }
+        
+        void append(std::initializer_list<pair> list) { container.append(list); }
+        void append(const jmap& value) { container.append(value.container); }
 
-        void reserve(const int32 size) { this->base_class::reserve(jutils::math::max(0, size)); }
+        void remove(const key_type& key) { container.remove(key); }
+        void clear() { container.clear(); }
 
-        void remove(const key_type& key) { this->erase(this->base_class::find(key)); }
-        template<typename Pred>
-        void removeByPredicate(Pred predicate)
+        jmap& operator+=(const pair& value)
         {
-            for (const auto& key : findByPredicate(predicate))
-            {
-                remove(key);
-            }
-        }
-        void clear() { this->base_class::clear(); }
-
-        jmap& operator+=(std::initializer_list<std::pair<const key_type, value_type>> list)
-        {
-            for (auto& keyAndValue : list)
-            {
-                set(keyAndValue.first, keyAndValue.second);
-            }
+            add(value);
             return *this;
         }
-        template<typename OtherComparePred>
-        jmap& operator+=(const jmap<key_type, value_type, OtherComparePred>& value)
+        jmap& operator+=(pair&& value)
         {
-            for (auto& keyAndValue : value)
-            {
-                set(keyAndValue.first, keyAndValue.second);
-            }
+            add(std::move(value));
             return *this;
         }
+        jmap& operator+=(std::initializer_list<pair> list)
+        {
+            append(list);
+            return *this;
+        }
+        jmap& operator+=(const jmap& value)
+        {
+            append(value);
+            return *this;
+        }
+
+    private:
+
+        container_type container;
     };
 
-    template<typename KeyType, typename ValueType, typename ComparePred, typename OtherComparePred>
-    jmap<KeyType, ValueType, ComparePred> operator+(const jmap<KeyType, ValueType, ComparePred>& value1, const jmap<KeyType, ValueType, OtherComparePred>& value2)
+    template<typename KeyType, typename ValueType>
+    jmap<KeyType, ValueType> operator+(const jmap<KeyType, ValueType>& container, const typename jmap<KeyType, ValueType>::pair& value)
     {
-        return jmap<KeyType, ValueType, ComparePred>(value1) += value2;
+        return jmap<KeyType, ValueType>(container) += value;
+    }
+    template<typename KeyType, typename ValueType>
+    jmap<KeyType, ValueType> operator+(const typename jmap<KeyType, ValueType>::pair& value, const jmap<KeyType, ValueType>& container)
+    {
+        return jmap<KeyType, ValueType>(container) += value;
+    }
+    template<typename KeyType, typename ValueType>
+    jmap<KeyType, ValueType> operator+(const jmap<KeyType, ValueType>& container1, const jmap<KeyType, ValueType>& container2)
+    {
+        return jmap<KeyType, ValueType>(container1) += container2;
     }
 }
