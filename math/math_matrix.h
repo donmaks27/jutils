@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "jmath_vector.h"
+#include "math_vector.h"
 #include "base_types/matrix_base.h"
 
 namespace jutils

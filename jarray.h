@@ -3,7 +3,7 @@
 #pragma once
 
 #include "type_defines.h"
-#include "math/jmath.h"
+#include "math/math.h"
 
 #include <cstring>
 #include <limits>

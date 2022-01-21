@@ -4,7 +4,7 @@
 
 #include "matrix_base.h"
 #include "../../type_checks.h"
-#include "../jmath_vector.h"
+#include "../math_vector.h"
 
 namespace jutils
 {

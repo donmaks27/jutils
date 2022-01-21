@@ -5,7 +5,7 @@
 #include <string>
 
 #include "type_defines.h"
-#include "math/jmath.h"
+#include "math/math.h"
 
 namespace jutils
 {

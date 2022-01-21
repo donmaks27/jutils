@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "jmath.h"
+#include "math.h"
 #include "vector3.h"
 
 namespace jutils
