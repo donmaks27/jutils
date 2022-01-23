@@ -3,7 +3,7 @@
 #pragma once
 
 #include "../type_defines.h"
-#include "../jstring.h"
+#include "../type_checks.h"
 
 namespace jutils
 {
@@ -57,8 +57,87 @@ namespace jutils
 	            }
 	            return result;
             }
-            inline uint64 crc64(const char* str, const uint32 length) { return crc64(reinterpret_cast<const uint8*>(str), length); }
-            inline uint64 crc64(const jstring& str) { return crc64(*str, str.getSize()); }
+            constexpr uint64 crc64(const char* str, const uint32 length)
+            {
+                constexpr uint64 mask = 0x00000000000000FF;
+
+                uint64 result = 0;
+                for (uint32 i = 0; i < length; i++)
+                {
+		            result = (result << 8) ^ crc64_table[((result >> 56) ^ static_cast<uint8>(str[i])) & mask];
+	            }
+	            return result;
+            }
+
+            constexpr uint64 crc64(const uint8 value) { return crc64_table[value]; }
+            constexpr uint64 crc64(const int8 value) { return crc64(static_cast<uint8>(value)); }
+            constexpr uint64 crc64(const uint16 value)
+            {
+                constexpr uint64 mask = 0x00000000000000FF;
+
+                const uint64 preResult = crc64_table[value & mask];
+	            return (preResult << 8) ^ crc64_table[((preResult >> 56) ^ (value >> 8)) & mask];
+            }
+            constexpr uint64 crc64(const int16 value) { return crc64(static_cast<uint16>(value)); }
+            constexpr uint64 crc64(const uint32 value)
+            {
+                constexpr uint64 mask = 0x00000000000000FF;
+
+                uint64 preResult = crc64_table[value & mask];
+	            preResult = (preResult << 8) ^ crc64_table[((preResult >> 56) ^ ((value >> 8) & mask)) & mask];
+	            preResult = (preResult << 8) ^ crc64_table[((preResult >> 56) ^ ((value >> 16) & mask)) & mask];
+	            return (preResult << 8) ^ crc64_table[((preResult >> 56) ^ (value >> 24)) & mask];
+            }
+            constexpr uint64 crc64(const int32 value) { return crc64(static_cast<uint32>(value)); }
+            constexpr uint64 crc64(const uint64 value)
+            {
+                constexpr uint64 mask = 0x00000000000000FF;
+
+                uint64 preResult = crc64_table[value & mask];
+	            preResult = (preResult << 8) ^ crc64_table[((preResult >> 56) ^ ((value >> 8) & mask)) & mask];
+	            preResult = (preResult << 8) ^ crc64_table[((preResult >> 56) ^ ((value >> 16) & mask)) & mask];
+	            preResult = (preResult << 8) ^ crc64_table[((preResult >> 56) ^ ((value >> 24) & mask)) & mask];
+	            preResult = (preResult << 8) ^ crc64_table[((preResult >> 56) ^ ((value >> 32) & mask)) & mask];
+	            preResult = (preResult << 8) ^ crc64_table[((preResult >> 56) ^ ((value >> 40) & mask)) & mask];
+	            preResult = (preResult << 8) ^ crc64_table[((preResult >> 56) ^ ((value >> 48) & mask)) & mask];
+	            return (preResult << 8) ^ crc64_table[((preResult >> 56) ^ (value >> 56)) & mask];
+            }
+            constexpr uint64 crc64(const int64 value) { return crc64(static_cast<uint64>(value)); }
+
+            template<typename T>
+            struct hash_info
+            {
+            private:
+
+                template<typename TestingType>
+                static constexpr auto _helper_call_hash_function(int32, const TestingType& value) -> decltype(value.hash()) { return value.hash(); }
+                template<typename TestingType>
+                static constexpr auto _helper_call_hash_function(int16, const TestingType& value) -> decltype(jutils::math::hash::crc64(value))
+                {
+                    return jutils::math::hash::crc64(value);
+                }
+
+                template<typename TestingType>
+                static constexpr auto _helper_get_type(int32) -> decltype(_helper_call_hash_function(0, TestingType()));
+                template<typename TestingType>
+                static constexpr void _helper_get_type(int16);
+
+                template<typename TestingType>
+                static constexpr auto _helper_get_hash(int32, const TestingType& value) -> decltype(_helper_call_hash_function(0, value)) { return _helper_call_hash_function(0, value); }
+                template<typename TestingType>
+                static constexpr uint8 _helper_get_hash(int16, const TestingType& value) { return 0; }
+
+            public:
+
+                using type = T;
+                using hash_type = decltype(_helper_get_type<const std::remove_const_t<type>>(0));
+                static constexpr bool has_hash = std::is_integral_v<hash_type> && std::is_unsigned_v<hash_type>;
+
+                static constexpr auto getHash(const type& value) { return _helper_get_hash(0, value); }
+            };
+
+            template<typename T, TEMPLATE_ENABLE(hash_info<T>::has_hash)>
+            constexpr typename hash_info<T>::hash_type getHash(const T& value) { return hash_info<T>::getHash(value); }
         }
     }
 }

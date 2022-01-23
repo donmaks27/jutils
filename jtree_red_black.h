@@ -14,7 +14,7 @@ namespace jutils
     public:
 
         using type = T;
-        using compare_predicate = ComparePred;
+        using compare_predicator = ComparePred;
         using index_type = int32;
 
     private:
@@ -193,16 +193,9 @@ namespace jutils
         void reserve(const index_type capacity) { _reserveNodes(capacity - size - unusedNodesCount); }
 
         template<typename KeyType, typename... Args>
-        type& put(const KeyType& key, Args&&... args)
-        {
-            tree_node* node;
-            if (_putValue(key, node))
-            {
-                size++;
-                _constructNodeObject(node, std::forward<Args>(args)...);
-            }
-            return node->object;
-        }
+        type& put(const KeyType& key, Args&&... args) { return _putValue(false, key, std::forward<Args>(args)...); }
+        template<typename KeyType, typename... Args>
+        type& set(const KeyType& key, Args&&... args) { return _putValue(true, key, std::forward<Args>(args)...); }
 
         type& add(const type& value) { return put(value, value); }
         type& add(type&& value) { return put(value, std::move(value)); }
@@ -290,7 +283,7 @@ namespace jutils
         template<typename Type1, typename Type2>
         static constexpr bool _compareObjects(const Type1& key1, const Type2& key2)
         {
-            static constexpr compare_predicate predicate;
+            static constexpr compare_predicator predicate;
             return predicate(key1, key2);
         }
         template<typename KeyType>
@@ -303,10 +296,13 @@ namespace jutils
         static bool _rotateLeft(tree_node* node);
         static bool _rotateRight(tree_node* node);
         void _rotateNode(tree_node* node, const bool left);
-
+        
+        // Return false if key was exist before
         template<typename KeyType>
-        bool _putValue(const KeyType& key, tree_node*& outNode);
+        bool _putKey(const KeyType& key, tree_node*& outNode);
         void _restoreBallanceAfterPut(tree_node* node);
+        template<typename KeyType, typename... Args>
+        type& _putValue(bool overrideValue, const KeyType& key, Args&&... args);
 
         void _removeValue(tree_node* node);
         void _restoreBallanceAfterRemove(tree_node* parent, bool left);
@@ -553,7 +549,7 @@ namespace jutils
 
     template<typename T, typename ComparePred>
     template<typename KeyType>
-    bool jtree_red_black<T, ComparePred>::_putValue(const KeyType& key, tree_node*& outNode)
+    bool jtree_red_black<T, ComparePred>::_putKey(const KeyType& key, tree_node*& outNode)
     {
         if (rootNode == nullptr)
         {
@@ -655,6 +651,23 @@ namespace jutils
             _rotateNode(grand, parent->childRight == node);
             return;
         }
+    }
+    template<typename T, typename ComparePred>
+    template<typename KeyType, typename... Args>
+    typename jtree_red_black<T, ComparePred>::type& jtree_red_black<T, ComparePred>::_putValue(const bool overrideValue, const KeyType& key, Args&&... args)
+    {
+        tree_node* node = nullptr;
+        const bool keyWasCreated = _putKey(key, node);
+        if (keyWasCreated)
+        {
+            size++;
+            _constructNodeObject(node, std::forward<Args>(args)...);
+        }
+        else if (overrideValue)
+        {
+            node->object = type(std::forward<Args>(args)...);
+        }
+        return node->object;
     }
 
     template<typename T, typename ComparePred>

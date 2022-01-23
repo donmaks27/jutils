@@ -103,9 +103,9 @@ namespace jutils
         void reserve(const index_type capacity) { container.reserve(capacity); }
 
         template<typename... Args>
-        value_type& put(const key_type& key, Args&&... args) { return container.put(key, key, std::forward<Args>(args)...).value; }
+        value_type& put(const key_type& key, Args&&... args) { return container.set(key, key, std::forward<Args>(args)...).value; }
         template<typename... Args>
-        value_type& put(key_type&& key, Args&&... args) { return container.put(key, std::move(key), std::forward<Args>(args)...).value; }
+        value_type& put(key_type&& key, Args&&... args) { return container.set(key, std::move(key), std::forward<Args>(args)...).value; }
 
         value_type& add(const key_type& key, const value_type& value) { return put(key, value); }
         value_type& add(const key_type& key, value_type&& value) { return put(key, std::move(value)); }

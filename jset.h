@@ -13,7 +13,6 @@ namespace jutils
 
         using type = T;
         using container_type = jtree_red_black<type>;
-        using iterator = typename container_type::iterator;
         using const_iterator = typename container_type::const_iterator;
         using index_type = int32;
 
@@ -41,9 +40,6 @@ namespace jutils
 
         index_type getSize() const { return container.getSize(); }
         bool isEmpty() const { return getSize() == 0; }
-
-        iterator begin() noexcept { return container.begin(); }
-        iterator end() noexcept { return container.end(); }
 
         const_iterator begin() const noexcept { return container.begin(); }
         const_iterator end() const noexcept { return container.end(); }

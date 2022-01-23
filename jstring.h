@@ -6,6 +6,7 @@
 
 #include "type_defines.h"
 #include "math/math.h"
+#include "math/hash.h"
 
 namespace jutils
 {
@@ -244,6 +245,8 @@ namespace jutils
 
         const_iterator begin() const { return this->base_class::begin(); }
         const_iterator end() const { return this->base_class::end(); }
+
+        constexpr uint64 hash() const { return jutils::math::hash::crc64(getString(), getSize()); }
 
     private:
 
