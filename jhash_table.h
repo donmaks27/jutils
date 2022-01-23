@@ -6,16 +6,12 @@
 
 namespace jutils
 {
-    template<typename T>
-    constexpr bool is_valid_for_hash_table = math::hash::hash_info<T>::has_hash;
-
-    template<typename T, typename ComparePred = std::equal_to<>, TEMPLATE_ENABLE(is_valid_for_hash_table<T>)>
+    template<typename T, TEMPLATE_ENABLE(math::hash::hash_info<T>::has_hash)>
     class jhash_table
     {
     public:
 
         using type = T;
-        using compare_predicator = ComparePred;
         using hash_type = typename math::hash::hash_info<type>::hash_type;
         using index_type = int32;
 
@@ -317,12 +313,8 @@ namespace jutils
             }
         }
         template<typename KeyType>
-        static bool _compareObjects(const type& object, const KeyType& key)
-        {
-            static constexpr compare_predicator predicator;
-            return predicator(object, key);
-        }
-        template<typename KeyType>
+        static bool _compareObjects(const type& object, const KeyType& key) { return object == key; }
+        template<typename KeyType, TEMPLATE_ENABLE(math::hash::hash_info<T>::has_hash)>
         static constexpr hash_type _getObjectHash(const KeyType& key) { return math::hash::getHash(key); }
         
         template<typename KeyType>
@@ -342,9 +334,9 @@ namespace jutils
         void _removeKey(const KeyType& key);
     };
 
-    template<typename T, typename ComparePred, TEMPLATE_ENABLE_IMPL(is_valid_for_hash_table<T>) Condition>
+    template<typename T, TEMPLATE_ENABLE_IMPL(math::hash::hash_info<T>::has_hash) Condition>
     template<typename KeyType>
-    typename jhash_table<T, ComparePred, Condition>::index_type jhash_table<T, ComparePred, Condition>::_findIndex(const KeyType& key) const
+    typename jhash_table<T, Condition>::index_type jhash_table<T, Condition>::_findIndex(const KeyType& key) const
     {
         if (size > 0)
         {
@@ -369,10 +361,10 @@ namespace jutils
         }
         return -1;
     }
-    template<typename T, typename ComparePred, TEMPLATE_ENABLE_IMPL(is_valid_for_hash_table<T>) Condition>
+    template<typename T, TEMPLATE_ENABLE_IMPL(math::hash::hash_info<T>::has_hash) Condition>
     template<typename KeyType>
-    typename jhash_table<T, ComparePred, Condition>::index_type jhash_table<T, ComparePred, Condition>::_findIndexForInsert(const node* data, 
-        const index_type size, const hash_type hash, const KeyType& key)
+    typename jhash_table<T, Condition>::index_type jhash_table<T, Condition>::_findIndexForInsert(const node* data, const index_type size, 
+        const hash_type hash, const KeyType& key)
     {
         if (size > 0)
         {
@@ -397,8 +389,8 @@ namespace jutils
         return -1;
     }
 
-    template<typename T, typename ComparePred, TEMPLATE_ENABLE_IMPL(is_valid_for_hash_table<T>) Condition>
-    void jhash_table<T, ComparePred, Condition>::_updateDataSize(const index_type newSize)
+    template<typename T, TEMPLATE_ENABLE_IMPL(math::hash::hash_info<T>::has_hash) Condition>
+    void jhash_table<T, Condition>::_updateDataSize(const index_type newSize)
     {
         if (newSize <= size)
         {
@@ -435,9 +427,9 @@ namespace jutils
         size = newSize;
     }
 
-    template<typename T, typename ComparePred, TEMPLATE_ENABLE_IMPL(is_valid_for_hash_table<T>) Condition>
+    template<typename T, TEMPLATE_ENABLE_IMPL(math::hash::hash_info<T>::has_hash) Condition>
     template<typename KeyType>
-    bool jhash_table<T, ComparePred, Condition>::_putKey(const KeyType& key, index_type& outIndex)
+    bool jhash_table<T, Condition>::_putKey(const KeyType& key, index_type& outIndex)
     {
         const hash_type hash = _getObjectHash(key);
         outIndex = _findIndexForInsert(data, size, hash, key);
@@ -457,9 +449,9 @@ namespace jutils
         node.cachedHash = hash;
         return true;
     }
-    template<typename T, typename ComparePred, TEMPLATE_ENABLE_IMPL(is_valid_for_hash_table<T>) Condition>
+    template<typename T, TEMPLATE_ENABLE_IMPL(math::hash::hash_info<T>::has_hash) Condition>
     template<typename KeyType, typename... Args>
-    typename jhash_table<T, ComparePred, Condition>::type& jhash_table<T, ComparePred, Condition>::_putValue(const bool overrideValue, const KeyType& key, 
+    typename jhash_table<T, Condition>::type& jhash_table<T, Condition>::_putValue(const bool overrideValue, const KeyType& key, 
         Args&&... args)
     {
         index_type index = -1;
@@ -476,9 +468,9 @@ namespace jutils
         return data[index].object;
     }
 
-    template<typename T, typename ComparePred, TEMPLATE_ENABLE_IMPL(is_valid_for_hash_table<T>) Condition>
+    template<typename T, TEMPLATE_ENABLE_IMPL(math::hash::hash_info<T>::has_hash) Condition>
     template<typename KeyType>
-    void jhash_table<T, ComparePred, Condition>::_removeKey(const KeyType& key)
+    void jhash_table<T, Condition>::_removeKey(const KeyType& key)
     {
         const index_type index = _findIndex(key);
         if (index >= 0)
@@ -490,10 +482,10 @@ namespace jutils
         }
     }
 
-    /*template<typename T, typename ComparePred>
-    jhash_table<T, ComparePred> operator+(const jhash_table<T, ComparePred>& container, const T& value) { return jhash_table<T, ComparePred>(container) += value; }
-    template<typename T, typename ComparePred>
-    jhash_table<T, ComparePred> operator+(const T& value, const jhash_table<T, ComparePred>& container) { return container + value; }
-    template<typename T, typename ComparePred>
-    jhash_table<T, ComparePred> operator+(const jhash_table<T, ComparePred>& container1, const jhash_table<T, ComparePred>& container2) { return jhash_table<T, ComparePred>(container1) += container2; }*/
+    template<typename T>
+    jhash_table<T> operator+(const jhash_table<T>& container, const T& value) { return jhash_table<T>(container) += value; }
+    template<typename T>
+    jhash_table<T> operator+(const T& value, const jhash_table<T>& container) { return container + value; }
+    template<typename T>
+    jhash_table<T> operator+(const jhash_table<T>& container1, const jhash_table<T>& container2) { return jhash_table<T>(container1) += container2; }
 }

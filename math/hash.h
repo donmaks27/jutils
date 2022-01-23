@@ -112,10 +112,7 @@ namespace jutils
                 template<typename TestingType>
                 static constexpr auto _helper_call_hash_function(int32, const TestingType& value) -> decltype(value.hash()) { return value.hash(); }
                 template<typename TestingType>
-                static constexpr auto _helper_call_hash_function(int16, const TestingType& value) -> decltype(jutils::math::hash::crc64(value))
-                {
-                    return jutils::math::hash::crc64(value);
-                }
+                static constexpr auto _helper_call_hash_function(int16, const TestingType& value) -> decltype(crc64(value)) { return crc64(value); }
 
                 template<typename TestingType>
                 static constexpr auto _helper_get_type(int32) -> decltype(_helper_call_hash_function(0, TestingType()));
@@ -135,8 +132,7 @@ namespace jutils
 
                 static constexpr auto getHash(const type& value) { return _helper_get_hash(0, value); }
             };
-
-            template<typename T, TEMPLATE_ENABLE(hash_info<T>::has_hash)>
+            template<typename T>
             constexpr typename hash_info<T>::hash_type getHash(const T& value) { return hash_info<T>::getHash(value); }
         }
     }
