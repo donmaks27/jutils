@@ -120,14 +120,7 @@ namespace jutils
         }
         ~jarray()
         {
-            if (data != nullptr)
-            {
-                clear();
-                ::operator delete(data, sizeof(type) * capacity, static_cast<std::align_val_t>(alignof(type)));
-                data = nullptr;
-                capacity = 0;
-                size = 0;
-            }
+            _clearAllData();
         }
 
         jarray& operator=(std::initializer_list<type> list)
@@ -147,7 +140,7 @@ namespace jutils
         }
         jarray& operator=(jarray&& value) noexcept
         {
-            clear();
+            _clearAllData();
 
             data = value.data;
             capacity = value.capacity;
@@ -364,6 +357,18 @@ namespace jutils
             {
                 _eraseData(data, size, index);
                 size--;
+            }
+        }
+
+        void _clearAllData()
+        {
+            if (capacity > 0)
+            {
+                clear();
+                _deallocateMemory(data, capacity);
+
+                data = nullptr;
+                capacity = 0;
             }
         }
     };

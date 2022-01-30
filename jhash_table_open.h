@@ -7,7 +7,7 @@
 namespace jutils
 {
     template<typename T, TEMPLATE_ENABLE(math::hash::hash_info<T>::has_hash)>
-    class jhash_table
+    class jhash_table_open
     {
     public:
 
@@ -19,13 +19,13 @@ namespace jutils
         friend class const_iterator;
         class const_iterator
         {
-            friend jhash_table;
+            friend jhash_table_open;
 
         public:
             const_iterator() = default;
             const_iterator(const const_iterator&) = default;
         protected:
-            const_iterator(const jhash_table* tablePtr, const index_type index)
+            const_iterator(const jhash_table_open* tablePtr, const index_type index)
                 : tablePtr(tablePtr), index(index)
             {}
 
@@ -51,7 +51,7 @@ namespace jutils
 
         protected:
 
-            const jhash_table* tablePtr = nullptr;
+            const jhash_table_open* tablePtr = nullptr;
             index_type index = -1;
 
 
@@ -59,13 +59,13 @@ namespace jutils
         };
         class iterator : public const_iterator
         {
-            friend jhash_table;
+            friend jhash_table_open;
 
         public:
             iterator() = default;
             iterator(const iterator&) = default;
         protected:
-            iterator(const jhash_table* tablePtr, const index_type index)
+            iterator(const jhash_table_open* tablePtr, const index_type index)
                 : const_iterator(tablePtr, index)
             {}
 
@@ -87,22 +87,22 @@ namespace jutils
             iterator operator-(const index_type offset) const { return { this->tablePtr, this->index - offset }; }
         };
 
-        jhash_table()
-            : jhash_table(8)
+        jhash_table_open()
+            : jhash_table_open(8)
         {}
-        jhash_table(const index_type capacity)
+        jhash_table_open(const index_type capacity)
         {
             _updateDataSize(math::max(capacity, 8));
         }
-        jhash_table(std::initializer_list<type> list)
+        jhash_table_open(std::initializer_list<type> list)
         {
             append(list);
         }
-        jhash_table(const jhash_table& table)
+        jhash_table_open(const jhash_table_open& table)
         {
             append(table);
         }
-        jhash_table(jhash_table&& table) noexcept
+        jhash_table_open(jhash_table_open&& table) noexcept
         {
             data = table.data;
             size = table.size;
@@ -112,25 +112,18 @@ namespace jutils
             table.size = 0;
             table.objectCount = 0;
         }
-        ~jhash_table()
+        ~jhash_table_open()
         {
-            if (!isEmpty())
-            {
-                clear();
-                _deallocateMemory(data, size);
-
-                data = nullptr;
-                size = 0;
-            }
+            _clearAllData();
         }
 
-        jhash_table& operator=(std::initializer_list<type> list)
+        jhash_table_open& operator=(std::initializer_list<type> list)
         {
             clear();
             append(list);
             return *this;
         }
-        jhash_table& operator=(const jhash_table& table)
+        jhash_table_open& operator=(const jhash_table_open& table)
         {
             if (this != &table)
             {
@@ -139,9 +132,9 @@ namespace jutils
             }
             return *this;
         }
-        jhash_table& operator=(jhash_table&& table) noexcept
+        jhash_table_open& operator=(jhash_table_open&& table) noexcept
         {
-            clear();
+            _clearAllData();
 
             data = table.data;
             size = table.size;
@@ -185,10 +178,10 @@ namespace jutils
         template<typename KeyType, typename... Args>
         type& set(const KeyType& key, Args&&... args) { return _putValue(true, key, std::forward<Args>(args)...); }
         
-        type& add(const type& value) { return put(value, value); }
-        type& add(type&& value) { return put(value, std::move(value)); }
+        type& add(const type& value, const bool shouldOverride = true) { return shouldOverride ? set(value, value) : put(value, value); }
+        type& add(type&& value, const bool shouldOverride = true) { return shouldOverride ? set(value, std::move(value)) : put(value, std::move(value)); }
 
-        void append(std::initializer_list<type> list)
+        void append(std::initializer_list<type> list, const bool shouldOverride = true)
         {
             const index_type listSize = static_cast<index_type>(list.size());
             index_type newSize = size;
@@ -200,10 +193,10 @@ namespace jutils
             reserve(newSize);
             for (const auto& value : list)
             {
-                add(value);
+                add(value, shouldOverride);
             }
         }
-        void append(const jhash_table& table)
+        void append(const jhash_table_open& table, const bool shouldOverride = true)
         {
             if ((this != &table) && !table.isEmpty())
             {
@@ -216,7 +209,7 @@ namespace jutils
                 reserve(newSize);
                 for (const auto& value : table)
                 {
-                    add(value);
+                    add(value, shouldOverride);
                 }
             }
         }
@@ -237,22 +230,22 @@ namespace jutils
             objectCount = 0;
         }
 
-        jhash_table& operator+=(const type& value)
+        jhash_table_open& operator+=(const type& value)
         {
             add(value);
             return *this;
         }
-        jhash_table& operator+=(type&& value)
+        jhash_table_open& operator+=(type&& value)
         {
             add(std::move(value));
             return *this;
         }
-        jhash_table& operator+=(std::initializer_list<type> list)
+        jhash_table_open& operator+=(std::initializer_list<type> list)
         {
             append(list);
             return *this;
         }
-        jhash_table& operator+=(const jhash_table& tree)
+        jhash_table_open& operator+=(const jhash_table_open& tree)
         {
             append(tree);
             return *this;
@@ -332,11 +325,23 @@ namespace jutils
 
         template<typename KeyType>
         void _removeKey(const KeyType& key);
+
+        void _clearAllData()
+        {
+            if (data != nullptr)
+            {
+                clear();
+                _deallocateMemory(data, size);
+
+                data = nullptr;
+                size = 0;
+            }
+        }
     };
 
     template<typename T, TEMPLATE_ENABLE_IMPL(math::hash::hash_info<T>::has_hash) Condition>
     template<typename KeyType>
-    typename jhash_table<T, Condition>::index_type jhash_table<T, Condition>::_findIndex(const KeyType& key) const
+    typename jhash_table_open<T, Condition>::index_type jhash_table_open<T, Condition>::_findIndex(const KeyType& key) const
     {
         if (size > 0)
         {
@@ -363,7 +368,7 @@ namespace jutils
     }
     template<typename T, TEMPLATE_ENABLE_IMPL(math::hash::hash_info<T>::has_hash) Condition>
     template<typename KeyType>
-    typename jhash_table<T, Condition>::index_type jhash_table<T, Condition>::_findIndexForInsert(const node* data, const index_type size, 
+    typename jhash_table_open<T, Condition>::index_type jhash_table_open<T, Condition>::_findIndexForInsert(const node* data, const index_type size, 
         const hash_type hash, const KeyType& key)
     {
         if (size > 0)
@@ -390,7 +395,7 @@ namespace jutils
     }
 
     template<typename T, TEMPLATE_ENABLE_IMPL(math::hash::hash_info<T>::has_hash) Condition>
-    void jhash_table<T, Condition>::_updateDataSize(const index_type newSize)
+    void jhash_table_open<T, Condition>::_updateDataSize(const index_type newSize)
     {
         if (newSize <= size)
         {
@@ -429,7 +434,7 @@ namespace jutils
 
     template<typename T, TEMPLATE_ENABLE_IMPL(math::hash::hash_info<T>::has_hash) Condition>
     template<typename KeyType>
-    bool jhash_table<T, Condition>::_putKey(const KeyType& key, index_type& outIndex)
+    bool jhash_table_open<T, Condition>::_putKey(const KeyType& key, index_type& outIndex)
     {
         const hash_type hash = _getObjectHash(key);
         outIndex = _findIndexForInsert(data, size, hash, key);
@@ -451,7 +456,7 @@ namespace jutils
     }
     template<typename T, TEMPLATE_ENABLE_IMPL(math::hash::hash_info<T>::has_hash) Condition>
     template<typename KeyType, typename... Args>
-    typename jhash_table<T, Condition>::type& jhash_table<T, Condition>::_putValue(const bool overrideValue, const KeyType& key, 
+    typename jhash_table_open<T, Condition>::type& jhash_table_open<T, Condition>::_putValue(const bool overrideValue, const KeyType& key, 
         Args&&... args)
     {
         index_type index = -1;
@@ -470,7 +475,7 @@ namespace jutils
 
     template<typename T, TEMPLATE_ENABLE_IMPL(math::hash::hash_info<T>::has_hash) Condition>
     template<typename KeyType>
-    void jhash_table<T, Condition>::_removeKey(const KeyType& key)
+    void jhash_table_open<T, Condition>::_removeKey(const KeyType& key)
     {
         const index_type index = _findIndex(key);
         if (index >= 0)
@@ -483,9 +488,9 @@ namespace jutils
     }
 
     template<typename T>
-    jhash_table<T> operator+(const jhash_table<T>& container, const T& value) { return jhash_table<T>(container) += value; }
+    jhash_table_open<T> operator+(const jhash_table_open<T>& container, const T& value) { return jhash_table_open<T>(container) += value; }
     template<typename T>
-    jhash_table<T> operator+(const T& value, const jhash_table<T>& container) { return container + value; }
+    jhash_table_open<T> operator+(const T& value, const jhash_table_open<T>& container) { return container + value; }
     template<typename T>
-    jhash_table<T> operator+(const jhash_table<T>& container1, const jhash_table<T>& container2) { return jhash_table<T>(container1) += container2; }
+    jhash_table_open<T> operator+(const jhash_table_open<T>& container1, const jhash_table_open<T>& container2) { return jhash_table_open<T>(container1) += container2; }
 }

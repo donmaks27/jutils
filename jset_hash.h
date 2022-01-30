@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "jhash_table.h"
+#include "jhash_table_open.h"
 
 namespace jutils
 {
@@ -12,7 +12,7 @@ namespace jutils
     public:
 
         using type = T;
-        using container_type = jhash_table<type>;
+        using container_type = jhash_table_open<type>;
         using const_iterator = typename container_type::const_iterator;
         using index_type = int32;
 
@@ -48,11 +48,11 @@ namespace jutils
         
         void reserve(const index_type capacity) { container.reserve(capacity); }
 
-        const type& add(const type& value) { return container.add(value); }
-        const type& add(type&& value) { return container.add(std::move(value)); }
+        const type& add(const type& value) { return container.add(value, false); }
+        const type& add(type&& value) { return container.add(std::move(value), false); }
 
-        void append(std::initializer_list<type> list) { container.append(list); }
-        void append(const jset_hash& value) { container.append(value.container); }
+        void append(std::initializer_list<type> list) { container.append(list, false); }
+        void append(const jset_hash& value) { container.append(value.container, false); }
 
         void remove(const type& value) { container.remove(value); }
         void clear() { container.clear(); }

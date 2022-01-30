@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "jhash_table.h"
+#include "jhash_table_open.h"
 #include "jmap_pair.h"
 
 namespace jutils
@@ -15,7 +15,7 @@ namespace jutils
         using key_type = KeyType;
         using value_type = ValueType;
         using pair_type = jmap_pair<key_type, value_type>;
-        using container_type = jhash_table<pair_type>;
+        using container_type = jhash_table_open<pair_type>;
         using iterator = typename container_type::iterator;
         using const_iterator = typename container_type::const_iterator;
         using index_type = int32;

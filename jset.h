@@ -48,11 +48,11 @@ namespace jutils
         
         void reserve(const index_type capacity) { container.reserve(capacity); }
 
-        const type& add(const type& value) { return container.add(value); }
-        const type& add(type&& value) { return container.add(std::move(value)); }
+        const type& add(const type& value) { return container.add(value, false); }
+        const type& add(type&& value) { return container.add(std::move(value), false); }
 
-        void append(std::initializer_list<type> list) { container.append(list); }
-        void append(const jset& value) { container.append(value.container); }
+        void append(std::initializer_list<type> list) { container.append(list, false); }
+        void append(const jset& value) { container.append(value.container, false); }
 
         void remove(const type& value) { container.remove(value); }
         void clear() { container.clear(); }
@@ -69,12 +69,12 @@ namespace jutils
         }
         jset& operator+=(std::initializer_list<type> list)
         {
-            append(list);
+            append(list, false);
             return *this;
         }
         jset& operator+=(const jset& value)
         {
-            append(value);
+            append(value, false);
             return *this;
         }
 

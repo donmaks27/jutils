@@ -123,12 +123,14 @@ namespace jutils
         }
         jlist(jlist&& list) noexcept
         {
+            firstSegment = list.firstSegment;
             firstNode = list.firstNode;
             lastNode = list.lastNode;
             nodeCount = list.nodeCount;
             firstUnusedNode = list.firstUnusedNode;
             unusedNodeCount = list.unusedNodeCount;
 
+            list.firstSegment = nullptr;
             list.firstNode = nullptr;
             list.lastNode = nullptr;
             list.nodeCount = 0;
@@ -137,28 +139,7 @@ namespace jutils
         }
         ~jlist()
         {
-            list_node* node = firstNode;
-            while (node != nullptr)
-            {
-                list_node* nextNode = node->nextNode;
-                _destroyObject(node);
-                _deallocateNode(node);
-                node = nextNode;
-            }
-
-            node = firstUnusedNode;
-            while (node != nullptr)
-            {
-                list_node* nextNode = node->nextNode;
-                _deallocateNode(node);
-                node = nextNode;
-            }
-
-            firstNode = nullptr;
-            lastNode = nullptr;
-            nodeCount = 0;
-            firstUnusedNode = nullptr;
-            unusedNodeCount = 0;
+            _clearAllData();
         }
 
         jlist& operator=(std::initializer_list<type> list)
@@ -178,14 +159,16 @@ namespace jutils
         }
         jlist& operator=(jlist&& list) noexcept
         {
-            clear();
+            _clearAllData();
 
+            firstSegment = list.firstSegment;
             firstNode = list.firstNode;
             lastNode = list.lastNode;
             nodeCount = list.nodeCount;
             firstUnusedNode = list.firstUnusedNode;
             unusedNodeCount = list.unusedNodeCount;
 
+            list.firstSegment = nullptr;
             list.firstNode = nullptr;
             list.lastNode = nullptr;
             list.nodeCount = 0;
@@ -237,13 +220,20 @@ namespace jutils
         index_type indexOf(const type& value) const;
         bool contains(const type& value) const { return getIterByValue(value)._isValid(); }
         
-        void reserve(const index_type size) { _reserveNodes(size - nodeCount - unusedNodeCount); }
+        void reserve(const index_type size) { _reserveNodes(size - nodeCount); }
         template<typename... Args>
         void resize(const index_type size, Args&&... args)
         {
             while (nodeCount < size)
             {
                 _putBack(std::forward<Args>(args)...);
+            }
+
+            const_iterator iter;
+            while (nodeCount > size)
+            {
+                iter = lastNode;
+                _removeAt(iter);
             }
         }
 
@@ -264,7 +254,7 @@ namespace jutils
             return iter.listNodePtr->prevNode->object;
         }
         template<typename... Args>
-        type& putAt(const index_type index, Args&&... args) { return putAt(getIterByIndex(index), std::forward<Args>(args)); }
+        type& putAt(const index_type index, Args&&... args) { return putAt(getIterByIndex(index), std::forward<Args>(args)...); }
 
         type& add(const type& value) { return put(value); }
         type& add(type&& value) { return put(std::move(value)); }
@@ -290,6 +280,7 @@ namespace jutils
 
         void append(std::initializer_list<type> list)
         {
+            reserve(getSize() + static_cast<index_type>(list.size()));
             for (const auto& value : list)
             {
                 _putBack(value);
@@ -338,6 +329,15 @@ namespace jutils
 
     private:
 
+        struct segment_description
+        {
+            index_type size = 0;
+            list_node* data = nullptr;
+            segment_description* nextSegment = nullptr;
+        };
+
+        segment_description* firstSegment = nullptr;
+
         list_node* firstNode = nullptr;
         list_node* lastNode = nullptr;
         index_type nodeCount = 0;
@@ -346,13 +346,22 @@ namespace jutils
         index_type unusedNodeCount = 0;
 
 
-        static list_node* _allocateNode()
+        static list_node* _allocateNodes(const index_type size) { return static_cast<list_node*>(::operator new(sizeof(list_node) * size, static_cast<std::align_val_t>(alignof(list_node)))); }
+        static void _deallocateNodes(list_node* node, const index_type size) { ::operator delete(node, sizeof(list_node) * size, static_cast<std::align_val_t>(alignof(list_node))); }
+
+        static segment_description* _allocateSegment(const index_type size)
         {
-            return static_cast<list_node*>(::operator new(sizeof(list_node), static_cast<std::align_val_t>(alignof(list_node))));
+            segment_description* segment = new segment_description();
+            segment->size = size;
+            segment->data = _allocateNodes(size);
+            return segment;
         }
-        static void _deallocateNode(list_node* node)
+        static segment_description* _deallocateSegment(segment_description* segment)
         {
-            ::operator delete(node, sizeof(list_node), static_cast<std::align_val_t>(alignof(list_node)));
+            _deallocateNodes(segment->data, segment->size);
+            segment_description* nextSegment = segment->nextSegment;
+            delete segment;
+            return nextSegment;
         }
 
         template<typename... Args>
@@ -362,6 +371,7 @@ namespace jutils
         iterator _getIteratorByIndex(const index_type index) { return begin() += index; }
         const_iterator _getIteratorByIndex(const index_type index) const { return begin() += index; }
 
+        void _allocateNewSegment();
         void _reserveNodes(index_type count);
         list_node* _getNewNode();
         void _returnNode(list_node* node);
@@ -373,6 +383,8 @@ namespace jutils
 
         void _appendList(const jlist& list)
         {
+            reserve(getSize() + list.getSize());
+
             list_node* node = list.firstNode;
             while (node != nullptr)
             {
@@ -382,6 +394,8 @@ namespace jutils
         }
 
         const_iterator _removeAt(const const_iterator& iterator);
+
+        void _clearAllData();
     };
 
     template<typename T>
@@ -471,22 +485,24 @@ namespace jutils
     }
 
     template<typename T>
-    void jlist<T>::_reserveNodes(index_type count)
+    void jlist<T>::_allocateNewSegment()
     {
-        if (count <= 0)
+        const index_type size = firstSegment != nullptr ? firstSegment->size * 2 : 4;
+        segment_description* segment = _allocateSegment(size);
+        segment->nextSegment = firstSegment;
+        firstSegment = segment;
+
+        for (index_type index = 0; index < size; index++)
         {
-            return;
+            _returnNode(segment->data + index);
         }
-
-        unusedNodeCount += count;
-        while (count > 0)
+    }
+    template<typename T>
+    void jlist<T>::_reserveNodes(const index_type count)
+    {
+        while (unusedNodeCount < count)
         {
-            count--;
-
-            list_node* newNode = _allocateNode();
-            newNode->prevNode = newNode;
-            newNode->nextNode = firstUnusedNode;
-            firstUnusedNode = newNode;
+            _allocateNewSegment();
         }
     }
     template<typename T>
@@ -494,7 +510,7 @@ namespace jutils
     {
         if (unusedNodeCount == 0)
         {
-            return _allocateNode();
+            _allocateNewSegment();
         }
 
         list_node* result = firstUnusedNode;
@@ -519,6 +535,10 @@ namespace jutils
         newNode->prevNode = lastNode;
         newNode->nextNode = nullptr;
         lastNode = newNode;
+        if (firstNode == nullptr)
+        {
+            firstNode = newNode;
+        }
         nodeCount++;
 
         _constructObject(newNode, std::forward<Args>(args)...);
@@ -623,6 +643,29 @@ namespace jutils
             firstNode = nullptr;
             nodeCount = 0;
         }
+    }
+    template<typename T>
+    void jlist<T>::_clearAllData()
+    {
+        list_node* node = firstNode;
+        while (node != nullptr)
+        {
+            _destroyObject(node);
+            node = node->nextNode;
+        }
+
+        segment_description* segment = firstSegment;
+        while (segment != nullptr)
+        {
+            segment = _deallocateSegment(segment);
+        }
+
+        firstSegment = nullptr;
+        firstNode = nullptr;
+        lastNode = nullptr;
+        nodeCount = 0;
+        firstUnusedNode = nullptr;
+        unusedNodeCount = 0;
     }
 
     template<typename T>
