@@ -2,10 +2,89 @@
 
 #pragma once
 
-#include "jstring_hash_table.h"
+#include "jhash_table_chain.h"
+#include "jstring.h"
 
 namespace jutils
 {
+    class jstring_hash_table
+    {
+    public:
+
+        using index_type = int32;
+
+        static void CreateInstance()
+        {
+            if (Instance == nullptr)
+            {
+                Instance = new jstring_hash_table();
+            }
+        }
+        static jstring_hash_table* GetInstanse()
+        {
+            CreateInstance();
+            return Instance;
+        }
+        static void ClearInstance()
+        {
+            if (Instance != nullptr)
+            {
+                delete Instance;
+                Instance = nullptr;
+            }
+        }
+
+        index_type addOrFind(const jstring& str)
+        {
+            hash_table_entry& entry = hashTable.put(str, str);
+            if (!pointers.isValidIndex(entry.pointerIndex))
+            {
+                entry.pointerIndex = pointers.getSize();
+                pointers.add(&entry);
+            }
+            return entry.pointerIndex;
+        }
+        bool contains(const index_type index) const { return pointers.isValidIndex(index); }
+        jstring get(const index_type index) const { return contains(index) ? pointers[index]->string : jstring(); }
+
+    private:
+
+        inline static jstring_hash_table* Instance = nullptr;
+
+        jstring_hash_table() = default;
+        ~jstring_hash_table() = default;
+
+        struct hash_table_entry
+        {
+            hash_table_entry() = default;
+            hash_table_entry(const jstring& str)
+                : string(str)
+            {}
+            hash_table_entry(jstring&& str)
+                : string(std::move(str))
+            {}
+            hash_table_entry(const hash_table_entry&) = default;
+            hash_table_entry(hash_table_entry&&) noexcept = default;
+
+            hash_table_entry& operator=(const hash_table_entry&) = default;
+            hash_table_entry& operator=(hash_table_entry&&) noexcept = default;
+
+            jstring string;
+            index_type pointerIndex = -1;
+
+            uint64 hash() const { return math::hash::getHash(string); }
+
+            bool operator==(const jstring& str) const { return string == str; }
+            bool operator==(const hash_table_entry& entry) const { return operator==(entry.string); }
+
+            bool operator!=(const jstring& str) const { return !operator==(str); }
+            bool operator!=(const hash_table_entry& entry) const { return operator!=(entry.string); }
+        };
+
+        jhash_table_chain<hash_table_entry> hashTable = jhash_table_chain<hash_table_entry>(65536);
+        jarray<hash_table_entry*> pointers;
+    };
+
     class jstringID
     {
     public:
@@ -21,8 +100,6 @@ namespace jutils
 
         jstringID& operator=(const jstringID&) = default;
 
-        static jstringID NONE;
-
         bool isValid() const { return pointerIndex >= 0; }
         jstring toString() const { return jstring_hash_table::GetInstanse()->get(pointerIndex); }
 
@@ -37,5 +114,5 @@ namespace jutils
         jstring_hash_table::index_type pointerIndex = -1;
     };
 
-    jstringID jstringID::NONE = jstringID();
+    constexpr jstringID jstringID_NONE = jstringID();
 }
