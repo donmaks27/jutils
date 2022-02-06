@@ -151,7 +151,7 @@ namespace jutils
             table.size = 0;
             table.objectCount = 0;
 
-            return this;
+            return *this;
         }
 
         index_type getSize() const { return objectCount; }
