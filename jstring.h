@@ -1,168 +1,156 @@
-﻿// Copyright 2021 Leonov Maksim. All Rights Reserved.
+﻿// Copyright 2022 Leonov Maksim. All Rights Reserved.
 
 #pragma once
-
-#include <string>
 
 #include "type_defines.h"
 #include "math/math.h"
 #include "math/hash.h"
 
+#include <string>
+
 namespace jutils
 {
-    template<typename Allocator = std::allocator<char>>
-    class jstring_base : std::basic_string<char, std::char_traits<char>, Allocator>
+    class jstring
     {
-        using base_class = std::basic_string<char, std::char_traits<char>, Allocator>;
-
     public:
 
-        using type = char;
-        using traits_type = std::char_traits<char>;
-        using allocator_type = Allocator;
-        using iterator = typename base_class::iterator;
-        using const_iterator = typename base_class::const_iterator;
+        using character_type = char;
+        using internal_type = std::basic_string<character_type>;
+        using const_iterator = internal_type::const_iterator;
+        using iterator = internal_type::iterator;
+        using index_type = int32;
 
-        jstring_base()
-            : base_class()
+        jstring() = default;
+        jstring(const character_type* const str)
+            : internalString(str)
         {}
-        explicit jstring_base(const allocator_type& alloc)
-            : base_class(alloc)
+        jstring(const character_type* const str, const index_type count)
+            : internalString(str, math::max(count, 0))
         {}
-        jstring_base(const type* const str, const allocator_type& alloc = allocator_type())
-            : base_class(str, alloc)
+        jstring(const int32 count, const character_type character)
+            : internalString(math::max(count, 0), character)
         {}
-        jstring_base(const type* const str, const int32 count, const allocator_type& alloc = allocator_type())
-            : base_class(str, math::max(0, count), alloc)
+        explicit jstring(const internal_type& str)
+            : internalString(str)
         {}
-        jstring_base(const int32 count, const type character, const allocator_type& alloc = allocator_type())
-            : base_class(math::max(0, count), character, alloc)
+        explicit jstring(internal_type&& str) noexcept
+            : internalString(std::move(str))
         {}
-        jstring_base(const jstring_base& value)
-            : base_class(value)
+        jstring(const jstring& str) = default;
+        jstring(jstring&& string) noexcept
+            : jstring(std::move(string.internalString))
         {}
-        jstring_base(const jstring_base& value, const allocator_type& alloc)
-            : base_class(value, alloc)
-        {}
-        jstring_base(jstring_base&& value) noexcept
-            : base_class(std::move(value))
-        {}
-        jstring_base(jstring_base&& value, const allocator_type& alloc)
-            : base_class(std::move(value), alloc)
-        {}
+        ~jstring() = default;
         
-        jstring_base& operator=(const type* const str)
+        jstring& operator=(const character_type character)
         {
-            this->base_class::operator=(str);
+            assign(character);
             return *this;
         }
-        jstring_base& operator=(const type character)
+        jstring& operator=(const character_type* const str)
         {
-            this->base_class::operator=(character);
+            assign(str);
             return *this;
         }
-        jstring_base& operator=(const jstring_base& value)
+        jstring& operator=(const internal_type& str)
         {
-            this->base_class::operator=(value);
+            assign(str);
             return *this;
         }
-        jstring_base& operator=(jstring_base&& value) noexcept
+        jstring& operator=(internal_type&& str)
         {
-            this->base_class::operator=(std::move(value));
+            assign(std::move(str));
             return *this;
         }
-
-        jstring_base& operator+=(const type character)
+        jstring& operator=(const jstring& str)
         {
-            this->base_class::operator+=(character);
+            assign(str);
             return *this;
         }
-        jstring_base& operator+=(const type* const value)
+        jstring& operator=(jstring&& str) noexcept
         {
-            this->base_class::operator+=(value);
-            return *this;
-        }
-        jstring_base& operator+=(const jstring_base& value)
-        {
-            this->base_class::operator+=(value);
+            assign(std::move(str));
             return *this;
         }
 
-        std::basic_istream<type, traits_type>& readLine(std::basic_istream<type, traits_type>& stream)
-        {
-            base_class temp;
-            getline(stream, temp);
-            assign(temp.c_str());
-            return stream;
-        }
+        index_type getSize() const { return static_cast<index_type>(internalString.size()); }
+        bool isEmpty() const { return internalString.empty(); }
+        bool isValidIndex(const index_type index) const { return math::isWithin(index, 0, getSize() - 1); }
 
-        int32 getSize() const { return static_cast<int32>(this->base_class::length()); }
-        bool isValidIndex(const int32 index) const { return (index >= 0) && (index < getSize()); }
-        bool isEmpty() const { return this->base_class::empty(); }
+        iterator begin() { return internalString.begin(); }
+        iterator end() { return internalString.end(); }
+        
+        const_iterator begin() const { return internalString.begin(); }
+        const_iterator end() const { return internalString.end(); }
 
-        const type* getString() const noexcept { return this->base_class::c_str(); }
-        const type* operator*() const noexcept { return getString(); }
+        const character_type* getString() const noexcept { return internalString.c_str(); }
+        const character_type* operator*() const noexcept { return getString(); }
 
-        type& get(const int32 index)
+        character_type& get(const index_type index)
         {
-            if (index < 0)
-            {
-                throw_out_of_range();
-            }
-            return this->base_class::at(index);
+            _checkIfOutOfRange(index);
+            return internalString[index];
         }
-        const type& get(const int32 index) const
+        const character_type& get(const index_type index) const
         {
-            if (index < 0)
-            {
-                throw_out_of_range();
-            }
-            return this->base_class::at(index);
+            _checkIfOutOfRange(index);
+            return internalString[index];
         }
-        type& operator[](const int32 index) { return get(index); }
-        const type& operator[](const int32 index) const { return get(index); }
+        character_type& operator[](const index_type index) { return get(index); }
+        const character_type& operator[](const index_type index) const { return get(index); }
 
-        int32 indexOf(const type character, const int32 startIndex = 0, const int32 finishIndex = -1) const
+        index_type indexOf(const character_type character, const index_type startIndex = 0, const index_type finishIndex = -1) const
         {
-            const size_t index = this->base_class::find(character, math::max(0, startIndex));
-            return (index != base_class::npos) && ((finishIndex == -1) || (index <= finishIndex)) ? static_cast<int32>(index) : -1;
+            const size_t index = internalString.find(character, math::max(startIndex, 0));
+            return (index != internal_type::npos) && ((finishIndex < 0) || (index <= static_cast<size_t>(finishIndex))) ? static_cast<index_type>(index) : -1;
         }
-        int32 indexOf(const type* const str, const int32 startIndex = 0, const int32 finishIndex = -1) const
+        index_type indexOf(const character_type* const str, const index_type startIndex = 0, const index_type finishIndex = -1) const
         {
-            const size_t index = this->base_class::find(str, math::max(0, startIndex));
-            return (index != base_class::npos) && ((finishIndex == -1) || (index <= finishIndex)) ? static_cast<int32>(index) : -1;
+            const size_t index = internalString.find(str, math::max(startIndex, 0));
+            return (index != internal_type::npos) && ((finishIndex < 0) || (index <= static_cast<size_t>(finishIndex))) ? static_cast<index_type>(index) : -1;
         }
-        int32 indexOf(const type* const str, const int32 strLength, const int32 startIndex, const int32 finishIndex) const
+        index_type indexOf(const character_type* const str, const index_type strLength, const index_type startIndex, const index_type finishIndex) const
         {
             if (strLength <= 0)
             {
                 return -1;
             }
-            const size_t index = this->base_class::find(str, math::max(0, startIndex), strLength);
-            return (index != base_class::npos) && ((finishIndex == -1) || (index <= finishIndex)) ? static_cast<int32>(index) : -1;
+            const size_t index = internalString.find(str, math::max(0, startIndex), strLength);
+            return (index != internal_type::npos) && ((finishIndex < 0) || (index <= static_cast<size_t>(finishIndex))) ? static_cast<index_type>(index) : -1;
         }
-        int32 indexOf(const jstring_base& value, const int32 startIndex = 0, const int32 finishIndex = -1) { return indexOf(value.getString(), value.getSize(), startIndex, finishIndex); }
-
-        bool contains(const type character, const int32 startIndex = 0, const int32 finishIndex = -1) const { return indexOf(character, startIndex, finishIndex) != -1; }
-        bool contains(const type* const str, const int32 startIndex = 0, const int32 finishIndex = -1) const { return indexOf(str, startIndex, finishIndex) != -1; }
-        bool contains(const type* const str, const int32 strLength, const int32 startIndex, const int32 finishIndex) const { return indexOf(str, strLength, startIndex, finishIndex) != -1; }
-        bool contains(const jstring_base& value, const int32 startIndex = 0, const int32 finishIndex = -1) { return indexOf(value.getString(), value.getSize(), startIndex, finishIndex); }
-
-        jstring_base substr(const int32 startIndex = 0, const int32 length = -1) const
+        index_type indexOf(const jstring& str, const index_type startIndex = 0, const index_type finishIndex = -1) const { return indexOf(*str, str.getSize(), startIndex, finishIndex); }
+        
+        bool contains(const character_type character, const index_type startIndex = 0, const index_type finishIndex = -1) const { return indexOf(character, startIndex, finishIndex) != -1; }
+        bool contains(const character_type* const str, const index_type startIndex = 0, const index_type finishIndex = -1) const { return indexOf(str, startIndex, finishIndex) != -1; }
+        bool contains(const character_type* const str, const index_type strLength, const index_type startIndex, const int32 finishIndex) const { return indexOf(str, strLength, startIndex, finishIndex) != -1; }
+        bool contains(const jstring& str, const index_type startIndex = 0, const index_type finishIndex = -1) const { return indexOf(*str, str.getSize(), startIndex, finishIndex); }
+        
+        jstring substr(const index_type startIndex = 0, const index_type length = -1) const
         {
             if (length == 0)
             {
-                return "";
+                return jstring();
             }
-            return this->base_class::substr(startIndex, length > 0 ? length : base_class::npos);
+            return jstring(internalString.substr(startIndex, length > 0 ? length : internal_type::npos));
         }
 
-        int32 compare(const type* const str) const { return this->base_class::compare(str); }
-        int32 compare(const jstring_base& value) const { return this->base_class::compare(value); }
+        index_type compare(const character_type* const str) const { return internalString.compare(str); }
+        index_type compare(const jstring& str) const { return internalString.compare(*str); }
+        
+        void reserve(const index_type size) { internalString.reserve(math::max(size, 0)); }
+        void resize(const index_type size, const character_type character = character_type()) { internalString.resize(math::max(size, 0), character); }
 
-        jstring_base& assign(const type character) { return this->operator=(character); }
-        jstring_base& assign(const type* const str) { return this->operator=(str); }
-        jstring_base& assign(const type* const str, const int32 strLength)
+        jstring& assign(const character_type character)
+        {
+            internalString = character;
+            return *this;
+        }
+        jstring& assign(const character_type* const str)
+        {
+            internalString = str;
+            return *this;
+        }
+        jstring& assign(const character_type* const str, const int32 strLength)
         {
             if (strLength <= 0)
             {
@@ -170,143 +158,142 @@ namespace jutils
             }
             else
             {
-                this->base_class::assign(str, strLength);
+                internalString.assign(str, strLength);
             }
             return *this;
         }
-        jstring_base& assign(const jstring_base& value) { return this->operator=(value); }
-        jstring_base& assign(jstring_base&& value) { return this->operator=(value); }
+        jstring& assign(const internal_type& str)
+        {
+            internalString = str;
+            return *this;
+        }
+        jstring& assign(internal_type&& str)
+        {
+            internalString = std::move(str);
+            return *this;
+        }
+        jstring& assign(const jstring& str) { return assign(str.internalString); }
+        jstring& assign(jstring&& str) { return assign(std::move(str.internalString)); }
 
-        jstring_base& add(const type character) { return this->operator+=(character); }
-        jstring_base& add(const type* const str) { return this->operator+=(str); }
-        jstring_base& add(const type* const str, const int32 strLength)
+        jstring& add(const character_type character)
+        {
+            internalString += character;
+            return *this;
+        }
+        jstring& add(const character_type* const str)
+        {
+            internalString += str;
+            return *this;
+        }
+        jstring& add(const character_type* const str, const index_type strLength)
         {
             if (strLength > 0)
             {
-                this->base_class::append(str, strLength);
+                internalString.append(str, strLength);
             }
             return *this;
         }
-        jstring_base& add(const jstring_base& value) { return this->operator+=(value); }
+        jstring& add(const jstring& str)
+        {
+            internalString += str.internalString;
+            return *this;
+        }
 
-        jstring_base& addAt(const int32 index, const type character)
+        jstring& addAt(const index_type index, const character_type character)
         {
-            if (index < 0)
-            {
-                throw_out_of_range();
-            }
-            return this->base_class::insert(index, 1, character);
+            _checkIfOutOfRange(index);
+            internalString.insert(index, 1, character);
+            return *this;
         }
-        jstring_base& addAt(const int32 index, const type* const str)
+        jstring& addAt(const index_type index, const character_type* const str)
         {
-            if (index < 0)
-            {
-                throw_out_of_range();
-            }
-            return this->base_class::insert(index, str);
+            _checkIfOutOfRange(index);
+            internalString.insert(index, str);
+            return *this;
         }
-        jstring_base& addAt(const int32 index, const type* const str, const int32 strLength)
+        jstring& addAt(const index_type index, const character_type* const str, const index_type strLength)
         {
-            if (index < 0)
-            {
-                throw_out_of_range();
-            }
+            _checkIfOutOfRange(index);
             if (strLength > 0)
             {
-                this->base_class::insert(index, str, strLength);
+                internalString.insert(index, str, strLength);
             }
             return *this;
         }
-        jstring_base& addAt(const int32 index, const jstring_base& value)
+        jstring& addAt(const index_type index, const jstring& str)
         {
-            if (index < 0)
-            {
-                throw_out_of_range();
-            }
-            this->base_class::insert(index, value);
+            _checkIfOutOfRange(index);
+            internalString.insert(index, str.internalString);
             return *this;
         }
-
-        void reserve(const int32 size) { this->base_class::reserve(static_cast<size_t>(size)); }
-        void resize(const int32 size, const type character = type()) { this->base_class::resize(static_cast<size_t>(size), character); }
-
-        void removeAt(const int32 index, const int32 count = 1)
+        
+        void removeAt(const index_type index, const index_type count = 1)
         {
             if (isValidIndex(index) && (count > 0))
             {
-                this->base_class::erase(index);
+                internalString.erase(index);
             }
         }
 
-        void clear() { this->base_class::clear(); }
+        void clear() { internalString.clear(); }
+        
+        constexpr uint64 hash() const { return math::hash::crc64(getString(), getSize()); }
 
-        iterator begin() { return this->base_class::begin(); }
-        iterator end() { return this->base_class::end(); }
-
-        const_iterator begin() const { return this->base_class::begin(); }
-        const_iterator end() const { return this->base_class::end(); }
-
-        constexpr uint64 hash() const { return jutils::math::hash::crc64(getString(), getSize()); }
+        jstring& operator+=(const character_type character) { return add(character); }
+        jstring& operator+=(const character_type* const str) { return add(str); }
+        jstring& operator+=(const jstring& str) { return add(str); }
 
     private:
 
-        static void throw_out_of_range()
+        internal_type internalString;
+
+
+        void _checkIfOutOfRange(const index_type index) const
         {
-            throw std::out_of_range("Invalid jstring_base<T> index!");
+            if (!isValidIndex(index))
+            {
+                throw std::out_of_range("Invalid jstring index!");
+            }
         }
     };
 
-    template<typename Allocator>
-    jstring_base<Allocator> operator+(const jstring_base<Allocator>& str1, const jstring_base<Allocator>& str2) { return jstring_base<Allocator>(str1).add(str2); }
-    template<typename Allocator>
-    jstring_base<Allocator> operator+(const jstring_base<Allocator>& str1, const typename jstring_base<Allocator>::type* str2) { return jstring_base<Allocator>(str1).add(str2); }
-    template<typename Allocator>
-    jstring_base<Allocator> operator+(const typename jstring_base<Allocator>::type* const str1, const jstring_base<Allocator>& str2) { return jstring_base<Allocator>(str1) + str2; }
-    
-    template<typename Allocator>
-    bool operator==(const jstring_base<Allocator>& str1, const jstring_base<Allocator>& str2) { return str1.compare(str2) == 0; }
-    template<typename Allocator>
-    bool operator==(const jstring_base<Allocator>& str1, const typename jstring_base<Allocator>::type* const str2) { return str1.compare(str2) == 0; }
-    template<typename Allocator>
-    bool operator==(const typename jstring_base<Allocator>::type* const str1, const jstring_base<Allocator>& str2) { return str2 == str1; }
-    
-    template<typename Allocator>
-    bool operator!=(const jstring_base<Allocator>& str1, const jstring_base<Allocator>& str2) { return !(str1 == str2); }
-    template<typename Allocator>
-    bool operator!=(const jstring_base<Allocator>& str1, const typename jstring_base<Allocator>::type* const str2) { return !(str1 == str2); }
-    template<typename Allocator>
-    bool operator!=(const typename jstring_base<Allocator>::type* const str1, const jstring_base<Allocator>& str2) { return !(str1 == str2); }
-
-    template<typename Allocator>
-    bool operator<(const jstring_base<Allocator>& str1, const jstring_base<Allocator>& str2) { return str1.compare(str2) < 0; }
-    template<typename Allocator>
-    bool operator<(const jstring_base<Allocator>& str1, const typename jstring_base<Allocator>::type* const str2) { return str1.compare(str2) < 0; }
-    template<typename Allocator>
-    bool operator<(const typename jstring_base<Allocator>::type* const str1, const jstring_base<Allocator>& str2) { return str2.compare(str1) > 0; }
-    
-    template<typename Allocator>
-    bool operator>(const jstring_base<Allocator>& str1, const jstring_base<Allocator>& str2) { return str1.compare(str2) > 0; }
-    template<typename Allocator>
-    bool operator>(const jstring_base<Allocator>& str1, const typename jstring_base<Allocator>::type* const str2) { return str1.compare(str2) > 0; }
-    template<typename Allocator>
-    bool operator>(const typename jstring_base<Allocator>::type* const str1, const jstring_base<Allocator>& str2) { return str2.compare(str1) < 0; }
-
-    template<typename Allocator>
-    std::basic_ostream<typename jstring_base<Allocator>::type, typename jstring_base<Allocator>::traits_type>& operator<<(
-        std::basic_ostream<typename jstring_base<Allocator>::type, typename jstring_base<Allocator>::traits_type>& stream, 
-        const jstring_base<Allocator>& str
-    ) { return stream << str.getString(); }
-
-    template<typename Allocator>
-    std::basic_istream<typename jstring_base<Allocator>::type, typename jstring_base<Allocator>::traits_type>& getline(
-        std::basic_istream<typename jstring_base<Allocator>::type, typename jstring_base<Allocator>::traits_type>& stream,
-        jstring_base<Allocator>& str
-    ) { return str.readLine(stream); }
-
-    using jstring = jstring_base<>;
+    inline std::basic_istream<jstring::character_type, jstring::internal_type::traits_type>& readStreamLine(
+        std::basic_istream<jstring::character_type, jstring::internal_type::traits_type>& stream, jstring& outString)
+    {
+        std::string str;
+        auto& result = std::getline(stream, str);
+        outString = std::move(str);
+        return result;
+    }
 
     template<typename T>
-    jstring to_jstring(T value) { return std::to_string(value).c_str(); }
+    jstring to_jstring(T value) { return jstring(std::to_string(value)); }
+
+    inline jstring operator+(const jstring& str1, const jstring& str2) { return jstring(str1) += str2; }
+    inline jstring operator+(const jstring& str1, const jstring::character_type* str2) { return jstring(str1) += str2; }
+    inline jstring operator+(const jstring::character_type* const str1, const jstring& str2) { return jstring(str1) += str2; }
+
+    inline bool operator==(const jstring& str1, const jstring& str2) { return str1.compare(str2) == 0; }
+    inline bool operator==(const jstring& str1, const jstring::character_type* const str2) { return str1.compare(str2) == 0; }
+    inline bool operator==(const jstring::character_type* const str1, const jstring& str2) { return str2 == str1; }
+
+    inline bool operator!=(const jstring& str1, const jstring& str2) { return !(str1 == str2); }
+    inline bool operator!=(const jstring& str1, const jstring::character_type* const str2) { return !(str1 == str2); }
+    inline bool operator!=(const jstring::character_type* const str1, const jstring& str2) { return !(str1 == str2); }
+
+    inline bool operator<(const jstring& str1, const jstring& str2) { return str1.compare(str2) < 0; }
+    inline bool operator<(const jstring& str1, const jstring::character_type* const str2) { return str1.compare(str2) < 0; }
+    inline bool operator<(const jstring::character_type* const str1, const jstring& str2) { return str2.compare(str1) > 0; }
+    
+    inline bool operator>(const jstring& str1, const jstring& str2) { return str1.compare(str2) > 0; }
+    inline bool operator>(const jstring& str1, const jstring::character_type* const str2) { return str1.compare(str2) > 0; }
+    inline bool operator>(const jstring::character_type* const str1, const jstring& str2) { return str2.compare(str1) < 0; }
+
+    inline std::basic_ostream<jstring::character_type, jstring::internal_type::traits_type>& operator<<(
+        std::basic_ostream<jstring::character_type, jstring::internal_type::traits_type>& stream, const jstring& str)
+    {
+        return stream << *str;
+    }
 }
 
 #define JSTR(str) u8 ## str
