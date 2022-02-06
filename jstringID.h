@@ -23,11 +23,14 @@ namespace jutils
 
         static jstringID NONE;
 
-        bool isValid() const { return jstring_hash_table::GetInstanse()->contains(pointerIndex); }
+        bool isValid() const { return pointerIndex >= 0; }
         jstring toString() const { return jstring_hash_table::GetInstanse()->get(pointerIndex); }
 
         bool operator==(const jstringID& strID) const { return isValid() && (pointerIndex == strID.pointerIndex); }
         bool operator!=(const jstringID& strID) const { return !operator==(strID); }
+
+        bool operator<(const jstringID& strID) const { return isValid() && (pointerIndex < strID.pointerIndex); }
+        bool operator>(const jstringID& strID) const { return isValid() && (pointerIndex > strID.pointerIndex); }
 
     private:
 
