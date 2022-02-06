@@ -457,16 +457,17 @@ namespace jutils
         type& _putValue(bool overrideValue, const KeyType& key, Args&&... args)
         {
             index_type index = -1;
-            const bool keyWasCreated = _putKey(key, index);
+            chain_node* node;
+            const bool keyWasCreated = _putKey(key, node);
             if (keyWasCreated)
             {
-                _constructObject(data + index, std::forward<Args>(args)...);
+                _constructObject(node, std::forward<Args>(args)...);
             }
             else if (overrideValue)
             {
-                data[index].object = type(std::forward<Args>(args)...);
+                node->object = type(std::forward<Args>(args)...);
             }
-            return data[index].object;
+            return node->object;
         }
 
         template<typename KeyType>
