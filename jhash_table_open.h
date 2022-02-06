@@ -88,15 +88,22 @@ namespace jutils
         };
 
         jhash_table_open()
-            : jhash_table_open(8)
+            : jhash_table_open(min_table_size)
         {}
-        jhash_table_open(const index_type capacity)
+        explicit jhash_table_open(const index_type capacity)
         {
-            _updateDataSize(math::max(capacity, 8));
+            _updateDataSize(math::max(capacity, min_table_size));
         }
         jhash_table_open(std::initializer_list<type> list)
         {
-            append(list);
+            if (list.size() > 0)
+            {
+                append(list);
+            }
+            else
+            {
+                _updateDataSize(min_table_size);
+            }
         }
         jhash_table_open(const jhash_table_open& table)
         {
@@ -169,7 +176,7 @@ namespace jutils
             return index >= 0 ? &data[index].object : nullptr;
         }
         template<typename KeyType>
-        bool contains(const KeyType& key) const { return _findIndex(key) != nullptr; }
+        bool contains(const KeyType& key) const { return _findIndex(key) >= 0; }
 
         void reserve(const index_type capacity) { _updateDataSize(capacity); }
 
@@ -253,6 +260,8 @@ namespace jutils
 
     private:
 
+        static constexpr index_type min_table_size = 8;
+
         struct node
         {
             type object;
@@ -307,7 +316,7 @@ namespace jutils
         }
         template<typename KeyType>
         static bool _compareObjects(const type& object, const KeyType& key) { return object == key; }
-        template<typename KeyType, TEMPLATE_ENABLE(math::hash::hash_info<T>::has_hash)>
+        template<typename KeyType, TEMPLATE_ENABLE(math::hash::hash_info<KeyType>::has_hash)>
         static constexpr hash_type _getObjectHash(const KeyType& key) { return math::hash::getHash(key); }
         
         template<typename KeyType>

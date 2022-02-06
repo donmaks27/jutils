@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "type_defines.h"
+#include "jlist_allocator.h"
 
 #include <functional>
 
@@ -28,6 +28,7 @@ namespace jutils
             tree_node* childLeft = nullptr;
             tree_node* childRight = nullptr;
 
+            void markUnused() { parent = this; }
             bool isUnused() const { return parent == this; }
         };
 
@@ -119,6 +120,8 @@ namespace jutils
         }
         jtree_red_black(jtree_red_black&& value) noexcept
         {
+            allocator = std::move(value.allocator);
+
             rootNode = value.rootNode;
             size = value.size;
             firstUnusedNode = value.firstUnusedNode;
@@ -152,6 +155,8 @@ namespace jutils
         jtree_red_black& operator=(jtree_red_black&& value) noexcept
         {
             _clearAllData();
+
+            allocator = std::move(value.allocator);
 
             rootNode = value.rootNode;
             size = value.size;
@@ -190,7 +195,7 @@ namespace jutils
         template<typename KeyType>
         bool contains(const KeyType& key) const { return _findNode(key) != nullptr; }
 
-        void reserve(const index_type capacity) { _reserveNodes(capacity - size); }
+        void reserve(const index_type capacity) { _reserveFreeNodes(capacity - size); }
 
         template<typename KeyType, typename... Args>
         type& put(const KeyType& key, Args&&... args) { return _putValue(false, key, std::forward<Args>(args)...); }
@@ -255,14 +260,9 @@ namespace jutils
 
     private:
 
-        struct segment_description
-        {
-            index_type size = 0;
-            tree_node* data = nullptr;
-            segment_description* nextSegment = nullptr;
-        };
+        using allocator_type = jlist_allocator<tree_node>;
 
-        segment_description* firstSegment = nullptr;
+        allocator_type allocator = allocator_type();
 
         tree_node* rootNode = nullptr;
         index_type size = 0;
@@ -270,24 +270,6 @@ namespace jutils
         tree_node* firstUnusedNode = nullptr;
         index_type unusedNodesCount = 0;
 
-
-        static tree_node* _allocateNodes(const index_type size) { return static_cast<tree_node*>(::operator new(sizeof(tree_node) * size, static_cast<std::align_val_t>(alignof(tree_node)))); }
-        static void _deallocateNodes(tree_node* node, const index_type size) { ::operator delete(node, sizeof(tree_node) * size, static_cast<std::align_val_t>(alignof(tree_node))); }
-
-        static segment_description* _allocateSegment(const index_type size)
-        {
-            segment_description* segment = new segment_description();
-            segment->size = size;
-            segment->data = _allocateNodes(size);
-            return segment;
-        }
-        static segment_description* _deallocateSegment(segment_description* segment)
-        {
-            _deallocateNodes(segment->data, segment->size);
-            segment_description* nextSegment = segment->nextSegment;
-            delete segment;
-            return nextSegment;
-        }
 
         template<typename... Args>
         static void _constructNodeObject(tree_node* node, Args&&... args) { ::new (&node->object) type(std::forward<Args>(args)...); }
@@ -316,7 +298,7 @@ namespace jutils
         void _allocateNewSegment();
         tree_node* _getNode();
         void _returnNode(tree_node* node);
-        void _reserveNodes(index_type count);
+        void _reserveFreeNodes(index_type count);
 
         static bool _rotateLeft(tree_node* node);
         static bool _rotateRight(tree_node* node);
@@ -447,15 +429,19 @@ namespace jutils
     template<typename T, typename ComparePred>
     void jtree_red_black<T, ComparePred>::_allocateNewSegment()
     {
-        const index_type segmentSize = firstSegment != nullptr ? firstSegment->size * 2 : 4;
-        segment_description* segment = _allocateSegment(segmentSize);
-        segment->nextSegment = firstSegment;
-        firstSegment = segment;
+        tree_node* segmentData = nullptr;
+        index_type segmentSize = 0;
+        allocator.allocateSegment(segmentData, segmentSize);
 
-        for (index_type index = 0; index < segmentSize; index++)
+        for (index_type index = 0; index < segmentSize - 1; index++)
         {
-            _returnNode(segment->data + index);
+            segmentData[index].markUnused();
+            segmentData[index].childRight = segmentData + index + 1;
         }
+        segmentData[segmentSize - 1].markUnused();
+        segmentData[segmentSize - 1].childRight = firstUnusedNode;
+        firstUnusedNode = segmentData;
+        unusedNodesCount += segmentSize;
     }
     template<typename T, typename ComparePred>
     typename jtree_red_black<T, ComparePred>::tree_node* jtree_red_black<T, ComparePred>::_getNode()
@@ -480,14 +466,14 @@ namespace jutils
     {
         if (node != nullptr)
         {
-            node->parent = node;
+            node->markUnused();
             node->childRight = firstUnusedNode;
             firstUnusedNode = node;
             unusedNodesCount++;
         }
     }
     template<typename T, typename ComparePred>
-    void jtree_red_black<T, ComparePred>::_reserveNodes(const index_type count)
+    void jtree_red_black<T, ComparePred>::_reserveFreeNodes(const index_type count)
     {
         while (unusedNodesCount < count)
         {
@@ -916,13 +902,8 @@ namespace jutils
             }
         }
 
-        segment_description* segment = firstSegment;
-        while (segment != nullptr)
-        {
-            segment = _deallocateSegment(segment);
-        }
+        allocator.clear();
 
-        firstSegment = nullptr;
         rootNode = nullptr;
         size = 0;
         firstUnusedNode = nullptr;

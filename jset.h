@@ -46,7 +46,7 @@ namespace jutils
 
         bool contains(const type& value) const { return container.contains(value); }
         
-        void reserve(const index_type capacity) { container.reserve(capacity); }
+        void reserve(const index_type capacity) { container.resizeTable(capacity); }
 
         const type& add(const type& value) { return container.add(value, false); }
         const type& add(type&& value) { return container.add(std::move(value), false); }
