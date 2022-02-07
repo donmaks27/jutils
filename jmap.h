@@ -66,7 +66,7 @@ namespace jutils
 
         value_type& get(const key_type& key) { return container.find(key)->value; }
         const value_type& get(const key_type& key) const { return container.find(key)->value; }
-        value_type& operator[](const key_type& key) { return put(key); }
+        value_type& operator[](const key_type& key) { return getOrAdd(key); }
         const value_type& operator[](const key_type& key) const { return get(key); }
 
         value_type* find(const key_type& key)
@@ -95,6 +95,8 @@ namespace jutils
         value_type& add(key_type&& key, value_type&& value) { return put(std::move(key), std::move(value)); }
         value_type& add(const pair_type& value) { return put(value.key, value); }
         value_type& add(pair_type&& value) { return put(value.key, std::move(value)); }
+
+        value_type& getOrAdd(const key_type& key) { return container.put(key, key).value; }
         
         void append(std::initializer_list<pair_type> list) { container.append(list); }
         void append(const jmap& value) { container.append(value.container); }
