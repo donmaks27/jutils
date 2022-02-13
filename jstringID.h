@@ -36,6 +36,11 @@ namespace jutils
 
         index_type addOrFind(const jstring& str)
         {
+            if (str.isEmpty())
+            {
+                return -1;
+            }
+
             hash_table_entry& entry = hashTable.put(str, str);
             if (!pointers.isValidIndex(entry.pointerIndex))
             {
