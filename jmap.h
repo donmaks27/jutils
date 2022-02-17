@@ -7,7 +7,7 @@
 
 namespace jutils
 {
-    template<typename KeyType, typename ValueType>
+    template<typename KeyType, typename ValueType, typename KeyComparePred = std::less<>>
     class jmap
     {
     public:
@@ -16,11 +16,12 @@ namespace jutils
         using value_type = ValueType;
         using pair_type = jmap_pair<key_type, value_type>;
 
+        using key_compare_predicator_type = KeyComparePred;
         struct compare_predicator
         {
             constexpr bool operator()(const key_type& value1, const key_type& value2) const
             {
-                static constexpr std::less<> predicator;
+                static constexpr key_compare_predicator_type predicator;
                 return predicator(value1, value2);
             }
             constexpr bool operator()(const pair_type& value1, const pair_type& value2) const { return this->operator()(value1.key, value2.key); }
