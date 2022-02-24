@@ -102,7 +102,7 @@ namespace jutils
         void append(std::initializer_list<pair_type> list) { container.append(list); }
         void append(const jmap& value) { container.append(value.container); }
 
-        void remove(const key_type& key) { container.remove(key); }
+        bool remove(const key_type& key) { return container.remove(key); }
         void clear() { container.clear(); }
 
         jmap& operator+=(const pair_type& value)

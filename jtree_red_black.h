@@ -226,14 +226,16 @@ namespace jutils
         }
 
         template<typename KeyType>
-        void remove(const KeyType& key)
+        bool remove(const KeyType& key)
         {
             tree_node* node = _findNode(key);
             if (node != nullptr)
             {
                 size--;
                 _removeValue(node);
+                return true;
             }
+            return false;
         }
         void clear();
 
