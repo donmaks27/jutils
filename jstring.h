@@ -83,6 +83,9 @@ namespace jutils
         const_iterator begin() const { return internalString.begin(); }
         const_iterator end() const { return internalString.end(); }
 
+        character_type* getString() noexcept { return internalString.data(); }
+        character_type* operator*() noexcept { return getString(); }
+
         const character_type* getString() const noexcept { return internalString.c_str(); }
         const character_type* operator*() const noexcept { return getString(); }
 
