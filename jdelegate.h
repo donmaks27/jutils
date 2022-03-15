@@ -18,8 +18,8 @@ namespace jutils
             }
         }
         jdelegate(jdelegate&& otherDelegate) noexcept
+            : delegate_container(otherDelegate.delegate_container)
         {
-            delegate_container = otherDelegate.delegate_container;
             otherDelegate.delegate_container = nullptr;
         }
         ~jdelegate() { clear(); }

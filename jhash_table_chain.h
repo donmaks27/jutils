@@ -142,14 +142,10 @@ namespace jutils
             append(table);
         }
         jhash_table_chain(jhash_table_chain&& table) noexcept
+            : chainAllocator(std::move(table.chainAllocator))
+            , firstUnusedChainNode(table.firstUnusedChainNode)
+            , data(table.data), size(table.size), objectCount(table.objectCount)
         {
-            chainAllocator = std::move(table.chainAllocator);
-
-            firstUnusedChainNode = table.firstUnusedChainNode;
-            data = table.data;
-            size = table.size;
-            objectCount = table.objectCount;
-
             table.firstUnusedChainNode = nullptr;
             table.data = nullptr;
             table.size = 0;
@@ -318,15 +314,15 @@ namespace jutils
 
         static table_node* _allocateTableNodes(const index_type size)
         {
-            table_node* data = static_cast<table_node*>(::operator new(sizeof(table_node) * size, static_cast<std::align_val_t>(alignof(table_node))));
+            table_node* data = jutils::memory::allocate<table_node>(size);
             ::memset(data, 0, sizeof(table_node) * size);
             return data;
         }
-        static void _deallocateTableNodes(table_node* data, const index_type size) { ::operator delete(data, sizeof(table_node) * size, static_cast<std::align_val_t>(alignof(table_node))); }
+        static void _deallocateTableNodes(table_node* data, const index_type size) { jutils::memory::deallocate(data, size); }
 
         template<typename... Args>
-        static void _constructObject(chain_node* node, Args&&... args) { ::new (&node->object) type(std::forward<Args>(args)...); }
-        static void _destroyObject(chain_node* node) { node->object.~type(); }
+        static void _constructObject(chain_node* node, Args&&... args) { jutils::memory::construct(&node->object, std::forward<Args>(args)...); }
+        static void _destroyObject(chain_node* node) { jutils::memory::destruct(&node->object); }
 
         template<typename KeyType>
         static bool _compareObjects(const type& object, const KeyType& key) { return object == key; }

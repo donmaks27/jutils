@@ -64,7 +64,7 @@ namespace jutils
         pointer createObject(Args&&... args)
         {
             const pointer nodePointer = allocateObjectNode();
-            ::new (static_cast<void*>(getObjectNode(nodePointer))) type(std::forward<Args>(args)...);
+            jutils::memory::construct(getObjectNode(nodePointer), std::forward<Args>(args)...);
             return nodePointer;
         }
         bool isObjectValid(const pointer& pointer) const
@@ -79,7 +79,7 @@ namespace jutils
         {
             if (isObjectValid(pointer))
             {
-                getObjectNode(pointer)->~type();
+                jutils::memory::destruct(getObjectNode(pointer));
                 deallocateObjectNode(pointer);
             }
         }
@@ -148,7 +148,7 @@ namespace jutils
         {
             pool_segment* segment = segments.add(new pool_segment());
 
-            segment->data = static_cast<type*>(::operator new(sizeof(type) * segmentSize, static_cast<std::align_val_t>(alignof(type))));
+            segment->data = jutils::memory::allocate<type>(segmentSize);
             jpool_empty_nodes_getter::init(segment, segmentSize);
 
             segment->nodeUIDs = new uid_type[segmentSize];
@@ -167,11 +167,11 @@ namespace jutils
                 {
                     if (segment->nodeUIDs[nodeIndex] != uid_generator_type::invalidUID)
                     {
-                        segment->data[nodeIndex].~type();
+                        jutils::memory::destruct(&segment->data[nodeIndex]);
                     }
                 }
             }
-            ::operator delete(segment->data, sizeof(type) * segmentSize, static_cast<std::align_val_t>(alignof(type)));
+            jutils::memory::deallocate(segment->data, segmentSize);
             delete[] segment->nodeUIDs;
             delete segment;
         }

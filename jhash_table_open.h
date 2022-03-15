@@ -3,6 +3,7 @@
 #pragma once
 
 #include "math/hash.h"
+#include "jmemory.h"
 
 namespace jutils
 {
@@ -283,27 +284,18 @@ namespace jutils
         index_type objectCount = 0;
 
 
-        static node* _allocateMemory(const index_type size)
-        {
-            return size > 0 ? static_cast<node*>(::operator new(sizeof(node) * size, static_cast<std::align_val_t>(alignof(node)))) : nullptr;
-        }
-        static void _deallocateMemory(node* data, const index_type size)
-        {
-            if (size > 0)
-            {
-                ::operator delete(data, sizeof(node) * size, static_cast<std::align_val_t>(alignof(node)));
-            }
-        }
+        static node* _allocateMemory(const index_type size) { return jutils::memory::allocate<node>(size); }
+        static void _deallocateMemory(node* data, const index_type size) { jutils::memory::deallocate(data, size); }
 
         template<typename... Args>
-        static void _constructObject(node* node, Args&&... args) { ::new (&node->object) type(std::forward<Args>(args)...); }
-        static void _destroyObject(node* node) { node->object.~type(); }
+        static void _constructObject(node* node, Args&&... args) { jutils::memory::construct(&node->object, std::forward<Args>(args)...); }
+        static void _destroyObject(node* node) { jutils::memory::destruct(&node->object); }
 
         static void _copyObject(node* srcNode, node* dstNode, const bool dstObjectExists = false)
         {
             if (std::is_trivially_copyable_v<type>)
             {
-                std::memmove(&dstNode->object, &srcNode->object, sizeof(type));
+                ::memmove(&dstNode->object, &srcNode->object, sizeof(type));
             }
             else if (dstObjectExists)
             {

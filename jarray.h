@@ -4,6 +4,7 @@
 
 #include "type_defines.h"
 #include "math/math.h"
+#include "jmemory.h"
 
 #include <cstring>
 #include <limits>
@@ -303,8 +304,8 @@ namespace jutils
 
 
         template<typename... Args>
-        static void _constructObject(type* object, Args&&... args) { ::new (object) type(std::forward<Args>(args)...); }
-        static void _destroyObject(type* object) { object->~type(); }
+        static void _constructObject(type* object, Args&&... args) { jutils::memory::construct(object, std::forward<Args>(args)...); }
+        static void _destroyObject(type* object) { jutils::memory::destruct(object); }
 
         static void _copyData(type* oldData, type* newData, index_type newDataSize);
         static void _eraseData(type* data, index_type dataSize, index_type dataIndex);
@@ -313,17 +314,8 @@ namespace jutils
         static index_type _copyData(type* oldData, index_type oldDataSize, type* newData, index_type newDataCapacity);
         static index_type _copyDataBeforeInsert(type* oldData, index_type oldDataSize, type* newData, index_type newDataCapacity, index_type insertIndex);
 
-        static type* _allocateMemory(const index_type size)
-        {
-            return size > 0 ? static_cast<type*>(::operator new(sizeof(type) * size, static_cast<std::align_val_t>(alignof(type)))) : nullptr;
-        }
-        static void _deallocateMemory(type* data, const index_type size)
-        {
-            if (size > 0)
-            {
-                ::operator delete(data, sizeof(type) * size, static_cast<std::align_val_t>(alignof(type)));
-            }
-        }
+        static type* _allocateMemory(const index_type size) { return jutils::memory::allocate<type>(size); }
+        static void _deallocateMemory(type* data, const index_type size) { jutils::memory::deallocate(data, size); }
 
         void _setCapacity(index_type newCapacity);
         template<typename... Args>

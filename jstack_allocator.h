@@ -4,6 +4,9 @@
 
 #include "type_defines.h"
 #include "math/math.h"
+#include "jmemory.h"
+
+#include <limits>
 
 namespace jutils
 {
@@ -34,7 +37,7 @@ namespace jutils
             T* object = allocateObject<T>();
             if (object != nullptr)
             {
-                ::new (static_cast<void*>(object)) T(std::forward<Args>(args)...);
+                jutils::memory::construct(object, std::forward<Args>(args)...);
             }
             return object;
         }
@@ -43,7 +46,7 @@ namespace jutils
         {
             if ((object != nullptr) && (object == getLastObject()))
             {
-                object->~T();
+                jutils::memory::destruct(object);
                 deallocateObject(object);
             }
         }

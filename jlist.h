@@ -338,8 +338,8 @@ namespace jutils
 
 
         template<typename... Args>
-        static void _constructObject(list_node* node, Args&&... args) { ::new (&node->object) type(std::forward<Args>(args)...); }
-        static void _destroyObject(list_node* node) { node->object.~type(); }
+        static void _constructObject(list_node* node, Args&&... args) { jutils::memory::construct(&node->object, std::forward<Args>(args)...); }
+        static void _destroyObject(list_node* node) { jutils::memory::destruct(&node->object); }
 
         iterator _getIteratorByIndex(const index_type index) { return begin() += index; }
         const_iterator _getIteratorByIndex(const index_type index) const { return begin() += index; }

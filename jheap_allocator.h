@@ -53,7 +53,7 @@ namespace jutils
             const pointer result = allocateObjectNode<T>();
             if (isObjectValid(result))
             {
-                ::new (getObjectNode(result)) T(std::forward<Args>(args)...);
+                jutils::memory::construct(static_cast<T*>(getObjectNode(result)), std::forward<Args>(args)...);
             }
             return result;
         }
@@ -68,7 +68,7 @@ namespace jutils
         {
             if ((data != nullptr) && isObjectValid(pointer))
             {
-                static_cast<T*>(getObjectNode(pointer))->~T();
+                jutils::memory::destruct(static_cast<T*>(getObjectNode(pointer)));
                 deallocateObjectNode(pointer);
             }
         }

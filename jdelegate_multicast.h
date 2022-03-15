@@ -48,9 +48,9 @@ namespace jutils
         {
             if (object != nullptr)
             {
-                for (const auto& delegate : delegates_container)
+                for (const auto& delegate_entry : delegates_container)
                 {
-                    if (delegate.isBinded(object, function))
+                    if (delegate_entry.isBinded(object, function))
                     {
                         return true;
                     }

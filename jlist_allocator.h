@@ -3,6 +3,7 @@
 #pragma once
 
 #include "type_defines.h"
+#include "jmemory.h"
 
 namespace jutils
 {
@@ -60,8 +61,8 @@ namespace jutils
         index_type size = 0;
 
 
-        static type* _allocateData(const index_type size) { return static_cast<type*>(::operator new(sizeof(type) * size, static_cast<std::align_val_t>(alignof(type)))); }
-        static void _deallocateData(type* data, const index_type size) { ::operator delete(data, sizeof(type) * size, static_cast<std::align_val_t>(alignof(type))); }
+        static type* _allocateData(const index_type size) { return jutils::memory::allocate<type>(size); }
+        static void _deallocateData(type* data, const index_type size) { jutils::memory::deallocate(data, size); }
 
         static segment_description* _allocateSegment(const index_type size)
         {

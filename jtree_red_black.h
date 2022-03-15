@@ -119,14 +119,10 @@ namespace jutils
             append(value);
         }
         jtree_red_black(jtree_red_black&& value) noexcept
+            : allocator(std::move(value.allocator))
+            , rootNode(value.rootNode), size(value.size)
+            , firstUnusedNode(value.firstUnusedNode), unusedNodesCount(value.unusedNodesCount)
         {
-            allocator = std::move(value.allocator);
-
-            rootNode = value.rootNode;
-            size = value.size;
-            firstUnusedNode = value.firstUnusedNode;
-            unusedNodesCount = value.unusedNodesCount;
-
             value.rootNode = nullptr;
             value.size = 0;
             value.firstUnusedNode = nullptr;
@@ -274,8 +270,8 @@ namespace jutils
 
 
         template<typename... Args>
-        static void _constructNodeObject(tree_node* node, Args&&... args) { ::new (&node->object) type(std::forward<Args>(args)...); }
-        static void _destroyNodeObject(tree_node* node) { node->object.~type(); }
+        static void _constructNodeObject(tree_node* node, Args&&... args) { jutils::memory::construct(&node->object, std::forward<Args>(args)...); }
+        static void _destroyNodeObject(tree_node* node) { jutils::memory::destruct(&node->object); }
         static void _copyNodeObject(tree_node* srcNode, tree_node* dstNode)
         {
             if (std::is_trivially_copyable_v<type>)
