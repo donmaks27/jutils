@@ -83,7 +83,7 @@ namespace jutils
 
         bool contains(const key_type& key) const { return container.find(key) != nullptr; }
 
-        void reserve(const index_type capacity) { container.resizeTable(capacity); }
+        void reserve(const index_type capacity) { container.reserve(capacity); }
 
         template<typename... Args>
         value_type& put(const key_type& key, Args&&... args) { return container.set(key, key, std::forward<Args>(args)...).value; }
