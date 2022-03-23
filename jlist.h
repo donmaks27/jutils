@@ -25,7 +25,7 @@ namespace jutils
             list_node* nextNode = nullptr;
             list_node* prevNode = nullptr;
 
-            void markUnused() { prevNode = *this; }
+            void markUnused() { prevNode = this; }
             bool isUnused() const { return prevNode == this; }
         };
 
@@ -299,6 +299,8 @@ namespace jutils
                 _removeAt(_getIteratorByIndex(index));
             }
         }
+        void removeFirst() { _removeAt(begin()); }
+        void removeLast() { _removeAt(_getLastIterator()); }
         index_type remove(const type& value);
 
         void clear();
@@ -343,6 +345,9 @@ namespace jutils
 
         iterator _getIteratorByIndex(const index_type index) { return begin() += index; }
         const_iterator _getIteratorByIndex(const index_type index) const { return begin() += index; }
+
+        iterator _getLastIterator() { return iterator(lastNode); }
+        const_iterator _getLastIterator() const { return const_iterator(lastNode); }
 
         void _allocateMoreNodes();
         void _reserveNodes(index_type count);

@@ -253,6 +253,8 @@ namespace jutils
         }
 
         void removeAt(const index_type index) { _removeAt(index); }
+        void removeFirst() { removeAt(0); }
+        void removeLast() { removeAt(getSize() - 1); }
         index_type remove(const type& value)
         {
             index_type count = 0;
@@ -399,15 +401,18 @@ namespace jutils
     template<typename T>
     void jarray<T>::_eraseData(type* data, const index_type dataSize, const index_type dataIndex)
     {
-        if (std::is_trivially_copyable_v<type>)
+        if ((dataIndex + 1) < dataSize)
         {
-            ::memmove(data + dataIndex, data + dataIndex + 1, sizeof(type) * (dataSize - dataIndex - 1));
-        }
-        else
-        {
-            for (index_type index = dataIndex + 1; index < dataSize; index++)
+            if (std::is_trivially_copyable_v<type>)
             {
-                data[index - 1] = std::move(data[index]);
+                ::memmove(data + dataIndex, data + dataIndex + 1, sizeof(type) * (dataSize - dataIndex - 1));
+            }
+            else
+            {
+                for (index_type index = dataIndex + 1; index < dataSize; index++)
+                {
+                    data[index - 1] = std::move(data[index]);
+                }
             }
         }
         _destroyObject(data + dataSize - 1);
@@ -415,16 +420,19 @@ namespace jutils
     template<typename T>
     void jarray<T>::_insertData(type* data, const index_type dataSize, const index_type dataIndex)
     {
-        if (std::is_trivially_copyable_v<type>)
+        if ((dataIndex + 1) < dataSize)
         {
-            ::memmove(data + dataIndex + 1, data + dataIndex, sizeof(type) * (dataSize - dataIndex));
-        }
-        else
-        {
-            _constructObject(data + dataSize, std::move(data[dataSize - 1]));
-            for (index_type index = dataSize - 1; index > dataIndex; index--)
+            if (std::is_trivially_copyable_v<type>)
             {
-                data[index] = std::move(data[index - 1]);
+                ::memmove(data + dataIndex + 1, data + dataIndex, sizeof(type) * (dataSize - dataIndex));
+            }
+            else
+            {
+                _constructObject(data + dataSize, std::move(data[dataSize - 1]));
+                for (index_type index = dataSize - 1; index > dataIndex; index--)
+                {
+                    data[index] = std::move(data[index - 1]);
+                }
             }
         }
     }
