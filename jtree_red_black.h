@@ -695,7 +695,7 @@ namespace jutils
         {
             return;
         }
-        if (node == rootNode)
+        if ((node == rootNode) && (node->childLeft == nullptr) && (node->childRight == nullptr))
         {
             _destroyNodeObject(node);
             _returnNode(node);
@@ -716,7 +716,7 @@ namespace jutils
         }
 
         tree_node* parent = node->parent;
-        const bool left = parent->childLeft == node;
+        const bool left = (parent != nullptr) && (parent->childLeft == node);
         if (node->isRed)
         {
             if (left)
@@ -738,13 +738,20 @@ namespace jutils
         {
             node->childLeft->parent = parent;
             node->childLeft->isRed = false;
-            if (left)
+            if (parent != nullptr)
             {
-                parent->childLeft = node->childLeft;
+                if (left)
+                {
+                    parent->childLeft = node->childLeft;
+                }
+                else
+                {
+                    parent->childRight = node->childLeft;
+                }
             }
             else
             {
-                parent->childRight = node->childLeft;
+                rootNode = node->childLeft;
             }
             _destroyNodeObject(node);
             _returnNode(node);
@@ -754,20 +761,27 @@ namespace jutils
         {
             node->childRight->parent = parent;
             node->childRight->isRed = false;
-            if (left)
+            if (parent != nullptr)
             {
-                parent->childLeft = node->childRight;
+                if (left)
+                {
+                    parent->childLeft = node->childRight;
+                }
+                else
+                {
+                    parent->childRight = node->childRight;
+                }
             }
             else
             {
-                parent->childRight = node->childRight;
+                rootNode = node->childRight;
             }
             _destroyNodeObject(node);
             _returnNode(node);
             return;
         }
 
-        // No children
+        // No children, not root
         if (left)
         {
             parent->childLeft = nullptr;

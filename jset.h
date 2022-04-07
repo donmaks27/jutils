@@ -54,7 +54,7 @@ namespace jutils
         void append(std::initializer_list<type> list) { container.append(list, false); }
         void append(const jset& value) { container.append(value.container, false); }
 
-        void remove(const type& value) { container.remove(value); }
+        bool remove(const type& value) { return container.remove(value); }
         void clear() { container.clear(); }
 
         jset& operator+=(const type& value)
