@@ -94,8 +94,8 @@ namespace jutils
         value_type& add(const key_type& key, value_type&& value) { return put(key, std::move(value)); }
         value_type& add(key_type&& key, const value_type& value) { return put(std::move(key), value); }
         value_type& add(key_type&& key, value_type&& value) { return put(std::move(key), std::move(value)); }
-        value_type& add(const pair_type& value) { return put(value.key, value); }
-        value_type& add(pair_type&& value) { return put(value.key, std::move(value)); }
+        value_type& add(const key_type& key) { return put(key); }
+        value_type& add(key_type&& key) { return put(std::move(key)); }
 
         value_type& getOrAdd(const key_type& key) { return container.put(key, key).value; }
         
