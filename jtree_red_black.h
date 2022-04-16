@@ -711,8 +711,41 @@ namespace jutils
                 maxNode = maxNode->childRight;
             }
 
-            _copyNodeObject(maxNode, node);
-            node = maxNode;
+            if (node->parent != nullptr)
+            {
+                if (node->parent->childLeft == node)
+                {
+                    node->parent->childLeft = maxNode;
+                }
+                else
+                {
+                    node->parent->childRight = maxNode;
+                }
+            }
+            if ((node->childLeft != nullptr) && (node->childLeft != maxNode))
+            {
+                node->childLeft->parent = maxNode;
+            }
+            if (node->childRight != nullptr)
+            {
+                node->childRight->parent = maxNode;
+            }
+            if (maxNode->parent != node)
+            {
+                maxNode->parent->childRight = node;
+            }
+            if (maxNode->childLeft != nullptr)
+            {
+                maxNode->childLeft->parent = node;
+            }
+            std::swap(maxNode->isRed, node->isRed);
+            std::swap(maxNode->parent, node->parent);
+            std::swap(maxNode->childLeft, node->childLeft);
+            std::swap(maxNode->childRight, node->childRight);
+            if (node == rootNode)
+            {
+                rootNode = maxNode;
+            }
         }
 
         tree_node* parent = node->parent;

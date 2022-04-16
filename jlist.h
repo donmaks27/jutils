@@ -302,6 +302,8 @@ namespace jutils
         void removeFirst() { _removeAt(begin()); }
         void removeLast() { _removeAt(_getLastIterator()); }
         index_type remove(const type& value);
+        template<typename Function>
+        index_type removeByPredicate(Function&& predicate);
 
         void clear();
 
@@ -590,10 +592,33 @@ namespace jutils
         index_type count = 0;
         if (!isEmpty())
         {
-            auto iter = begin();
+            const_iterator iter = begin();
             while (iter._isValid())
             {
                 if (*iter == value)
+                {
+                    iter = _removeAt(iter);
+                    count++;
+                }
+                else
+                {
+                    ++iter;
+                }
+            }
+        }
+        return count;
+    }
+    template<typename T>
+    template<typename Function>
+    typename jlist<T>::index_type jlist<T>::removeByPredicate(Function&& predicate)
+    {
+        index_type count = 0;
+        if (!isEmpty())
+        {
+            const_iterator iter = begin();
+            while (iter._isValid())
+            {
+                if (predicate(*iter))
                 {
                     iter = _removeAt(iter);
                     count++;
