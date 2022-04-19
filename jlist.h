@@ -515,6 +515,10 @@ namespace jutils
         list_node* newNode = _getNewNode();
         newNode->prevNode = lastNode;
         newNode->nextNode = nullptr;
+        if (lastNode != nullptr)
+        {
+            lastNode->nextNode = newNode;
+        }
         lastNode = newNode;
         if (firstNode == nullptr)
         {
