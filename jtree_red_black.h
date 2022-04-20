@@ -739,9 +739,20 @@ namespace jutils
                 maxNode->childLeft->parent = node;
             }
             std::swap(maxNode->isRed, node->isRed);
-            std::swap(maxNode->parent, node->parent);
-            std::swap(maxNode->childLeft, node->childLeft);
             std::swap(maxNode->childRight, node->childRight);
+            if (node->childLeft != maxNode)
+            {
+                std::swap(maxNode->parent, node->parent);
+                std::swap(maxNode->childLeft, node->childLeft);
+            }
+            else
+            {
+                maxNode->parent = node->parent;
+                node->parent = maxNode;
+
+                node->childLeft = maxNode->childLeft;
+                maxNode->childLeft = node;
+            }
             if (node == rootNode)
             {
                 rootNode = maxNode;

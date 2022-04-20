@@ -291,7 +291,7 @@ namespace jutils
             }
         }
 
-        void removeAt(const const_iterator& iter) { _removeAt(iter); }
+        const_iterator removeAt(const const_iterator& iter) { return _removeAt(iter); }
         void removeAt(const index_type index)
         {
             if (isValidIndex(index))
