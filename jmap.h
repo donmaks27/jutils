@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "jarray.h"
 #include "jtree_red_black.h"
 #include "jmap_pair.h"
 
@@ -79,6 +80,19 @@ namespace jutils
         {
             const pair_type* value = container.find(key);
             return value != nullptr ? &value->value : nullptr;
+        }
+
+        jarray<key_type> getKeys() const
+        {
+            jarray<key_type> result;
+            if (!this->isEmpty())
+            {
+                for (const auto& element : container)
+                {
+                    result.add(element.key);
+                }
+            }
+            return result;
         }
 
         bool contains(const key_type& key) const { return container.find(key) != nullptr; }

@@ -16,9 +16,11 @@ namespace jutils
 
         using id_type = IdType;
         static constexpr id_type invalidUID = 0;
+        static constexpr id_type minUID = 1;
+        static constexpr id_type maxUID = std::numeric_limits<id_type>::max();
 
         juid(const bool incrementUID = true)
-            : nextUID(incrementUID ? 1 : std::numeric_limits<id_type>::max())
+            : nextUID(incrementUID ? minUID : maxUID)
             , isIncrementUID(incrementUID)
         {}
         juid(const juid& value)
@@ -48,6 +50,11 @@ namespace jutils
                 return std::numeric_limits<id_type>::max();
             }
             return isIncrementUID ? nextUID++ : nextUID--;
+        }
+
+        void reset()
+        {
+            nextUID = isIncrementUID ? minUID : maxUID;
         }
 
     private:
