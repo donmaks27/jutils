@@ -645,6 +645,7 @@ namespace jutils
             while (node != nullptr)
             {
                 list_node* nextNode = node->nextNode;
+                _destroyObject(node);
                 _returnNode(node);
                 node = nextNode;
             }
