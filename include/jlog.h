@@ -6,11 +6,11 @@
  * #define JUTILS_LOG_DISABLED - disable all logs
  */
 
+#ifndef JUTILS_LOG_DISABLED
+
 #include <fmt/color.h>
 
 #include "jstring.h"
-
-#ifndef JUTILS_LOG_DISABLED
 
 namespace jutils
 {
