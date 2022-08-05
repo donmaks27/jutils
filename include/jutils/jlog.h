@@ -6,11 +6,11 @@
  * #define JUTILS_LOG_DISABLED - disable all logs
  */
 
+#include "jstring.h"
+
 #ifndef JUTILS_LOG_DISABLED
 
 #include <fmt/color.h>
-
-#include "jstring.h"
 
 namespace jutils
 {
@@ -21,11 +21,17 @@ namespace jutils
         {
             fmt::print("{} {}({}): {}\n", prefix, functionName, lineIndex, fmt::format(message, std::forward<Args>(args)...));
         }
+        template<>
+        inline void writeLog<>(const std::string& prefix, const char* functionName, const uint32 lineIndex, const char* message)
+        {
+            fmt::print("{} {}({}): {}\n", prefix, functionName, lineIndex, message);
+        }
+
         template<typename... Args>
-        inline void writeLog_error(const char* functionName, const uint32 lineIndex, const char* message, Args&&... args)
+        inline void writeLog_error(const char* functionName, const uint32 lineIndex, Args&&... args)
         {
             jutils::jlog::writeLog(fmt::format(fmt::fg(fmt::color::red), "[ERR] "), 
-                functionName, lineIndex, message, std::forward<Args>(args)...
+                functionName, lineIndex, std::forward<Args>(args)...
             );
         }
         template<typename... Args>
@@ -49,13 +55,36 @@ namespace jutils
                 functionName, lineIndex, message, std::forward<Args>(args)...
             );
         }
+
+        template<typename... Args>
+        inline void writeLog_errorCode(const char* functionName, const uint32 lineIndex, const int32 errorCode, const char* message, Args&&... args)
+        {
+            jutils::jlog::writeLog_error(functionName, lineIndex, "{}. Code {}", fmt::format(message, std::forward<Args>(args)...), errorCode);
+        }
+        template<>
+        inline void writeLog_errorCode<>(const char* functionName, const uint32 lineIndex, const int32 errorCode, const char* message)
+        {
+            jutils::jlog::writeLog_error(functionName, lineIndex, "{}. Code {}", message, errorCode);
+        }
     }
 }
 
+template<>
+struct fmt::formatter<jutils::jstring> : fmt::formatter<jutils::jstring::internal_type>
+{
+    template <typename FormatContext>
+    auto format(const jutils::jstring& str, FormatContext& ctx) const
+    {
+        return fmt::formatter<jutils::jstring::internal_type>::format(str.getInternalData(), ctx);
+    }
+};
+
 #define JUTILS_LOG(type, ...) jutils::jlog::writeLog_##type(__FUNCTION__, __LINE__, __VA_ARGS__)
+#define JUTILS_ERROR_LOG(errorCode, ...) jutils::jlog::writeLog_errorCode(__FUNCTION__, __LINE__, errorCode, __VA_ARGS__)
 
 #else
 
 #define JUTILS_LOG(type, message)
+#define JUTILS_ERROR_LOG(errorCode, ...)
 
 #endif
