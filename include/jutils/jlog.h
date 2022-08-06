@@ -84,7 +84,7 @@ struct fmt::formatter<jutils::jstring> : fmt::formatter<jutils::jstring::interna
 
 #else
 
-#define JUTILS_LOG(type, message)
+#define JUTILS_LOG(type, ...)
 #define JUTILS_ERROR_LOG(errorCode, ...)
 
 #endif
