@@ -59,12 +59,12 @@ namespace jutils
         template<typename... Args>
         inline void writeLog_errorCode(const char* functionName, const uint32 lineIndex, const int32 errorCode, const char* message, Args&&... args)
         {
-            jutils::jlog::writeLog_error(functionName, lineIndex, "{}. Code {}", fmt::format(message, std::forward<Args>(args)...), errorCode);
+            jutils::jlog::writeLog_error(functionName, lineIndex, "Code {:#x}. {}", errorCode, fmt::format(message, std::forward<Args>(args)...));
         }
         template<>
         inline void writeLog_errorCode<>(const char* functionName, const uint32 lineIndex, const int32 errorCode, const char* message)
         {
-            jutils::jlog::writeLog_error(functionName, lineIndex, "{}. Code {}", message, errorCode);
+            jutils::jlog::writeLog_error(functionName, lineIndex, "Code {:#x}. {}", errorCode, message);
         }
     }
 }
