@@ -40,19 +40,13 @@ namespace jutils
             template<vector_size_type Size, typename OtherType, TEMPLATE_ENABLE((Size >= 3))>
             constexpr vector& operator=(const vector<Size, OtherType>& value)
             {
-                if (this != &value)
-                {
-                    x = static_cast<type>(value.x); y = static_cast<type>(value.y); z = static_cast<type>(value.z);
-                }
+                x = static_cast<type>(value.x); y = static_cast<type>(value.y); z = static_cast<type>(value.z);
                 return *this;
             }
             template<typename OtherType>
             constexpr vector& operator=(const vector<2, OtherType>& value)
             {
-                if (this != &value)
-                {
-                    x = static_cast<type>(value.x); y = static_cast<type>(value.y); z = 0;
-                }
+                x = static_cast<type>(value.x); y = static_cast<type>(value.y); z = 0;
                 return *this;
             }
 

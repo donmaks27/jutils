@@ -57,12 +57,9 @@ namespace jutils
             template<vector_size_type RowsCount, vector_size_type ColumnsCount, typename OtherType, TEMPLATE_ENABLE((RowsCount >= 3))>
             constexpr matrix& operator=(const matrix<RowsCount, ColumnsCount, OtherType>& value)
             {
-                if (this != &value)
-                {
-                    rows[0] = value.rows[0];
-                    rows[1] = value.rows[1];
-                    rows[2] = value.rows[2];
-                }
+                rows[0] = value.rows[0];
+                rows[1] = value.rows[1];
+                rows[2] = value.rows[2];
                 return *this;
             }
 

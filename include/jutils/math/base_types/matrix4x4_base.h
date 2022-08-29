@@ -77,13 +77,10 @@ namespace jutils
             template<vector_size_type ColumnsCount, typename OtherType>
             constexpr matrix& operator=(const matrix<4, ColumnsCount, OtherType>& value)
             {
-                if (this != &value)
-                {
-                    rows[0] = value.rows[0];
-                    rows[1] = value.rows[1];
-                    rows[2] = value.rows[2];
-                    rows[3] = value.rows[3];
-                }
+                rows[0] = value.rows[0];
+                rows[1] = value.rows[1];
+                rows[2] = value.rows[2];
+                rows[3] = value.rows[3];
                 return *this;
             }
 
