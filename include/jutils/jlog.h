@@ -69,23 +69,6 @@ namespace jutils
     }
 }
 
-template<>
-struct fmt::formatter<jutils::jstring> : fmt::formatter<jutils::jstring::internal_type>
-{
-    template<typename FormatContext>
-    auto format(const jutils::jstring& str, FormatContext& ctx) const
-    {
-        return fmt::formatter<jutils::jstring::internal_type>::format(str.getInternalData(), ctx);
-    }
-};
-
-#define JUTILS_LOG_FORMATTER(type, funcName)                                                    \
-template<> struct fmt::formatter<type> : fmt::formatter<jutils::jstring>                        \
-{                                                                                               \
-    template<typename FormatContext> auto format(const type& value, FormatContext& ctx) const   \
-        { return fmt::formatter<jutils::jstring>::format(funcName(value), ctx); }               \
-};
-
 #define JUTILS_LOG(type, ...) jutils::jlog::writeLog_##type(__FUNCTION__, __LINE__, __VA_ARGS__)
 #define JUTILS_ERROR_LOG(errorCode, ...) jutils::jlog::writeLog_errorCode(__FUNCTION__, __LINE__, errorCode, __VA_ARGS__)
 
@@ -95,3 +78,19 @@ template<> struct fmt::formatter<type> : fmt::formatter<jutils::jstring>        
 #define JUTILS_ERROR_LOG(errorCode, ...)
 
 #endif
+
+template<>
+struct fmt::formatter<jutils::jstring> : fmt::formatter<jutils::jstring::internal_type>
+{
+    template<typename FormatContext>
+    auto format(const jutils::jstring& str, FormatContext& ctx) const
+    {
+        return fmt::formatter<jutils::jstring::internal_type>::format(str.getInternalData(), ctx);
+    }
+};
+#define JUTILS_LOG_FORMATTER(type, funcName)                                                    \
+template<> struct fmt::formatter<type> : fmt::formatter<jutils::jstring>                        \
+{                                                                                               \
+    template<typename FormatContext> auto format(const type& value, FormatContext& ctx) const   \
+        { return fmt::formatter<jutils::jstring>::format(funcName(value), ctx); }               \
+};
