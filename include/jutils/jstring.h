@@ -6,7 +6,7 @@
 #include "math/math.h"
 #include "math/hash.h"
 
-#include <string>
+#include <fmt/core.h>
 
 namespace jutils
 {
@@ -304,3 +304,20 @@ namespace jutils
 
 #define JSTR(str) u8 ## str
 #define TO_JSTR(value) jutils::to_jstring(value)
+
+template<>
+struct fmt::formatter<jutils::jstring> : fmt::formatter<jutils::jstring::internal_type>
+{
+    template<typename FormatContext>
+    auto format(const jutils::jstring& str, FormatContext& ctx) const
+    {
+        return fmt::formatter<jutils::jstring::internal_type>::format(str.getInternalData(), ctx);
+    }
+};
+#define JUTILS_FMT_FORMATTER(type, funcName)                                                    \
+template<> struct fmt::formatter<type> : fmt::formatter<jutils::jstring>                        \
+{                                                                                               \
+    template<typename FormatContext> auto format(const type& value, FormatContext& ctx) const   \
+        { return fmt::formatter<jutils::jstring>::format(funcName(value), ctx); }               \
+};
+
