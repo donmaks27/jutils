@@ -30,6 +30,9 @@ namespace jutils
         jshared_ptr(std::shared_ptr<U>&& ptr) noexcept
             : base_class(std::move(ptr))
         {}
+
+        T* operator->() { return base_class::get(); }
+        const T* operator->() const { return base_class::get(); }
     };
 
     template<typename T>
@@ -52,8 +55,8 @@ namespace jutils
         {}
     };
 
-    template<typename T, typename... ArgTypes>
-    jshared_ptr<T> make_jshared_ptr(ArgTypes&&... args) { return std::make_shared<T, ArgTypes...>(args...); }
+    template<typename T, typename... Args>
+    jshared_ptr<T> make_jshared_ptr(Args&&... args) { return std::make_shared<T>(std::forward<Args>(args)...); }
 
     template<typename To, typename From>
     jshared_ptr<To> jshared_dynamic_cast(const jshared_ptr<From>& ptr) { return std::dynamic_pointer_cast<To>(ptr); }

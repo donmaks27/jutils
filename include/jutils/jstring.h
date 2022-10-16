@@ -21,6 +21,9 @@ namespace jutils
         using index_type = int32;
 
         jstring() = default;
+        jstring(const character_type character)
+            : internalString(1, character)
+        {}
         jstring(const character_type* const str)
             : internalString(str)
         {}
@@ -275,6 +278,7 @@ namespace jutils
     template<typename T>
     jstring to_jstring(T value) { return jstring(std::to_string(value)); }
 
+    inline jstring operator+(const jstring& str1, jstring::character_type character) { return jstring(str1) += character; }
     inline jstring operator+(const jstring& str1, const jstring& str2) { return jstring(str1) += str2; }
     inline jstring operator+(const jstring& str1, const jstring::character_type* str2) { return jstring(str1) += str2; }
     inline jstring operator+(const jstring::character_type* const str1, const jstring& str2) { return jstring(str1) += str2; }
