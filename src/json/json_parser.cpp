@@ -3,6 +3,7 @@
 #include "../../include/jutils/json/json_parser.h"
 
 #include <cctype>
+#include <fstream>
 #include <iomanip>
 #include <sstream>
 
@@ -74,6 +75,7 @@ namespace jutils
             }
             return "null";
         }
+
         json_value parse(const jstring& data)
         {
             int32 index;
@@ -89,9 +91,24 @@ namespace jutils
             }
             return value;
         }
+        json_value parseFile(const jstring& filePath)
+        {
+            std::fstream file(*filePath);
+            if (file.is_open())
+            {
+                jstring data;
+                std::string line;
+                while (std::getline(file, line))
+                {
+                    data += line.c_str();
+                    data += '\n';
+                }
+                file.close();
+                return parse(data);
+            }
+            return nullptr;
+        }
 
-
-        
         int32 skipSpaces(const jstring& data, const int32 startIndex)
         {
             int32 index = startIndex;
