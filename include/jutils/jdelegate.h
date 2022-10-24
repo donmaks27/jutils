@@ -90,7 +90,7 @@ namespace jutils
             }
         }
 
-        void _call_internal(ArgTypes... args)
+        void _call_internal(ArgTypes... args) const
         {
             if (delegate_container != nullptr)
             {
@@ -143,13 +143,13 @@ namespace jutils
             function_type function;
         };
 
-        jdelegate_container_interface* delegate_container = nullptr;
+        mutable jdelegate_container_interface* delegate_container = nullptr;
     };
 }
 
 #define JUTILS_DELEGATE_CONCAT_HELPER(...) __VA_ARGS__
 
-#define CREATE_JUTILS_DELEGATE_INTERNAL(DelegateName, ParamsTypes, ParamsNames, Params) \
+#define JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, ParamsTypes, ParamsNames, Params) \
 class DelegateName : public jutils::jdelegate<ParamsTypes>                              \
 {                                                                                       \
     using base_class = jutils::jdelegate<ParamsTypes>;                                  \
@@ -157,22 +157,22 @@ public:                                                                         
     DelegateName() : base_class() {}                                                    \
     DelegateName(const base_class& value) : base_class(value) {}                        \
     DelegateName(base_class&& value) noexcept : base_class(std::move(value)) {}         \
-    void call(Params) { _call_internal(ParamsNames); }                                           \
+    void call(Params) const { _call_internal(ParamsNames); }                            \
 }
 
-#define CREATE_JUTILS_DELEGATE(DelegateName) CREATE_JUTILS_DELEGATE_INTERNAL(DelegateName, , , )
-#define CREATE_JUTILS_DELEGATE_OneParam(DelegateName, ParamType1, ParamName1) CREATE_JUTILS_DELEGATE_INTERNAL(DelegateName, \
+#define JUTILS_CREATE_DELEGATE(DelegateName) JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, , , )
+#define JUTILS_CREATE_DELEGATE1(DelegateName, ParamType1, ParamName1) JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, \
     JUTILS_DELEGATE_CONCAT_HELPER(ParamType1), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1), \
     JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1))
-#define CREATE_JUTILS_DELEGATE_TwoParams(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2) CREATE_JUTILS_DELEGATE_INTERNAL(DelegateName, \
+#define JUTILS_CREATE_DELEGATE2(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2) JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, \
     JUTILS_DELEGATE_CONCAT_HELPER(ParamType1, ParamType2), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1, ParamName2), \
     JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1, ParamType2 ParamName2))
-#define CREATE_JUTILS_DELEGATE_ThreeParams(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2, ParamType3, ParamName3) CREATE_JUTILS_DELEGATE_INTERNAL(DelegateName, \
+#define JUTILS_CREATE_DELEGATE3(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2, ParamType3, ParamName3) JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, \
     JUTILS_DELEGATE_CONCAT_HELPER(ParamType1, ParamType2, ParamType3), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1, ParamName2, ParamName3), \
     JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1, ParamType2 ParamName2, ParamType3 ParamName3))
-#define CREATE_JUTILS_DELEGATE_FourParams(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2, ParamType3, ParamName3, ParamType4, ParamName4) CREATE_JUTILS_DELEGATE_INTERNAL(DelegateName, \
+#define JUTILS_CREATE_DELEGATE4(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2, ParamType3, ParamName3, ParamType4, ParamName4) JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, \
     JUTILS_DELEGATE_CONCAT_HELPER(ParamType1, ParamType2, ParamType3, ParamType4), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1, ParamName2, ParamName3, ParamName4), \
     JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1, ParamType2 ParamName2, ParamType3 ParamName3, ParamType4 ParamName4))
-#define CREATE_JUTILS_DELEGATE_FiveParams(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2, ParamType3, ParamName3, ParamType4, ParamName4, ParamType5, ParamName5) CREATE_JUTILS_DELEGATE_INTERNAL(DelegateName, \
+#define JUTILS_CREATE_DELEGATE5(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2, ParamType3, ParamName3, ParamType4, ParamName4, ParamType5, ParamName5) JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, \
     JUTILS_DELEGATE_CONCAT_HELPER(ParamType1, ParamType2, ParamType3, ParamType4, ParamType5), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1, ParamName2, ParamName3, ParamName4, ParamName5), \
     JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1, ParamType2 ParamName2, ParamType3 ParamName3, ParamType4 ParamName4, ParamType5 ParamName5))
