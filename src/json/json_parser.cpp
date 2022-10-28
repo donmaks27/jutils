@@ -59,7 +59,7 @@ namespace jutils
 
                             std::string key;
                             std::stringstream stream;
-                            stream << std::quoted(dataValue.key.getInternalData());
+                            stream << std::quoted(dataValue.key.toString().getInternalData());
                             stream >> key;
                             strData += jstring(key) + ':' + serialize(dataValue.value);
                         }

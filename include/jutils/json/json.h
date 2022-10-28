@@ -5,7 +5,7 @@
 #include "../jarray.h"
 #include "../jmap.h"
 #include "../jshared_ptr.h"
-#include "../jstring.h"
+#include "../jstringID.h"
 
 namespace jutils
 {
@@ -81,9 +81,9 @@ namespace jutils
                 static jarray<json_value> emptyArray = {};
                 return emptyArray;
             }
-            virtual const jmap<jstring, json_value>& asObject() const
+            virtual const jmap<jstringID, json_value>& asObject() const
             {
-                static jmap<jstring, json_value> emptyObject = {};
+                static jmap<jstringID, json_value> emptyObject = {};
                 return emptyObject;
             }
 
@@ -143,7 +143,7 @@ namespace jutils
                 outValue = &asArray();
                 return true;
             }
-            bool tryGetObject(const jmap<jstring, json_value>*& outValue) const
+            bool tryGetObject(const jmap<jstringID, json_value>*& outValue) const
             {
                 if (getType() != json_value_type::object)
                 {
@@ -272,14 +272,14 @@ namespace jutils
             {}
             virtual ~json_value_base_object() override = default;
 
-            virtual const jmap<jstring, json_value>& asObject() const override { return get(); }
+            virtual const jmap<jstringID, json_value>& asObject() const override { return get(); }
 
-            jmap<jstring, json_value>& get() { return value; }
-            const jmap<jstring, json_value>& get() const { return value; }
+            jmap<jstringID, json_value>& get() { return value; }
+            const jmap<jstringID, json_value>& get() const { return value; }
 
         private:
 
-            jmap<jstring, json_value> value;
+            jmap<jstringID, json_value> value;
         };
     }
 }
