@@ -32,7 +32,7 @@ namespace jutils
         constexpr float length(const vector<Size, Type>& value) { return math::sqrt(lengthSqr(value)); }
 
         template<vector_size_type Size>
-        constexpr vector<Size, float> normal(const vector<Size, float>& value, const float eps = EPSILON_DEFAULT)
+        constexpr vector<Size, float> normalize(const vector<Size, float>& value, const float eps = EPSILON_DEFAULT)
         {
             const float lenSqr = math::lengthSqr(value);
             return math::isEqual(lenSqr, 0.0f, eps) ? vector<Size, float>(0.0f) : value / math::sqrt(lenSqr);
