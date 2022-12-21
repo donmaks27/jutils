@@ -90,12 +90,13 @@ namespace jutils
             template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
             constexpr bool operator!=(const vector<size, OtherType>& value) const { return !this->operator==(value); }
 
-            jstring toString() const { return jstring(fmt::format("{{ {}; {}; {} }}", x, y, z)); }
+            jstring toString() const { return jstring::format("{{ {}; {}; {} }}", x, y, z); }
 
             constexpr vector& operator++() { ++x; ++y; ++z; return *this; }
             constexpr vector& operator--() { --x; --y; --z; return *this; }
             constexpr vector operator++(int) { const vector temp = *this; this->operator++(); return temp; }
             constexpr vector operator--(int) { const vector temp = *this; this->operator--(); return temp; }
+            constexpr vector operator-() const { return { -x, -y, -z }; }
             
             template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
             constexpr vector& operator+=(const OtherType value)

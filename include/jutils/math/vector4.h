@@ -13,3 +13,7 @@ namespace jutils
         using uvector4 = vector<4, uint32>;
     }
 }
+
+JUTILS_STRING_FORMATTER(jutils::math::vector4, jutils::math::vectorToString);
+JUTILS_STRING_FORMATTER(jutils::math::ivector4, jutils::math::vectorToString);
+JUTILS_STRING_FORMATTER(jutils::math::uvector4, jutils::math::vectorToString);

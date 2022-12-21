@@ -107,8 +107,8 @@ namespace jutils
             }
             template<typename OtherType>
             constexpr bool operator!=(const matrix<2, 4, OtherType>& value) const { return !this->operator==(value); }
-
-            jstring toString() const { return JSTR("{ ") + rows[0].toString() + JSTR("; ") + rows[1].toString() + JSTR(" }"); }
+            
+            jstring toString() const { return jstring::format("{{ {}; {} }}", rows[0], rows[1]); }
 
             constexpr transpose_type transpose() const { return { rows[0].x, rows[1].x, rows[0].y, rows[1].y, rows[0].z, rows[1].z, rows[0].w, rows[1].w }; }
         };

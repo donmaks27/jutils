@@ -12,5 +12,8 @@ namespace jutils
 
         template<vector_size_type Size, typename Type>
         class vector;
+
+        template<vector_size_type Size, typename Type>
+        jstring vectorToString(const vector<Size, Type>& value) { return value.toString(); }
     }
 }

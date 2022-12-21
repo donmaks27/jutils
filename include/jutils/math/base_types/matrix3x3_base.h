@@ -130,11 +130,8 @@ namespace jutils
             }
             template<typename OtherType>
             constexpr bool operator!=(const matrix<3, 3, OtherType>& value) const { return !this->operator==(value); }
-
-            jstring toString() const
-            {
-                return JSTR("{ ") + rows[0].toString() + JSTR("; ") + rows[1].toString() + JSTR("; ") + rows[2].toString() + JSTR(" }");
-            }
+            
+            jstring toString() const { return jstring::format("{{ {}; {}; {} }}", rows[0], rows[1], rows[2]); }
 
             constexpr transpose_type transpose() const
             {

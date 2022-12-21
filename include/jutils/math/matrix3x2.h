@@ -11,3 +11,5 @@ namespace jutils
         using matrix3x2 = matrix<3, 2, float>;
     }
 }
+
+JUTILS_STRING_FORMATTER(jutils::math::matrix3x2, jutils::math::matrixToString);

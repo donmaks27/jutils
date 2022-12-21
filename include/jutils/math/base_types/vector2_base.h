@@ -75,12 +75,13 @@ namespace jutils
                 return !this->operator==(value);
             }
 
-            jstring toString() const { return jstring(fmt::format("{{ {}; {} }}", x, y)); }
+            jstring toString() const { return jstring::format("{{ {}; {} }}", x, y); }
 
             constexpr vector& operator++() { ++x; ++y; return *this; }
             constexpr vector& operator--() { --x; --y; return *this; }
             constexpr vector operator++(int) { const vector temp = *this; this->operator++(); return temp; }
             constexpr vector operator--(int) { const vector temp = *this; this->operator--(); return temp; }
+            constexpr vector operator-() const { return { -x, -y }; }
 
             template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
             constexpr vector& operator+=(const OtherType value)

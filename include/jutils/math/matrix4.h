@@ -13,3 +13,5 @@ namespace jutils
         using matrix4 = matrix4x4;
     }
 }
+
+JUTILS_STRING_FORMATTER(jutils::math::matrix4x4, jutils::math::matrixToString);

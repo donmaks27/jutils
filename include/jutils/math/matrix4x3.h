@@ -11,3 +11,5 @@ namespace jutils
         using matrix4x3 = matrix<4, 3, float>;
     }
 }
+
+JUTILS_STRING_FORMATTER(jutils::math::matrix4x3, jutils::math::matrixToString);

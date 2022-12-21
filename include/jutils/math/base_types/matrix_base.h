@@ -10,5 +10,8 @@ namespace jutils
     {
         template<vector_size_type Rows, vector_size_type Columns, typename Type>
         class matrix;
+
+        template<vector_size_type Rows, vector_size_type Columns, typename Type>
+        jstring matrixToString(const matrix<Rows, Columns, Type>& value) { return value.toString(); }
     }
 }
