@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../../type_defines.h"
+#include "../../jstring.h"
 
 namespace jutils
 {

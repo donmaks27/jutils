@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "../type_defines.h"
 #include "../type_checks.h"
 
 #include <cmath>
@@ -12,6 +13,8 @@ namespace jutils
     {
         constexpr float EPSILON_DEFAULT = 0.0001f;
         constexpr double EPSILON_DOUBLE_DEFAULT = 0.0001;
+
+        constexpr float PI = 3.14159265359f;
 
         template<typename T>
         constexpr const T& max(const T& value1, const T& value2) { return value1 > value2 ? value1 : value2; }
@@ -35,6 +38,9 @@ namespace jutils
         constexpr T sqr(const T& value) { return value * value; }
         inline float sqrt(const float value) { return ::sqrt(value); }
 
+        constexpr float degreesToRads(const float degrees) { return degrees / 180.0f * math::PI; }
+        constexpr float radsToDegrees(const float rads) { return rads / math::PI * 180.0f; }
+
         inline float sin(const float angleRad) { return ::sin(angleRad); }
         inline float cos(const float angleRad) { return ::cos(angleRad); }
         inline float tan(const float angleRad) { return ::tan(angleRad); }
@@ -56,7 +62,7 @@ namespace jutils
         template<typename R = int32, TEMPLATE_ENABLE(std::is_integral_v<R>)>
         R roundUp(const double value) { return static_cast<R>(::ceil(value)); }
 
-        constexpr bool isEqual(const float value1, const float value2, const float eps = EPSILON_DEFAULT) { return math::abs(value2 - value1) <= eps; }
-        constexpr bool isEqual(const double value1, const double value2, const double eps = EPSILON_DOUBLE_DEFAULT) { return math::abs(value2 - value1) <= eps; }
+        constexpr bool isEqual(const float value1, const float value2, const float eps = math::EPSILON_DEFAULT) { return math::abs(value2 - value1) <= eps; }
+        constexpr bool isEqual(const double value1, const double value2, const double eps = math::EPSILON_DOUBLE_DEFAULT) { return math::abs(value2 - value1) <= eps; }
     }
 }

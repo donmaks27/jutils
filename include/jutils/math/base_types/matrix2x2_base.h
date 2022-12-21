@@ -4,7 +4,6 @@
 
 #include "matrix_base.h"
 #include "matrix_operations.h"
-#include "../../jstring.h"
 #include "vector2_base.h"
 
 #include <cassert>

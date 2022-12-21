@@ -4,10 +4,8 @@
 
 #include "vector_base.h"
 #include "../../type_checks.h"
-#include "../../jstring.h"
 
 #include <cassert>
-#include <fmt/core.h>
 
 namespace jutils
 {
