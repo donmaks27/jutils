@@ -287,7 +287,7 @@ namespace jutils
         template<typename Type1, typename Type2>
         static constexpr bool _compareObjects(const Type1& key1, const Type2& key2)
         {
-            static constexpr compare_predicator predicate;
+            constexpr compare_predicator predicate;
             return predicate(key1, key2);
         }
         template<typename KeyType>

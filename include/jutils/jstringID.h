@@ -61,7 +61,9 @@ namespace jutils
 
         struct hash_table_entry
         {
-            hash_table_entry() = default;
+            hash_table_entry()
+                : string(), pointerIndex(-1)
+            {}
             hash_table_entry(const jstring& str)
                 : string(str)
             {}

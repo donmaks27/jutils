@@ -113,24 +113,27 @@ namespace jutils
                 static constexpr auto _helper_call_hash_function(int32, const TestingType& value) -> decltype(value.hash()) { return value.hash(); }
                 template<typename TestingType>
                 static constexpr auto _helper_call_hash_function(int16, const TestingType& value) -> decltype(crc64(value)) { return crc64(value); }
+                template<typename TestingType>
+                static constexpr auto _helper_call_hash_function(int8, const TestingType& value) -> void {}
 
+                template<typename TestingType, bool Condition>
+                struct _helper_get_hash
+                {
+                    static constexpr uint8 call(const TestingType& value) { return 0; }
+                };
                 template<typename TestingType>
-                static constexpr auto _helper_get_type(int32) -> decltype(_helper_call_hash_function(0, TestingType()));
-                template<typename TestingType>
-                static constexpr void _helper_get_type(int16);
-
-                template<typename TestingType>
-                static constexpr auto _helper_get_hash(int32, const TestingType& value) -> decltype(_helper_call_hash_function(0, value)) { return _helper_call_hash_function(0, value); }
-                template<typename TestingType>
-                static constexpr uint8 _helper_get_hash(int16, const TestingType& value) { return 0; }
+                struct _helper_get_hash<TestingType, true>
+                {
+                    static constexpr auto call(const TestingType& value) { return hash_info::_helper_call_hash_function(0, value); }
+                };
 
             public:
-
+                
                 using type = T;
-                using hash_type = decltype(_helper_get_type<const std::remove_const_t<type>>(0));
+                using hash_type = decltype(_helper_call_hash_function(0, type()));
                 static constexpr bool has_hash = std::is_integral_v<hash_type> && std::is_unsigned_v<hash_type>;
 
-                static constexpr auto getHash(const type& value) { return _helper_get_hash(0, value); }
+                static constexpr auto getHash(const type& value) { return _helper_get_hash<type, has_hash>::call(value); }
             };
             template<typename T>
             constexpr typename hash_info<T>::hash_type getHash(const T& value) { return hash_info<T>::getHash(value); }

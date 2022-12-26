@@ -22,7 +22,7 @@ namespace jutils
         {
             constexpr bool operator()(const key_type& value1, const key_type& value2) const
             {
-                static constexpr key_compare_predicator_type predicator;
+                constexpr key_compare_predicator_type predicator;
                 return predicator(value1, value2);
             }
             constexpr bool operator()(const pair_type& value1, const pair_type& value2) const { return this->operator()(value1.key, value2.key); }

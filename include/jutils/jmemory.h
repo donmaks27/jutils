@@ -5,6 +5,7 @@
 #include "type_defines.h"
 
 #include <utility>
+#include <new>
 
 #ifdef JUTILS_DEBUG_NEW
     #undef new
@@ -29,7 +30,7 @@ namespace jutils
         {
             if ((data != nullptr) && (size > 0))
             {
-                ::operator delete(data, sizeof(Type) * size, static_cast<std::align_val_t>(alignof(Type)));
+                ::operator delete(data, static_cast<std::align_val_t>(alignof(Type)));
             }
         }
 

@@ -4,8 +4,9 @@
 
 #include "../jarray.h"
 #include "../jmap.h"
-#include "../jshared_ptr.h"
 #include "../jstringID.h"
+
+#include <memory>
 
 namespace jutils
 {
@@ -21,13 +22,13 @@ namespace jutils
         class json_value_base_array;
         class json_value_base_object;
 
-        using json_value = jshared_ptr<json_value_base>;
-        using json_value_null = jshared_ptr<json_value_base_null>;
-        using json_value_boolean = jshared_ptr<json_value_base_boolean>;
-        using json_value_number = jshared_ptr<json_value_base_number>;
-        using json_value_string = jshared_ptr<json_value_base_string>;
-        using json_value_array = jshared_ptr<json_value_base_array>;
-        using json_value_object = jshared_ptr<json_value_base_object>;
+        using json_value = std::shared_ptr<json_value_base>;
+        using json_value_null = std::shared_ptr<json_value_base_null>;
+        using json_value_boolean = std::shared_ptr<json_value_base_boolean>;
+        using json_value_number = std::shared_ptr<json_value_base_number>;
+        using json_value_string = std::shared_ptr<json_value_base_string>;
+        using json_value_array = std::shared_ptr<json_value_base_array>;
+        using json_value_object = std::shared_ptr<json_value_base_object>;
 
         template<json_value_type Type>
         struct json_value_info : std::false_type {};
@@ -47,12 +48,12 @@ namespace jutils
         template<json_value_type Type, typename... Args>
         typename json_value_info<Type>::json_type createJsonValue(Args&&... args)
         {
-            return jutils::make_jshared_ptr<typename json_value_info<Type>::json_type::element_type>(std::forward<Args>(args)...);
+            return std::make_shared<typename json_value_info<Type>::json_type::element_type>(std::forward<Args>(args)...);
         }
         template<json_value_type Type>
         typename json_value_info<Type>::json_type castJsonValue(const json_value& value)
         {
-            return jutils::jshared_dynamic_cast<typename json_value_info<Type>::json_type::element_type>(value);
+            return std::dynamic_pointer_cast<typename json_value_info<Type>::json_type::element_type>(value);
         }
 
         class json_value_base

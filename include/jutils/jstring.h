@@ -246,7 +246,7 @@ namespace jutils
 
         void clear() { internalString.clear(); }
         
-        constexpr uint64 hash() const { return math::hash::crc64(getString(), getSize()); }
+        uint64 hash() const { return math::hash::crc64(getString(), getSize()); }
 
         jstring& operator+=(const character_type character) { return add(character); }
         jstring& operator+=(const character_type* const str) { return add(str); }
