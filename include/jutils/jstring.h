@@ -338,7 +338,7 @@ template<>
 struct fmt::formatter<jutils::jstring> : fmt::formatter<jutils::jstring::internal_type>
 {
     template<typename FormatContext>
-    auto format(const jutils::jstring& str, FormatContext& ctx) const
+    auto format(const jutils::jstring& str, FormatContext& ctx)
     {
         return fmt::formatter<jutils::jstring::internal_type>::format(str.getInternalData(), ctx);
     }
@@ -356,7 +356,7 @@ template<>                                                                      
 struct fmt::formatter<type> : fmt::formatter<jutils::jstring>                               \
 {                                                                                           \
     template<typename FormatContext>                                                        \
-    auto format(const type& value, FormatContext& ctx) const                                \
+    auto format(const type& value, FormatContext& ctx)                                      \
         { return fmt::formatter<jutils::jstring>::format(jutils::to_jstring(value), ctx); } \
 }
 
