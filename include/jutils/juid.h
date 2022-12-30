@@ -19,13 +19,11 @@ namespace jutils
         static constexpr id_type minUID = 1;
         static constexpr id_type maxUID = std::numeric_limits<id_type>::max();
 
-        juid(const bool incrementUID = true)
-            : nextUID(incrementUID ? minUID : maxUID)
-            , isIncrementUID(incrementUID)
+        juid()
+            : nextUID(minUID)
         {}
         juid(const juid& value)
             : nextUID(value.nextUID)
-            , isIncrementUID(value.isIncrementUID)
         {}
 
         juid& operator=(const juid& value)
@@ -33,33 +31,32 @@ namespace jutils
             if (this != &value)
             {
                 nextUID = value.nextUID;
-                isIncrementUID = value.isIncrementUID;
             }
             return *this;
         }
 
+        id_type getNextUID() const { return nextUID; }
         id_type getUID()
         {
             if (nextUID == invalidUID)
             {
                 return invalidUID;
             }
-            if (isIncrementUID && (nextUID == std::numeric_limits<id_type>::max()))
+            if (nextUID == maxUID)
             {
                 nextUID = invalidUID;
-                return std::numeric_limits<id_type>::max();
+                return maxUID;
             }
-            return isIncrementUID ? nextUID++ : nextUID--;
+            return nextUID++;
         }
 
         void reset()
         {
-            nextUID = isIncrementUID ? minUID : maxUID;
+            nextUID = minUID;
         }
 
     private:
 
         id_type nextUID;
-        bool isIncrementUID;
     };
 }
