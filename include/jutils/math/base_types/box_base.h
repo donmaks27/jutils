@@ -10,5 +10,8 @@ namespace jutils
     {
         template<vector_size_type Size, typename Type>
         class box;
+
+        template<vector_size_type Size, typename Type>
+        jstring boxToString(const box<Size, Type>& value) { return value.toString(); }
     }
 }

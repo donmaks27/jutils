@@ -6,6 +6,7 @@
 #include "math/math.h"
 #include "math/hash.h"
 
+#include <string>
 #include <fmt/format.h>
 
 namespace jutils
@@ -274,16 +275,7 @@ namespace jutils
 
     template<>
     inline jstring jstring::format<>(const char* formatStr) { return formatStr; }
-
-    inline std::basic_istream<jstring::character_type, jstring::internal_type::traits_type>& readStreamLine(
-        std::basic_istream<jstring::character_type, jstring::internal_type::traits_type>& stream, jstring& outString)
-    {
-        std::string str;
-        auto& result = std::getline(stream, str);
-        outString = std::move(str);
-        return result;
-    }
-
+    
     inline jstring operator+(const jstring& str1, jstring::character_type character) { return jstring(str1) += character; }
     inline jstring operator+(const jstring& str1, const jstring& str2) { return jstring(str1) += str2; }
     inline jstring operator+(const jstring& str1, const jstring::character_type* str2) { return jstring(str1) += str2; }
@@ -304,13 +296,7 @@ namespace jutils
     inline bool operator>(const jstring& str1, const jstring& str2) { return str1.compare(str2) > 0; }
     inline bool operator>(const jstring& str1, const jstring::character_type* const str2) { return str1.compare(str2) > 0; }
     inline bool operator>(const jstring::character_type* const str1, const jstring& str2) { return str2.compare(str1) < 0; }
-
-    inline std::basic_ostream<jstring::character_type, jstring::internal_type::traits_type>& operator<<(
-        std::basic_ostream<jstring::character_type, jstring::internal_type::traits_type>& stream, const jstring& str)
-    {
-        return stream << *str;
-    }
-
+    
     template<typename T>
     struct jstring_formatter
     {

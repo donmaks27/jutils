@@ -9,6 +9,17 @@ namespace jutils
 {
     namespace math
     {
+        template<vector_size_type Size, typename Type>
+        constexpr vector<Size, Type> absVector(const vector<Size, Type>& value)
+        {
+            vector<Size, Type> result = value;
+	        for (vector_size_type i = 0; i < Size; i++)
+	        {
+		        result[i] = math::abs(result[i]);
+	        }
+            return result;
+        }
+
         template<vector_size_type Size, typename Type1, typename Type2>
         constexpr bool isVectorsEqual(const math::vector<Size, Type1>& value1, const math::vector<Size, Type2>& value2, const float eps = EPSILON_DEFAULT)
         {

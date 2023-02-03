@@ -13,3 +13,7 @@ namespace jutils
         using ubox2 = box<2, uint32>;
     }
 }
+
+JUTILS_STRING_FORMATTER(jutils::math::box2, jutils::math::boxToString);
+JUTILS_STRING_FORMATTER(jutils::math::ibox2, jutils::math::boxToString);
+JUTILS_STRING_FORMATTER(jutils::math::ubox2, jutils::math::boxToString);
