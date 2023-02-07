@@ -1,4 +1,4 @@
-﻿// Copyright 2021 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -148,7 +148,7 @@ namespace jutils
         template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
         constexpr vector<3, Type1> operator+(const Type1 value1, const vector<3, Type2>& value2)
         {
-            return vector<3, Type1>(value2) += value1;
+            return vector<3, Type1>(value1) += value2;
         }
         template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
         constexpr vector<3, Type1> operator+(const vector<3, Type1>& value1, const vector<3, Type2>& value2)
@@ -164,7 +164,7 @@ namespace jutils
         template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
         constexpr vector<3, Type1> operator-(const Type1 value1, const vector<3, Type2>& value2)
         {
-            return vector<3, Type1>(value2) -= value1;
+            return vector<3, Type1>(value1) -= value2;
         }
         template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
         constexpr vector<3, Type1> operator-(const vector<3, Type1>& value1, const vector<3, Type2>& value2)
@@ -180,7 +180,7 @@ namespace jutils
         template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
         constexpr vector<3, Type1> operator*(const Type1 value1, const vector<3, Type2>& value2)
         {
-            return vector<3, Type1>(value2) *= value1;
+            return vector<3, Type1>(value1) *= value2;
         }
         template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
         constexpr vector<3, Type1> operator*(const vector<3, Type1>& value1, const vector<3, Type2>& value2)
@@ -196,7 +196,7 @@ namespace jutils
         template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
         constexpr vector<3, Type1> operator/(const Type1 value1, const vector<3, Type2>& value2)
         {
-            return vector<3, Type1>(value2) /= value1;
+            return vector<3, Type1>(value1) /= value2;
         }
         template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
         constexpr vector<3, Type1> operator/(const vector<3, Type1>& value1, const vector<3, Type2>& value2)
