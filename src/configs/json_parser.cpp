@@ -1,6 +1,6 @@
-// Copyright 2022 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022-2023 Leonov Maksim. All Rights Reserved.
 
-#include "../../include/jutils/json/json_parser.h"
+#include "jutils/configs/json_parser.h"
 
 #include <cctype>
 #include <fstream>
