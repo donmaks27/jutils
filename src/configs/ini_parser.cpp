@@ -62,7 +62,7 @@ namespace jutils
 			const std::regex sectionRegex("^\\s*\\[[^\\[\\]]*\\].*$");
 			if (std::regex_search(line, sectionRegex))
 			{
-				if (trimString(line, line.find('[') + 1, line.find(']') - 1, sectionName))
+				if (trimString(line, static_cast<int32>(line.find('[')) + 1, static_cast<int32>(line.find(']')) - 1, sectionName))
 				{
 					configData.getOrAdd(sectionName);
 				}
@@ -76,12 +76,12 @@ namespace jutils
 			const std::regex keyValueRegex("^\\s*\\w+\\s*=.*$");
 			if (std::regex_search(line, keyValueRegex))
 			{
-				const int32 index = line.find('=');
+				const int32 index = static_cast<int32>(line.find('='));
 				jstring key;
 				if (trimString(line, 0, index - 1, key))
 				{
 					jstring value;
-					trimString(line, index + 1, line.size() - 1, value);
+					trimString(line, index + 1, static_cast<int32>(line.size()) - 1, value);
 					configData[sectionName].add(key, value);
 				}
 			}
