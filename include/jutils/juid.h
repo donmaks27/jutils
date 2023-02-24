@@ -1,4 +1,4 @@
-﻿// Copyright 2021 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -15,48 +15,39 @@ namespace jutils
     public:
 
         using id_type = IdType;
-        static constexpr id_type invalidUID = 0;
-        static constexpr id_type minUID = 1;
+        static constexpr id_type invalidUID = std::numeric_limits<id_type>::min();
+        static constexpr id_type minUID = invalidUID + 1;
         static constexpr id_type maxUID = std::numeric_limits<id_type>::max();
 
-        juid()
-            : nextUID(minUID)
-        {}
+        juid() = default;
         juid(const juid& value)
-            : nextUID(value.nextUID)
+            : currentUID(value.currentUID)
         {}
 
         juid& operator=(const juid& value)
         {
             if (this != &value)
             {
-                nextUID = value.nextUID;
+                currentUID = value.currentUID;
             }
             return *this;
         }
 
-        id_type getNextUID() const { return nextUID; }
-        id_type getUID()
+        id_type getUID() const { return currentUID; }
+        id_type getNextUID() const { return currentUID != maxUID ? currentUID + 1 : invalidUID; }
+        id_type generateUID()
         {
-            if (nextUID == invalidUID)
-            {
-                return invalidUID;
-            }
-            if (nextUID == maxUID)
-            {
-                nextUID = invalidUID;
-                return maxUID;
-            }
-            return nextUID++;
+            currentUID = getNextUID();
+            return getUID();
         }
 
         void reset()
         {
-            nextUID = minUID;
+            currentUID = minUID;
         }
 
     private:
 
-        id_type nextUID;
+        id_type currentUID = minUID;
     };
 }

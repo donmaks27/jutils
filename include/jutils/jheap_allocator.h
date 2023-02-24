@@ -1,4 +1,4 @@
-﻿// Copyright 2021 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -188,7 +188,7 @@ namespace jutils
             description.nextObjectIndex = nextObjectIndex;
             description.indexFirst = indexFirst;
             description.indexLast = indexLast;
-            description.UID = nodeUIDs.getUID();
+            description.UID = nodeUIDs.generateUID();
             description.alignPow = getPowForAlign<T>();
             if (prevObjectIndex == -1)
             {

@@ -1,4 +1,4 @@
-﻿// Copyright 2022 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -79,10 +79,10 @@ namespace jutils
             type& operator*() const { return this->arrayPtr->data[this->objectIndex]; }
             type* operator->() const { return this->_isValid() ? this->arrayPtr->data + this->objectIndex : nullptr; }
             
-            const_iterator& operator++() { this->objectIndex++; return *this; }
+            const_iterator& operator++() { ++this->objectIndex; return *this; }
             const_iterator operator++(int) { const_iterator temp = *this; ++*this; return temp; }
 
-            const_iterator& operator--() { this->objectIndex--; return *this; }
+            const_iterator& operator--() { --this->objectIndex; return *this; }
             const_iterator operator--(int) { const_iterator temp = *this; --*this; return temp; }
             
             const_iterator& operator+=(const index_type offset) { this->objectIndex += offset; return *this; }
