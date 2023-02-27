@@ -14,17 +14,17 @@ namespace jutils
     {
     public:
 
-        using id_type = IdType;
-        static constexpr id_type invalidUID = std::numeric_limits<id_type>::min();
-        static constexpr id_type minUID = invalidUID + 1;
-        static constexpr id_type maxUID = std::numeric_limits<id_type>::max();
+        using uid_type = IdType;
+        static constexpr uid_type invalidUID = std::numeric_limits<uid_type>::min();
+        static constexpr uid_type minUID = invalidUID + 1;
+        static constexpr uid_type maxUID = std::numeric_limits<uid_type>::max();
 
-        juid() = default;
-        juid(const juid& value)
+        constexpr juid() = default;
+        constexpr juid(const juid& value)
             : currentUID(value.currentUID)
         {}
 
-        juid& operator=(const juid& value)
+        constexpr juid& operator=(const juid& value)
         {
             if (this != &value)
             {
@@ -33,21 +33,28 @@ namespace jutils
             return *this;
         }
 
-        id_type getUID() const { return currentUID; }
-        id_type getNextUID() const { return currentUID != maxUID ? currentUID + 1 : invalidUID; }
-        id_type generateUID()
+        constexpr uid_type getUID() const { return currentUID; }
+        constexpr uid_type getNextUID() const { return currentUID != maxUID ? currentUID + 1 : invalidUID; }
+        constexpr uid_type generateUID()
         {
             currentUID = getNextUID();
             return getUID();
         }
 
-        void reset()
+        constexpr void reset()
         {
             currentUID = minUID;
         }
 
+        constexpr operator uid_type() const { return getUID(); }
+
+        constexpr bool operator==(const juid& uid) const { return getUID() == uid.getUID(); }
+        constexpr bool operator!=(const juid& uid) const { return getUID() != uid.getUID(); }
+        constexpr bool operator==(const uid_type uid) const { return getUID() == uid; }
+        constexpr bool operator!=(const uid_type uid) const { return getUID() != uid; }
+
     private:
 
-        id_type currentUID = minUID;
+        uid_type currentUID = minUID;
     };
 }

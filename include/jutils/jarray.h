@@ -27,8 +27,8 @@ namespace jutils
             friend jarray;
 
         public:
-            const_iterator() = default;
-            const_iterator(const const_iterator&) = default;
+            constexpr const_iterator() = default;
+            constexpr const_iterator(const const_iterator&) = default;
         protected:
             const_iterator(const jarray* arrayPtr, const index_type objectIndex)
                 : arrayPtr(arrayPtr), objectIndex(objectIndex)
@@ -67,11 +67,11 @@ namespace jutils
             friend jarray;
 
         public:
-            iterator() = default;
-            iterator(const iterator&) = default;
+            constexpr iterator() = default;
+            constexpr iterator(const iterator&) = default;
         protected:
-            iterator(const jarray* arrayPtr, const index_type objectIndex)
-                : const_iterator(arrayPtr, objectIndex)
+            iterator(const jarray* ptr, const index_type index)
+                : const_iterator(ptr, index)
             {}
 
         public:
@@ -92,7 +92,7 @@ namespace jutils
             const_iterator operator-(const index_type offset) const { return { this->arrayPtr, this->objectIndex - offset }; }
         };
 
-        jarray() = default;
+        constexpr jarray() = default;
         jarray(const index_type size)
         {
             resize(size);
@@ -109,7 +109,7 @@ namespace jutils
         {
             append(value);
         }
-        jarray(jarray&& value) noexcept
+        constexpr jarray(jarray&& value) noexcept
         {
             data = value.data;
             capacity = value.capacity;
@@ -154,12 +154,12 @@ namespace jutils
             return *this;
         }
 
-        type* getData() noexcept { return size > 0 ? data : nullptr; }
-        const type* getData() const noexcept { return size > 0 ? data : nullptr; }
+        constexpr type* getData() noexcept { return size > 0 ? data : nullptr; }
+        constexpr const type* getData() const noexcept { return size > 0 ? data : nullptr; }
 
-        index_type getSize() const { return size; }
-        bool isEmpty() const { return size == 0; }
-        bool isValidIndex(const index_type index) const { return jutils::math::isWithin(index, 0, size - 1); }
+        constexpr index_type getSize() const { return size; }
+        constexpr bool isEmpty() const { return size == 0; }
+        constexpr bool isValidIndex(const index_type index) const { return jutils::math::isWithin(index, 0, size - 1); }
         
         iterator begin() noexcept { return iterator(this, 0); }
         iterator end() noexcept { return iterator(this, size); }
