@@ -1,4 +1,4 @@
-﻿// Copyright 2021 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -111,12 +111,12 @@ namespace jutils
 
         void clear() { delegates_container.clear(); }
 
-        void _call_internal(ArgTypes... args) const
+        void call(ArgTypes... args) const
         {
             auto delegatesCopy = delegates_container;
             for (auto& delegate : delegatesCopy)
             {
-                delegate._call_internal(args...);
+                delegate.call(std::forward<ArgTypes>(args)...);
             }
         }
 
@@ -134,7 +134,7 @@ public:                                                                         
     DelegateName() : base_class() {}                                                                \
     DelegateName(const base_class& value) : base_class(value) {}                                    \
     DelegateName(base_class&& value) noexcept : base_class(std::move(value)) {}                     \
-    void call(Params) const { _call_internal(ParamsNames); }                                        \
+    void call(Params) const { base_class::call(ParamsNames); }                                      \
 }
 
 #define JUTILS_CREATE_MULTICAST_DELEGATE(DelegateName) JUTILS_CREATE_MULTICAST_DELEGATE_INTERNAL(DelegateName, , , )
