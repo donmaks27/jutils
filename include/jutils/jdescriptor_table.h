@@ -128,7 +128,7 @@ namespace jutils
 		template<typename Type, typename... Args>
 		pointer create(Args&&... args);
 		pointer createDescriptor(type* existingObject);
-		void destroy(const pointer& pointer);
+		void destroy(const weak_pointer& pointer);
 		void cleanup();
 
 		void clear();
@@ -358,7 +358,7 @@ namespace jutils
 		return pointer;
 	}
 	template<typename T, typename UIDType>
-	void jdescriptor_table<T, UIDType>::destroy(const pointer& pointer)
+	void jdescriptor_table<T, UIDType>::destroy(const weak_pointer& pointer)
 	{
 		if (isValid(pointer))
 		{
