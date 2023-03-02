@@ -50,6 +50,8 @@ namespace jutils
 			bool operator==(nullptr_t) const { return !isValid(); }
 			bool operator!=(nullptr_t) const { return isValid(); }
 
+			constexpr bool operator<(const weak_pointer& otherPointer) const;
+
 		protected:
 
 			mutable jdescriptor_table* descriptorTable = nullptr;
@@ -254,6 +256,27 @@ namespace jutils
 		}
 		return object;
 	}
+
+	template<typename T, typename UIDType>
+    constexpr bool jdescriptor_table<T, UIDType>::weak_pointer::operator<(const weak_pointer& otherPointer) const
+    {
+		if (descriptorTable < otherPointer.descriptorTable)
+		{
+		    return true;
+		}
+		if (descriptorTable == otherPointer.descriptorTable)
+		{
+		    if (descriptorIndex < otherPointer.descriptorIndex)
+		    {
+		        return true;
+		    }
+			if (descriptorIndex == otherPointer.descriptorIndex)
+			{
+			    return UID < otherPointer.UID;
+			}
+		}
+		return false;
+    }
 
 	template<typename T, typename UIDType>
     constexpr jdescriptor_table<T, UIDType>::pointer::pointer(pointer&& otherPointer) noexcept
