@@ -91,6 +91,7 @@ namespace jutils
             workers[index].workerThread.join();
         }
         delete[] workers;
+        workers = nullptr;
         workersArraySize = 0;
         workerInitFunction = nullptr;
         workerDestroyFunction = nullptr;
