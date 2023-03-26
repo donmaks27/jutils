@@ -7,6 +7,7 @@
 #include "jmemory.h"
 
 #include <cstring>
+#include <functional>
 #include <limits>
 #include <stdexcept>
 
@@ -36,8 +37,10 @@ namespace jutils
 
         public:
 
+            bool isValid() const { return (arrayPtr != nullptr) && arrayPtr->isValidIndex(objectIndex); }
+
             const type& operator*() const { return arrayPtr->data[objectIndex]; }
-            const type* operator->() const { return _isValid() ? arrayPtr->data + objectIndex : nullptr; }
+            const type* operator->() const { return isValid() ? arrayPtr->data + objectIndex : nullptr; }
             
             const_iterator& operator++() { objectIndex++; return *this; }
             const_iterator operator++(int) { const_iterator temp = *this; ++*this; return temp; }
@@ -51,16 +54,13 @@ namespace jutils
             const_iterator operator+(const index_type offset) const { return { arrayPtr, objectIndex + offset }; }
             const_iterator operator-(const index_type offset) const { return { arrayPtr, objectIndex - offset }; }
 
-            bool operator==(const const_iterator& iter) const { return _isValid() ? (arrayPtr == iter.arrayPtr) && (objectIndex == iter.objectIndex) : !iter._isValid(); }
+            bool operator==(const const_iterator& iter) const { return isValid() ? (arrayPtr == iter.arrayPtr) && (objectIndex == iter.objectIndex) : !iter.isValid(); }
             bool operator!=(const const_iterator& iter) const { return !this->operator==(iter); }
 
         protected:
 
             const jarray* arrayPtr = nullptr;
             index_type objectIndex = -1;
-
-
-            bool _isValid() const { return (arrayPtr != nullptr) && arrayPtr->isValidIndex(objectIndex); }
         };
         class iterator : public const_iterator
         {
@@ -77,7 +77,7 @@ namespace jutils
         public:
 
             type& operator*() const { return this->arrayPtr->data[this->objectIndex]; }
-            type* operator->() const { return this->_isValid() ? this->arrayPtr->data + this->objectIndex : nullptr; }
+            type* operator->() const { return this->isValid() ? this->arrayPtr->data + this->objectIndex : nullptr; }
             
             const_iterator& operator++() { ++this->objectIndex; return *this; }
             const_iterator operator++(int) { const_iterator temp = *this; ++*this; return temp; }
@@ -268,6 +268,8 @@ namespace jutils
             }
             return count;
         }
+        index_type removeByPredicate(const std::function<bool(const type&)>& predicate);
+
         void clear()
         {
             for (index_type index = 0; index < size; index++)
@@ -587,6 +589,29 @@ namespace jutils
             }
         }
         size = newSize;
+    }
+
+    template<typename T>
+    typename jarray<T>::index_type jarray<T>::removeByPredicate(const std::function<bool(const type&)>& predicate)
+    {
+        index_type count = 0;
+        if (predicate != nullptr)
+        {
+            index_type index = 0;
+            while (index < size)
+            {
+                if (predicate(data[index]))
+                {
+                    _removeAt(index);
+                    count++;
+                }
+                else
+                {
+                    index++;
+                }
+            }
+        }
+        return count;
     }
 
     template<typename T>

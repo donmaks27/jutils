@@ -1,10 +1,11 @@
-﻿// Copyright 2022 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
 #include "jlist_allocator.h"
 #include "math/math.h"
 
+#include <functional>
 #include <stdexcept>
 
 namespace jutils
@@ -47,8 +48,10 @@ namespace jutils
 
         public:
 
+            bool isValid() const { return (listNodePtr != nullptr) && !listNodePtr->isUnused(); }
+
             const type& operator*() const { return listNodePtr->object; }
-            const type* operator->() const { return _isValid() ? &listNodePtr->object : nullptr; }
+            const type* operator->() const { return isValid() ? &listNodePtr->object : nullptr; }
 
             const_iterator& operator++() { _incrementIterator(); return *this; }
             const_iterator operator++(int) { iterator temp = *this; ++*this; return temp; }
@@ -62,7 +65,7 @@ namespace jutils
             const_iterator operator+(const index_type offset) const { return iterator(&this) += offset; }
             const_iterator operator-(const index_type offset) const { return iterator(&this) -= offset; }
 
-            bool operator==(const const_iterator& iter) const { return _isValid() ? (listNodePtr == iter.listNodePtr) : !iter._isValid(); }
+            bool operator==(const const_iterator& iter) const { return isValid() ? (listNodePtr == iter.listNodePtr) : !iter.isValid(); }
             bool operator!=(const const_iterator& iter) const { return !this->operator==(iter); }
 
         protected:
@@ -70,7 +73,6 @@ namespace jutils
             list_node* listNodePtr = nullptr;
 
 
-            bool _isValid() const { return (listNodePtr != nullptr) && !listNodePtr->isUnused(); }
             void _offsetIterator(index_type offset);
             void _incrementIterator();
             void _decrementIterator();
@@ -90,7 +92,7 @@ namespace jutils
         public:
 
             type& operator*() const { return this->listNodePtr->object; }
-            type* operator->() const { return this->_isValid() ? &this->listNodePtr->object : nullptr; }
+            type* operator->() const { return this->isValid() ? &this->listNodePtr->object : nullptr; }
 
             iterator& operator++() { this->_incrementIterator(); return *this; }
             iterator operator++(int) { iterator temp = *this; ++*this; return temp; }
@@ -205,17 +207,17 @@ namespace jutils
         type* findByValue(const type& value)
         {
             auto iter = getIterByValue(value);
-            return iter._isValid() ? &*iter : nullptr;
+            return iter.isValid() ? &*iter : nullptr;
         }
         const type* findByIndex(const index_type index) const { return isValidIndex(index) ? &*_getIteratorByIndex(index) : nullptr; }
         const type* findByValue(const type& value) const
         {
             auto iter = getIterByValue(value);
-            return iter._isValid() ? &*iter : nullptr;
+            return iter.isValid() ? &*iter : nullptr;
         }
 
         index_type indexOf(const type& value) const;
-        bool contains(const type& value) const { return getIterByValue(value)._isValid(); }
+        bool contains(const type& value) const { return getIterByValue(value).isValid(); }
         
         void reserve(const index_type size) { _reserveNodes(size); }
         template<typename... Args>
@@ -243,7 +245,7 @@ namespace jutils
         template<typename... Args>
         type& putAt(const const_iterator& iter, Args&&... args)
         {
-            if (!iter._isValid())
+            if (!iter.isValid())
             {
                 throw std::out_of_range("Invalid jlist<T> iterator!");
             }
@@ -259,12 +261,12 @@ namespace jutils
         type& addUnique(const type& value)
         {
             auto iter = getIterByValue(value);
-            return !iter._isValid() ? add(value) : *iter;
+            return !iter.isValid() ? add(value) : *iter;
         }
         type& addUnique(type&& value)
         {
             auto iter = getIterByValue(value);
-            return !iter._isValid() ? add(std::move(value)) : *iter;
+            return !iter.isValid() ? add(std::move(value)) : *iter;
         }
 
         type& addAt(const const_iterator& iter, const type& value) { return putAt(iter, value); }
@@ -302,8 +304,7 @@ namespace jutils
         void removeFirst() { _removeAt(begin()); }
         void removeLast() { _removeAt(_getLastIterator()); }
         index_type remove(const type& value);
-        template<typename Function>
-        index_type removeByPredicate(Function&& predicate);
+        index_type removeByPredicate(const std::function<bool(const type&)>& predicate);
 
         void clear();
 
@@ -383,7 +384,7 @@ namespace jutils
     {
         if (offset > 0)
         {
-            while ((offset > 0) && _isValid())
+            while ((offset > 0) && isValid())
             {
                 listNodePtr = listNodePtr->nextNode;
                 offset--;
@@ -391,7 +392,7 @@ namespace jutils
         }
         else
         {
-            while ((offset < 0) && _isValid())
+            while ((offset < 0) && isValid())
             {
                 listNodePtr = listNodePtr->prevNode;
                 offset++;
@@ -401,7 +402,7 @@ namespace jutils
     template<typename T>
     void jlist<T>::const_iterator::_incrementIterator()
     {
-        if (_isValid())
+        if (isValid())
         {
             listNodePtr = listNodePtr->nextNode;
         }
@@ -409,7 +410,7 @@ namespace jutils
     template<typename T>
     void jlist<T>::const_iterator::_decrementIterator()
     {
-        if (_isValid())
+        if (isValid())
         {
             listNodePtr = listNodePtr->prevNode;
         }
@@ -561,7 +562,7 @@ namespace jutils
     template<typename T>
     typename jlist<T>::const_iterator jlist<T>::_removeAt(const const_iterator& iterator)
     {
-        if (!iterator._isValid())
+        if (!iterator.isValid())
         {
             return iterator;
         }
@@ -597,7 +598,7 @@ namespace jutils
         if (!isEmpty())
         {
             const_iterator iter = begin();
-            while (iter._isValid())
+            while (iter.isValid())
             {
                 if (*iter == value)
                 {
@@ -613,14 +614,13 @@ namespace jutils
         return count;
     }
     template<typename T>
-    template<typename Function>
-    typename jlist<T>::index_type jlist<T>::removeByPredicate(Function&& predicate)
+    typename jlist<T>::index_type jlist<T>::removeByPredicate(const std::function<bool(const type&)>& predicate)
     {
         index_type count = 0;
-        if (!isEmpty())
+        if ((predicate == nullptr) || !isEmpty())
         {
             const_iterator iter = begin();
-            while (iter._isValid())
+            while (iter.isValid())
             {
                 if (predicate(*iter))
                 {

@@ -62,7 +62,8 @@ namespace jutils
         jasync_task_queue_base() = default;
     public:
 
-        inline jasync_task::id_type addTask(jasync_task* task);
+        inline jasync_task::id_type addTask(jasync_task* task, bool autoDelete = true);
+        inline void addTasks(const jarray<jasync_task*>& tasks, bool autoDelete = true);
         template<typename TaskType, typename... Args>
         jasync_task::id_type createTask(Args&&... args);
         inline void removeTask(jasync_task::id_type taskID);
@@ -70,9 +71,23 @@ namespace jutils
 
     protected:
 
+        struct task_description
+        {
+            jasync_task* task = nullptr;
+            bool autoDelete = true;
+
+            void clear() const
+            {
+                if (autoDelete)
+                {
+                    delete task;
+                }
+            }
+        };
+
         std::mutex tasksQueueMutex;
         std::condition_variable taskAvailableCondition;
-        jlist<jasync_task*> tasksQueue;
+        jlist<task_description> tasksQueue;
         juid<jasync_task::id_type> taskIDs;
 
         int32 asyncWorkerCount = 0;
@@ -131,7 +146,7 @@ namespace jutils
         void _workerThreadFunction(worker_type* worker);
     };
     
-    jasync_task::id_type jasync_task_queue_base::addTask(jasync_task* task)
+    inline jasync_task::id_type jasync_task_queue_base::addTask(jasync_task* task, const bool autoDelete)
     {
         if ((asyncWorkerCount == 0) || (task == nullptr))
         {
@@ -145,12 +160,33 @@ namespace jutils
         {
             taskIDs.reset();
         }
-        tasksQueue.add(task);
+        tasksQueue.add({ task, autoDelete });
 
         tasksQueueMutex.unlock();
 
         taskAvailableCondition.notify_one();
         return ID;
+    }
+    inline void jasync_task_queue_base::addTasks(const jarray<jasync_task*>& tasks, const bool autoDelete)
+    {
+        if ((asyncWorkerCount == 0) || tasks.isEmpty())
+        {
+            return;
+        }
+
+        tasksQueueMutex.lock();
+        for (const auto& task : tasks)
+        {
+            task->ID = taskIDs.getUID();
+            if (taskIDs.generateUID() == jasync_task::invalidID)
+            {
+                taskIDs.reset();
+            }
+            tasksQueue.add({ task, autoDelete });
+        }
+        tasksQueueMutex.unlock();
+
+        taskAvailableCondition.notify_all();
     }
     template<typename TaskType, typename... Args>
     jasync_task::id_type jasync_task_queue_base::createTask(Args&&... args)
@@ -161,7 +197,7 @@ namespace jutils
         }
         return this->addTask(new TaskType(std::forward<Args>(args)...));
     }
-    void jasync_task_queue_base::removeTask(const jasync_task::id_type taskID)
+    inline void jasync_task_queue_base::removeTask(const jasync_task::id_type taskID)
     {
         if ((asyncWorkerCount == 0) || (taskID == jasync_task::invalidID))
         {
@@ -171,18 +207,19 @@ namespace jutils
         std::lock_guard lock(tasksQueueMutex);
         for (auto iter = tasksQueue.begin(); iter != tasksQueue.end(); ++iter)
         {
-            if (*iter == nullptr)
+            if (iter->task == nullptr)
             {
                 continue;
             }
-            if ((*iter)->ID == taskID)
+            if (iter->task->ID == taskID)
             {
+                iter->clear();
                 tasksQueue.removeAt(iter);
                 return;
             }
         }
     }
-    void jasync_task_queue_base::clearTasks()
+    inline void jasync_task_queue_base::clearTasks()
     {
         if (asyncWorkerCount == 0)
         {
@@ -190,6 +227,10 @@ namespace jutils
         }
 
         std::lock_guard lock(tasksQueueMutex);
+        for (const auto& task : tasksQueue)
+        {
+            task.clear();
+        }
         tasksQueue.clear();
     }
 
@@ -256,7 +297,7 @@ namespace jutils
 
         for (const auto& task : tasksQueue)
         {
-            delete task;
+            task.clear();
         }
         tasksQueue.clear();
         taskIDs.reset();
@@ -287,14 +328,14 @@ namespace jutils
                     break;
                 }
             }
-            jasync_task* task = tasksQueue.getFirst();
+            const task_description task = tasksQueue.getFirst();
             tasksQueue.removeFirst();
             lock.unlock();
 
-            if (task != nullptr)
+            if (task.task != nullptr)
             {
-                task->run();
-                delete task;
+                task.task->run();
+                task.clear();
             }
             if (worker->shouldStop)
             {
