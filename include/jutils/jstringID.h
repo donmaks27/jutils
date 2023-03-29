@@ -122,4 +122,8 @@ namespace jutils
     };
 
     constexpr jstringID jstringID_NONE = jstringID();
+
+    inline jstring jstringID_to_jstring(const jstringID& stringID) { return stringID.toString(); }
 }
+
+JUTILS_STRING_FORMATTER(jutils::jstringID, jutils::jstringID_to_jstring);

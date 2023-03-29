@@ -650,6 +650,7 @@ namespace jutils
                 node = nextNode;
             }
             firstNode = nullptr;
+            lastNode = nullptr;
             nodeCount = 0;
         }
     }
