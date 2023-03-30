@@ -63,6 +63,8 @@ namespace jutils
         jasync_task_queue_base() = default;
     public:
 
+        bool isValid() const { return asyncWorkerCount != 0; }
+
         inline jasync_task::id_type addTask(jasync_task* task);
         inline void addTasks(const jarray<jasync_task*>& tasks);
         inline void removeTask(jasync_task::id_type taskID);
