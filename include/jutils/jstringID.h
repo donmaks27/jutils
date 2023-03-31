@@ -5,6 +5,8 @@
 #include "jhash_table_chain.h"
 #include "jstring.h"
 
+#include <shared_mutex>
+
 namespace jutils
 {
     class jstring_hash_table
@@ -41,16 +43,26 @@ namespace jutils
                 return -1;
             }
 
+            rwMutex.lock();
             hash_table_entry& entry = hashTable.put(str, str);
             if (!pointers.isValidIndex(entry.pointerIndex))
             {
                 entry.pointerIndex = pointers.getSize();
                 pointers.add(&entry);
             }
+            rwMutex.unlock();
             return entry.pointerIndex;
         }
-        bool contains(const index_type index) const { return pointers.isValidIndex(index); }
-        jstring get(const index_type index) const { return contains(index) ? pointers[index]->string : jstring(); }
+        bool contains(const index_type index) const
+        {
+            std::shared_lock lock(rwMutex);
+            return pointers.isValidIndex(index);
+        }
+        jstring get(const index_type index) const
+        {
+            std::shared_lock lock(rwMutex);
+            return contains(index) ? pointers[index]->string : jstring();
+        }
 
     private:
 
@@ -90,6 +102,7 @@ namespace jutils
 
         jhash_table_chain<hash_table_entry> hashTable = jhash_table_chain<hash_table_entry>(65536);
         jarray<hash_table_entry*> pointers;
+        mutable std::shared_mutex rwMutex;
     };
 
     class jstringID
