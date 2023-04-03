@@ -4,24 +4,14 @@
 
 #include "jarray.h"
 #include "jlist.h"
-#include "juid.h"
 
 #include <functional>
 #include <mutex>
 
 namespace jutils
 {
-    class jasync_task_queue_base;
-
     class jasync_task
     {
-        friend jasync_task_queue_base;
-
-    public:
-
-        using id_type = uint32;
-        static constexpr id_type invalidID = juid<id_type>::invalidUID;
-
     protected:
         jasync_task() = default;
     public:
@@ -29,12 +19,6 @@ namespace jutils
 
         virtual void run() = 0;
         virtual bool shouldDeleteAfterExecution() const { return true; }
-
-        id_type getID() const { return ID; }
-
-    private:
-
-        id_type ID = invalidID;
     };
     class jasync_task_default : public jasync_task
     {
@@ -65,9 +49,8 @@ namespace jutils
 
         bool isValid() const { return asyncWorkerCount != 0; }
 
-        inline jasync_task::id_type addTask(jasync_task* task);
+        inline bool addTask(jasync_task* task);
         inline void addTasks(const jarray<jasync_task*>& tasks);
-        inline void removeTask(jasync_task::id_type taskID);
         inline void clearTasks();
 
     protected:
@@ -88,7 +71,6 @@ namespace jutils
         std::mutex tasksQueueMutex;
         std::condition_variable taskAvailableCondition;
         jlist<task_description> tasksQueue;
-        juid<jasync_task::id_type> taskIDs;
 
         int32 asyncWorkerCount = 0;
     };
@@ -146,26 +128,19 @@ namespace jutils
         void _workerThreadFunction(worker_type* worker);
     };
     
-    inline jasync_task::id_type jasync_task_queue_base::addTask(jasync_task* task)
+    inline bool jasync_task_queue_base::addTask(jasync_task* task)
     {
         if ((asyncWorkerCount == 0) || (task == nullptr))
         {
-            return jasync_task::invalidID;
+            return false;
         }
 
         tasksQueueMutex.lock();
-
-        const jasync_task::id_type ID = task->ID = taskIDs.getUID();
-        if (taskIDs.generateUID() == jasync_task::invalidID)
-        {
-            taskIDs.reset();
-        }
         tasksQueue.add({ task });
-
         tasksQueueMutex.unlock();
 
         taskAvailableCondition.notify_one();
-        return ID;
+        return true;
     }
     inline void jasync_task_queue_base::addTasks(const jarray<jasync_task*>& tasks)
     {
@@ -177,38 +152,11 @@ namespace jutils
         tasksQueueMutex.lock();
         for (const auto& task : tasks)
         {
-            task->ID = taskIDs.getUID();
-            if (taskIDs.generateUID() == jasync_task::invalidID)
-            {
-                taskIDs.reset();
-            }
             tasksQueue.add({ task });
         }
         tasksQueueMutex.unlock();
 
         taskAvailableCondition.notify_all();
-    }
-    inline void jasync_task_queue_base::removeTask(const jasync_task::id_type taskID)
-    {
-        if ((asyncWorkerCount == 0) || (taskID == jasync_task::invalidID))
-        {
-            return;
-        }
-
-        std::lock_guard lock(tasksQueueMutex);
-        for (auto iter = tasksQueue.begin(); iter != tasksQueue.end(); ++iter)
-        {
-            if (iter->task == nullptr)
-            {
-                continue;
-            }
-            if (iter->task->ID == taskID)
-            {
-                iter->clear();
-                tasksQueue.removeAt(iter);
-                return;
-            }
-        }
     }
     inline void jasync_task_queue_base::clearTasks()
     {
@@ -291,7 +239,6 @@ namespace jutils
             task.clear();
         }
         tasksQueue.clear();
-        taskIDs.reset();
     }
 
     template<typename WorkerType>
