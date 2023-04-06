@@ -7,18 +7,17 @@
 
 namespace jutils
 {
-	template<typename T, typename UIDType = uint32>
+	template<typename T>
 	class jdescriptor_table;
 
-	template<typename UIDType = uint32>
 	class jdescriptor_table_pointer
 	{
-		template<typename T, typename UIDType1>
+		template<typename T>
 		friend class jdescriptor_table;
 
 	public:
 
-		using uid_type = UIDType;
+		using uid_type = uint32;
 
 		constexpr jdescriptor_table_pointer() = default;
 		constexpr jdescriptor_table_pointer(nullptr_t) : jdescriptor_table_pointer() {}
@@ -46,16 +45,16 @@ namespace jutils
 		uid_type UID = juid<uid_type>::invalidUID;
 	};
 
-	template<typename T, typename UIDType>
+	template<typename T>
 	class jdescriptor_table
 	{
 	public:
 
 		using type = T;
-		using uid_type = UIDType;
-		using base_poiter_type = jdescriptor_table_pointer<uid_type>;
+		using poiter_type = jdescriptor_table_pointer;
+		using uid_type = poiter_type::uid_type;
 
-		class weak_pointer : public base_poiter_type
+		class weak_pointer : public poiter_type
 		{
 			friend jdescriptor_table;
 
@@ -65,7 +64,7 @@ namespace jutils
 			constexpr weak_pointer(const weak_pointer&) = default;
 		protected:
 			weak_pointer(jdescriptor_table* table, const int32 descriptorIndex, const uid_type uid)
-				: base_poiter_type(descriptorIndex, uid), descriptorTable(table)
+				: poiter_type(descriptorIndex, uid), descriptorTable(table)
 			{}
 		public:
 
@@ -74,13 +73,13 @@ namespace jutils
 			
 			constexpr bool operator==(const weak_pointer& otherPointer) const
 			{
-				return (descriptorTable == otherPointer.descriptorTable) && base_poiter_type::operator==(otherPointer);
+				return (descriptorTable == otherPointer.descriptorTable) && poiter_type::operator==(otherPointer);
 			}
 			constexpr bool operator!=(const weak_pointer& otherPointer) const { return !this->operator==(otherPointer); }
 			
 			constexpr bool operator<(const weak_pointer& otherPointer) const
 			{
-				return (descriptorTable < otherPointer.descriptorTable) || base_poiter_type::operator<(otherPointer);
+				return (descriptorTable < otherPointer.descriptorTable) || poiter_type::operator<(otherPointer);
 			}
 
 		protected:
@@ -136,32 +135,32 @@ namespace jutils
 		OnObjectEvent onObjectDestroying;
 
 
-		bool isValid(const base_poiter_type& pointer) const
+		bool isValid(const poiter_type& pointer) const
 		{
 			return descriptors.isValidIndex(pointer.descriptorIndex) && (descriptors[pointer.descriptorIndex].UID == pointer.UID);
 		}
-		uint64 getRefsCount(const base_poiter_type& pointer) const
+		uint64 getRefsCount(const poiter_type& pointer) const
 		{
 			return this->isValid(pointer) ? descriptors[pointer.descriptorIndex].references : 0;
 		}
-		type* get(const base_poiter_type& pointer) const
+		type* get(const poiter_type& pointer) const
 		{
 			return this->isValid(pointer) ? descriptors[pointer.descriptorIndex].object : nullptr;
 		}
 
 		template<typename Type, typename... Args>
-		base_poiter_type create(Args&&... args) { return this->createDescriptor(new Type(std::forward<Args>(args)...)); }
-		base_poiter_type createDescriptor(type* existingObject);
+		poiter_type create(Args&&... args) { return this->createDescriptor(new Type(std::forward<Args>(args)...)); }
+		poiter_type createDescriptor(type* existingObject);
 
-		bool addReference(const base_poiter_type& pointer);
-		bool removeReference(const base_poiter_type& pointer);
-		weak_pointer createWeakPointer(const base_poiter_type& pointer)
+		bool addReference(const poiter_type& pointer);
+		bool removeReference(const poiter_type& pointer);
+		weak_pointer createWeakPointer(const poiter_type& pointer)
 		{
 			return this->isValid(pointer) ? weak_pointer(this, pointer.descriptorIndex, pointer.UID) : nullptr;
 		}
-		pointer createPointer(const base_poiter_type& pointer);
+		pointer createPointer(const poiter_type& pointer);
 
-		void destroy(const base_poiter_type& pointer);
+		void destroy(const poiter_type& pointer);
 		void cleanup();
 		void clear();
 
@@ -182,16 +181,14 @@ namespace jutils
 		void _pushDescriptor(int32 descriptorIndex);
 		void _destroyObject(int32 descriptorIndex);
 	};
-
-	template<typename UIDType>
-	constexpr jdescriptor_table_pointer<UIDType>& jdescriptor_table_pointer<UIDType>::operator=(nullptr_t)
+	
+	constexpr jdescriptor_table_pointer& jdescriptor_table_pointer::operator=(nullptr_t)
 	{
 		descriptorIndex = -1;
 		UID = juid<uid_type>::invalidUID;
 		return *this;
 	}
-	template<typename UIDType>
-	constexpr bool jdescriptor_table_pointer<UIDType>::operator<(const jdescriptor_table_pointer& otherPointer) const
+	constexpr bool jdescriptor_table_pointer::operator<(const jdescriptor_table_pointer& otherPointer) const
 	{
 		if (descriptorIndex < otherPointer.descriptorIndex)
 		{
@@ -200,16 +197,16 @@ namespace jutils
 		return (descriptorIndex == otherPointer.descriptorIndex) && (UID < otherPointer.UID);
 	}
 	
-	template<typename T, typename UIDType>
-	constexpr typename jdescriptor_table<T, UIDType>::weak_pointer& jdescriptor_table<T, UIDType>::weak_pointer::operator=(nullptr_t)
+	template<typename T>
+	constexpr typename jdescriptor_table<T>::weak_pointer& jdescriptor_table<T>::weak_pointer::operator=(nullptr_t)
 	{
 		descriptorTable = nullptr;
-		base_poiter_type::operator=(nullptr);
+		poiter_type::operator=(nullptr);
 		return *this;
 	}
 
-	template<typename T, typename UIDType>
-    constexpr jdescriptor_table<T, UIDType>::pointer::pointer(pointer&& otherPointer) noexcept
+	template<typename T>
+    constexpr jdescriptor_table<T>::pointer::pointer(pointer&& otherPointer) noexcept
 		: weak_pointer(otherPointer)
 	{
 		otherPointer.descriptorTable = nullptr;
@@ -217,15 +214,15 @@ namespace jutils
 		otherPointer.UID = juid<uid_type>::invalidUID;
 	}
 
-	template<typename T, typename UIDType>
-	typename jdescriptor_table<T, UIDType>::pointer& jdescriptor_table<T, UIDType>::pointer::operator=(nullptr_t)
+	template<typename T>
+	typename jdescriptor_table<T>::pointer& jdescriptor_table<T>::pointer::operator=(nullptr_t)
 	{
 		_removeReference();
 		weak_pointer::operator=(nullptr);
 		return *this;
 	}
-	template<typename T, typename UIDType>
-	typename jdescriptor_table<T, UIDType>::pointer& jdescriptor_table<T, UIDType>::pointer::operator=(const pointer& otherPointer)
+	template<typename T>
+	typename jdescriptor_table<T>::pointer& jdescriptor_table<T>::pointer::operator=(const pointer& otherPointer)
 	{
 		if ((this != &otherPointer) && (*this != otherPointer))
 		{
@@ -235,8 +232,8 @@ namespace jutils
 		}
 		return *this;
 	}
-	template<typename T, typename UIDType>
-	typename jdescriptor_table<T, UIDType>::pointer& jdescriptor_table<T, UIDType>::pointer::operator=(const weak_pointer& otherPointer)
+	template<typename T>
+	typename jdescriptor_table<T>::pointer& jdescriptor_table<T>::pointer::operator=(const weak_pointer& otherPointer)
 	{
 		if ((this != &otherPointer) && (*this != otherPointer))
 		{
@@ -246,8 +243,8 @@ namespace jutils
 		}
 		return *this;
 	}
-	template<typename T, typename UIDType>
-	typename jdescriptor_table<T, UIDType>::pointer& jdescriptor_table<T, UIDType>::pointer::operator=(pointer&& otherPointer) noexcept
+	template<typename T>
+	typename jdescriptor_table<T>::pointer& jdescriptor_table<T>::pointer::operator=(pointer&& otherPointer) noexcept
 	{
 		_removeReference();
 
@@ -259,16 +256,16 @@ namespace jutils
 		return *this;
 	}
 
-	template<typename T, typename UIDType>
-	void jdescriptor_table<T, UIDType>::pointer::_addReference()
+	template<typename T>
+	void jdescriptor_table<T>::pointer::_addReference()
 	{
 		if (weak_pointer::descriptorTable != nullptr)
 		{
 			weak_pointer::descriptorTable->addReference(*this);
 		}
 	}
-	template<typename T, typename UIDType>
-	void jdescriptor_table<T, UIDType>::pointer::_removeReference()
+	template<typename T>
+	void jdescriptor_table<T>::pointer::_removeReference()
 	{
 		if (weak_pointer::descriptorTable != nullptr)
 		{
@@ -276,18 +273,18 @@ namespace jutils
 		}
 	}
 	
-	template<typename T, typename UIDType>
-	typename jdescriptor_table<T, UIDType>::base_poiter_type jdescriptor_table<T, UIDType>::createDescriptor(type* existingObject)
+	template<typename T>
+	typename jdescriptor_table<T>::poiter_type jdescriptor_table<T>::createDescriptor(type* existingObject)
 	{
 		const int32 descriptorIndex = _pullEmptyDescriptor();
 		descriptor& descriptor = descriptors[descriptorIndex];
 		descriptor.object = existingObject;
 		descriptor.references = 0;
-		return base_poiter_type(descriptorIndex, descriptor.UID);
+		return poiter_type(descriptorIndex, descriptor.UID);
 	}
 
-	template<typename T, typename UIDType>
-	bool jdescriptor_table<T, UIDType>::addReference(const base_poiter_type& pointer)
+	template<typename T>
+	bool jdescriptor_table<T>::addReference(const poiter_type& pointer)
 	{
 		if (!this->isValid(pointer))
 		{
@@ -296,8 +293,8 @@ namespace jutils
 		++descriptors[pointer.descriptorIndex].references;
 		return true;
 	}
-	template<typename T, typename UIDType>
-	bool jdescriptor_table<T, UIDType>::removeReference(const base_poiter_type& pointer)
+	template<typename T>
+	bool jdescriptor_table<T>::removeReference(const poiter_type& pointer)
 	{
 		if (!this->isValid(pointer))
 		{
@@ -309,8 +306,8 @@ namespace jutils
 		}
 		return true;
 	}
-	template<typename T, typename UIDType>
-	typename jdescriptor_table<T, UIDType>::pointer jdescriptor_table<T, UIDType>::createPointer(const base_poiter_type& tablePointer)
+	template<typename T>
+	typename jdescriptor_table<T>::pointer jdescriptor_table<T>::createPointer(const poiter_type& tablePointer)
 	{
 		if (!this->isValid(tablePointer) || !this->addReference(tablePointer))
 		{
@@ -319,16 +316,16 @@ namespace jutils
 		return pointer(this, tablePointer.descriptorIndex, tablePointer.UID);
 	}
 
-	template<typename T, typename UIDType>
-	void jdescriptor_table<T, UIDType>::destroy(const base_poiter_type& pointer)
+	template<typename T>
+	void jdescriptor_table<T>::destroy(const poiter_type& pointer)
 	{
 		if (this->isValid(pointer))
 		{
 			this->_destroyObject(pointer.descriptorIndex);
 		}
 	}
-	template<typename T, typename UIDType>
-	void jdescriptor_table<T, UIDType>::cleanup()
+	template<typename T>
+	void jdescriptor_table<T>::cleanup()
 	{
 		for (int32 descriptorIndex = 0; descriptorIndex < descriptors.getSize(); descriptorIndex++)
 		{
@@ -338,8 +335,8 @@ namespace jutils
 			}
 		}
 	}
-	template<typename T, typename UIDType>
-	void jdescriptor_table<T, UIDType>::clear()
+	template<typename T>
+	void jdescriptor_table<T>::clear()
 	{
 		for (int32 descriptorIndex = 0; descriptorIndex < descriptors.getSize(); descriptorIndex++)
 		{
@@ -347,8 +344,8 @@ namespace jutils
 		}
 	}
 
-	template<typename T, typename UIDType>
-	int32 jdescriptor_table<T, UIDType>::_pullEmptyDescriptor()
+	template<typename T>
+	int32 jdescriptor_table<T>::_pullEmptyDescriptor()
 	{
 		if (firstEmptyDescriptor == -1)
 		{
@@ -360,8 +357,8 @@ namespace jutils
 		firstEmptyDescriptor = static_cast<int32>(descriptors[index].references) - 1;
 		return index;
 	}
-	template<typename T, typename UIDType>
-	void jdescriptor_table<T, UIDType>::_pushDescriptor(const int32 descriptorIndex)
+	template<typename T>
+	void jdescriptor_table<T>::_pushDescriptor(const int32 descriptorIndex)
 	{
 		descriptor& descriptor = descriptors[descriptorIndex];
 		descriptor.UID.generateUID();
@@ -371,8 +368,8 @@ namespace jutils
 			firstEmptyDescriptor = descriptorIndex;
 		}
 	}
-	template<typename T, typename UIDType>
-	void jdescriptor_table<T, UIDType>::_destroyObject(const int32 descriptorIndex)
+	template<typename T>
+	void jdescriptor_table<T>::_destroyObject(const int32 descriptorIndex)
 	{
 		descriptor& descriptor = descriptors[descriptorIndex];
 		if (descriptor.object != nullptr)
