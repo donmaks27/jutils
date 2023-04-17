@@ -2,16 +2,15 @@
 
 #pragma once
 
-#include "../jmap.h"
-#include "../jstring.h"
+#include "ini.h"
 
 namespace jutils
 {
 	namespace ini
 	{
-		jstring serialize(const jmap<jstring, jmap<jstring, jstring>>& configData);
+		jstring serialize(const ini_value& configData);
 
-		jmap<jstring, jmap<jstring, jstring>> parse(const jstring& data);
-		jmap<jstring, jmap<jstring, jstring>> parseFile(const jstring& filePath);
+		ini_value parse(const jstring& data);
+		ini_value parseFile(const jstring& filePath);
 	}
 }

@@ -6,113 +6,73 @@
 #include <regex>
 #include <sstream>
 
+#define INI_IMPLEMENTATION
+#define INI_STRNICMP( s1, s2, cnt ) ( std::strncmp( s1, s2, cnt ) )
+#include <mattiasgustavsson/ini.h>
+
 namespace jutils
 {
 	namespace ini
 	{
-		jstring serialize(const jmap<jstring, jmap<jstring, jstring>>& configData)
+		jstring serialize(const ini_value& configData)
 		{
-			jstring data;
+			ini_t* config = ini_create(nullptr);
 			for (const auto& sectionData : configData)
 			{
-				data += '[' + sectionData.key + "]\n";
-				for (const auto& valueData : sectionData.value)
+			    const int32 sectionIndex = ini_section_add(config, *sectionData.key, 0);
+				for (const auto& propertyData : sectionData.value)
 				{
-					data += valueData.key + " = " + valueData.value + '\n';
-				}
-				data += '\n';
-			}
-			return data;
-		}
-
-		bool trimString(const std::string& str, int32 firstIndex, int32 lastIndex, jstring& outString)
-		{
-			if (lastIndex < firstIndex)
-			{
-				return false;
-			}
-			while ((static_cast<std::size_t>(firstIndex) < str.size()) && std::isspace(str[firstIndex]))
-			{
-				firstIndex++;
-			}
-			while ((lastIndex >= 0) && std::isspace(str[lastIndex]))
-			{
-				lastIndex--;
-			}
-			if (lastIndex < firstIndex)
-			{
-				return false;
-			}
-			outString = str.substr(firstIndex, lastIndex - firstIndex + 1);
-			return true;
-		}
-		void parseLine(const std::string& line, jmap<jstring, jmap<jstring, jstring>>& configData, jstring& sectionName)
-		{
-			if (line.empty())
-			{
-				return;
-			}
-
-			const std::regex commentRegex("^\\s*((;|#).*){0,1}$");
-			if (std::regex_search(line, commentRegex))
-			{
-				return;
-			}
-
-			const std::regex sectionRegex("^\\s*\\[[^\\[\\]]*\\].*$");
-			if (std::regex_search(line, sectionRegex))
-			{
-				if (trimString(line, static_cast<int32>(line.find('[')) + 1, static_cast<int32>(line.find(']')) - 1, sectionName))
-				{
-					configData.getOrAdd(sectionName);
-				}
-				return;
-			}
-			if (sectionName.isEmpty())
-			{
-				return;
-			}
-
-			const std::regex keyValueRegex("^\\s*\\w+\\s*=.*$");
-			if (std::regex_search(line, keyValueRegex))
-			{
-				const int32 index = static_cast<int32>(line.find('='));
-				jstring key;
-				if (trimString(line, 0, index - 1, key))
-				{
-					jstring value;
-					trimString(line, index + 1, static_cast<int32>(line.size()) - 1, value);
-					configData[sectionName].add(key, value);
+				    ini_property_add(config, sectionIndex, *propertyData.key, 0, *propertyData.value, 0);
 				}
 			}
+
+			const int32 configSize = ini_save(config, nullptr, 0);
+			jstring str(configSize, ' ');
+			ini_save(config, *str, configSize);
+			ini_destroy(config);
+			return str;
 		}
-		jmap<jstring, jmap<jstring, jstring>> parse(const jstring& data)
+		
+		ini_value parse(const jstring& data)
 		{
-			jmap<jstring, jmap<jstring, jstring>> configData;
-			std::istringstream dataStream(data.getInternalData());
+			ini_value configData;
+			ini_t* config = ini_load(*data, nullptr);
+			const int32 sectionsCount = ini_section_count(config);
+			for (int32 sectionIndex = 1; sectionIndex < sectionsCount; sectionIndex++)
+			{
+				ini_section_value& sectionData = configData[ini_section_name(config, sectionIndex)];
+			    const int32 propertiesCount = ini_property_count(config, sectionIndex);
+				for (int32 propertyIndex = 0; propertyIndex < propertiesCount; propertyIndex++)
+				{
+					std::string key = ini_property_name(config, sectionIndex, propertyIndex);
+					key.erase(std::find_if(key.rbegin(), key.rend(), [](const std::string::value_type ch)
+					{
+					    return !std::isspace(ch);
+					}).base(), key.end());
+					sectionData.add(
+						jstring(key), 
+						ini_property_value(config, sectionIndex, propertyIndex)
+					);
+				}
+			}
+			ini_destroy(config);
+			return configData;
+		}
+		ini_value parseFile(const jstring& filePath)
+		{
+			std::ifstream file(*filePath);
+			if (!file.is_open())
+			{
+			    return {};
+			}
+			jstring config;
 			std::string line;
-			jstring sectionName;
-			while (std::getline(dataStream, line))
+			while (std::getline(file, line))
 			{
-				parseLine(line, configData, sectionName);
+			    config += '\n' + jstring(line);
 			}
-			return configData;
-		}
-		jmap<jstring, jmap<jstring, jstring>> parseFile(const jstring& filePath)
-		{
-			jmap<jstring, jmap<jstring, jstring>> configData;
-			std::fstream file(*filePath);
-			if (file.is_open())
-			{
-				std::string line;
-				jstring sectionName;
-				while (std::getline(file, line))
-				{
-					parseLine(line, configData, sectionName);
-				}
-				file.close();
-			}
-			return configData;
+			file.close();
+			return parse(config);
 		}
 	}
 }
