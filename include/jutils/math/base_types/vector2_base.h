@@ -73,7 +73,7 @@ namespace jutils
                 return !this->operator==(value);
             }
 
-            jstring toString() const { return jstring::format("{{ {}; {} }}", x, y); }
+            jstring toString() const { return JSTR_FORMAT("{{ {}; {} }}", x, y); }
 
             constexpr vector& operator++() { ++x; ++y; return *this; }
             constexpr vector& operator--() { --x; --y; return *this; }

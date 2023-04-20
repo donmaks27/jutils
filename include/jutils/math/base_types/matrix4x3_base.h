@@ -140,7 +140,7 @@ namespace jutils
             template<typename OtherType>
             constexpr bool operator!=(const matrix<4, 3, OtherType>& value) const { return !this->operator==(value); }
 
-            jstring toString() const { return jstring::format("{{ {}; {}; {}; {} }}", rows[0], rows[1], rows[2], rows[3]); }
+            jstring toString() const { return JSTR_FORMAT("{{ {}; {}; {}; {} }}", rows[0], rows[1], rows[2], rows[3]); }
 
             constexpr transpose_type transpose() const { return { rows[0].x, rows[1].x, rows[2].x, rows[3].x, rows[0].y, rows[1].y, rows[2].y, rows[3].y, rows[0].z, rows[1].z, rows[2].z, rows[3].z }; }
         };

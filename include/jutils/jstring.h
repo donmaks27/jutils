@@ -6,8 +6,8 @@
 #include "math/math.h"
 #include "math/hash.h"
 
+#include <format>
 #include <string>
-#include <fmt/format.h>
 
 namespace jutils
 {
@@ -253,10 +253,14 @@ namespace jutils
         jstring& operator+=(const character_type* const str) { return add(str); }
         jstring& operator+=(const jstring& str) { return add(str); }
 
+        template<typename T>
+        static jstring toString(T value) { return std::to_string(value); }
+
+        static jstring format(const char* str) { return str; }
         template<typename... Args>
-        static inline jstring format(const char* formatStr, Args&&... args)
+        static jstring format(const std::format_string<Args...> formatStr, Args&&... args)
         {
-            return jstring(fmt::format(formatStr, std::forward<Args>(args)...));
+            return jstring(std::format(formatStr, std::forward<Args>(args)...));
         }
 
     private:
@@ -274,7 +278,11 @@ namespace jutils
     };
 
     template<>
-    inline jstring jstring::format<>(const char* formatStr) { return formatStr; }
+    inline jstring jstring::toString<const char*>(const char* value) { return value; }
+    template<>
+    inline jstring jstring::toString<std::string>(std::string value) { return jstring(std::move(value)); }
+    template<>
+    inline jstring jstring::toString<jstring>(jstring value) { return value; }
     
     inline jstring operator+(const jstring& str1, jstring::character_type character) { return jstring(str1) += character; }
     inline jstring operator+(const jstring& str1, const jstring& str2) { return jstring(str1) += str2; }
@@ -296,55 +304,33 @@ namespace jutils
     inline bool operator>(const jstring& str1, const jstring& str2) { return str1.compare(str2) > 0; }
     inline bool operator>(const jstring& str1, const jstring::character_type* const str2) { return str1.compare(str2) > 0; }
     inline bool operator>(const jstring::character_type* const str1, const jstring& str2) { return str2.compare(str1) < 0; }
-    
-    template<typename T>
-    struct jstring_formatter
-    {
-        static jstring toString(const T& value) { return jstring(std::to_string(value)); }
-    };
-    template<>
-    struct jstring_formatter<const char*>
-    {
-        static jstring toString(const char* value) { return value; }
-    };
-    template<>
-    struct jstring_formatter<jstring>
-    {
-        static const jstring& toString(const jstring& value) { return value; }
-    };
-
-    template<typename T>
-    jstring to_jstring(T&& value)
-    {
-        return jstring_formatter<std::remove_cv_t<std::remove_reference_t<T>>>::toString(std::forward<T>(value));
-    }
 }
 
-template<>
-struct fmt::formatter<jutils::jstring> : fmt::formatter<jutils::jstring::internal_type>
+template<typename CharT>
+struct std::formatter<jutils::jstring, CharT> : std::formatter<const jutils::jstring::character_type*, CharT>
 {
     template<typename FormatContext>
     auto format(const jutils::jstring& str, FormatContext& ctx)
     {
-        return fmt::formatter<jutils::jstring::internal_type>::format(str.getInternalData(), ctx);
+        return std::formatter<const jutils::jstring::character_type*, CharT>::format(*str, ctx);
     }
 };
 
-#define JUTILS_STRING_FORMATTER(type, funcName)                                             \
-namespace jutils                                                                            \
-{                                                                                           \
-    template<> struct jstring_formatter<type>                                               \
-    {                                                                                       \
-        static jstring toString(const type& value) { return funcName(value); }              \
-    };                                                                                      \
-}                                                                                           \
-template<>                                                                                  \
-struct fmt::formatter<type> : fmt::formatter<jutils::jstring>                               \
-{                                                                                           \
-    template<typename FormatContext>                                                        \
-    auto format(const type& value, FormatContext& ctx)                                      \
-        { return fmt::formatter<jutils::jstring>::format(jutils::to_jstring(value), ctx); } \
+#define JUTILS_STRING_FORMATTER(type, funcName)                                                 \
+template<> inline jutils::jstring jutils::jstring::toString<type>(type value)                   \
+{                                                                                               \
+    return funcName(value);                                                                     \
+}                                                                                               \
+template<typename CharT>                                                                        \
+struct std::formatter<type, CharT> : std::formatter<decltype(funcName(type())), CharT>          \
+{                                                                                               \
+    template<typename FormatContext>                                                            \
+    auto format(const type& value, FormatContext& ctx)                                          \
+    {                                                                                           \
+        return std::formatter<decltype(funcName(type())), CharT>::format(funcName(value), ctx); \
+    }                                                                                           \
 }
 
-#define JSTR(str) u8 ## str
-#define TO_JSTR(value) jutils::to_jstring(value)
+#define JSTR(str) str
+#define JSTR_FORMAT(formatStr, ...) jutils::jstring::format(formatStr, __VA_ARGS__)
+#define TO_JSTR(value) jutils::jstring::toString(value)

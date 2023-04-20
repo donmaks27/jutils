@@ -2,8 +2,6 @@
 
 #pragma once
 
-#define NOMINMAX
-
 #include <cstdint>
 
 namespace jutils
