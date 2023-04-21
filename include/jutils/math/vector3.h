@@ -14,6 +14,6 @@ namespace jutils
     }
 }
 
-JUTILS_STRING_FORMATTER(jutils::math::vector3, jutils::math::vectorToString);
-JUTILS_STRING_FORMATTER(jutils::math::ivector3, jutils::math::vectorToString);
-JUTILS_STRING_FORMATTER(jutils::math::uvector3, jutils::math::vectorToString);
+JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::vector3, jutils::math::vectorToString);
+JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::ivector3, jutils::math::vectorToString);
+JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::uvector3, jutils::math::vectorToString);

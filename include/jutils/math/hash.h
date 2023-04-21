@@ -46,40 +46,40 @@ namespace jutils
                 0x14DEA25F3AF9026D, 0x562E43B4931334FE, 0x913F6188692D6F4B, 0xD3CF8063C0C759D8, 0x5DEDC41A34BBEEB2, 0x1F1D25F19D51D821, 0xD80C07CD676F8394, 0x9AFCE626CE85B507
             };
 
-            constexpr uint64 crc64(const uint8* data, const uint32 length)
+            constexpr uint64 crc64(const uint8* data, const uint64 length) noexcept
             {
                 constexpr uint64 mask = 0x00000000000000FF;
 
                 uint64 result = 0;
-                for (uint32 i = 0; i < length; i++)
+                for (uint64 i = 0; i < length; i++)
                 {
 		            result = (result << 8) ^ crc64_table[((result >> 56) ^ data[i]) & mask];
 	            }
 	            return result;
             }
-            constexpr uint64 crc64(const char* str, const uint32 length)
+            constexpr uint64 crc64(const char* str, const uint64 length) noexcept
             {
                 constexpr uint64 mask = 0x00000000000000FF;
 
                 uint64 result = 0;
-                for (uint32 i = 0; i < length; i++)
+                for (uint64 i = 0; i < length; i++)
                 {
 		            result = (result << 8) ^ crc64_table[((result >> 56) ^ static_cast<uint8>(str[i])) & mask];
 	            }
 	            return result;
             }
 
-            constexpr uint64 crc64(const uint8 value) { return crc64_table[value]; }
-            constexpr uint64 crc64(const int8 value) { return crc64(static_cast<uint8>(value)); }
-            constexpr uint64 crc64(const uint16 value)
+            constexpr uint64 crc64(const uint8 value) noexcept { return crc64_table[value]; }
+            constexpr uint64 crc64(const int8 value) noexcept { return crc64(static_cast<uint8>(value)); }
+            constexpr uint64 crc64(const uint16 value) noexcept
             {
                 constexpr uint64 mask = 0x00000000000000FF;
 
                 const uint64 preResult = crc64_table[value & mask];
 	            return (preResult << 8) ^ crc64_table[((preResult >> 56) ^ (value >> 8)) & mask];
             }
-            constexpr uint64 crc64(const int16 value) { return crc64(static_cast<uint16>(value)); }
-            constexpr uint64 crc64(const uint32 value)
+            constexpr uint64 crc64(const int16 value) noexcept { return crc64(static_cast<uint16>(value)); }
+            constexpr uint64 crc64(const uint32 value) noexcept
             {
                 constexpr uint64 mask = 0x00000000000000FF;
 
@@ -88,8 +88,8 @@ namespace jutils
 	            preResult = (preResult << 8) ^ crc64_table[((preResult >> 56) ^ ((value >> 16) & mask)) & mask];
 	            return (preResult << 8) ^ crc64_table[((preResult >> 56) ^ (value >> 24)) & mask];
             }
-            constexpr uint64 crc64(const int32 value) { return crc64(static_cast<uint32>(value)); }
-            constexpr uint64 crc64(const uint64 value)
+            constexpr uint64 crc64(const int32 value) noexcept { return crc64(static_cast<uint32>(value)); }
+            constexpr uint64 crc64(const uint64 value) noexcept
             {
                 constexpr uint64 mask = 0x00000000000000FF;
 
@@ -102,7 +102,7 @@ namespace jutils
 	            preResult = (preResult << 8) ^ crc64_table[((preResult >> 56) ^ ((value >> 48) & mask)) & mask];
 	            return (preResult << 8) ^ crc64_table[((preResult >> 56) ^ (value >> 56)) & mask];
             }
-            constexpr uint64 crc64(const int64 value) { return crc64(static_cast<uint64>(value)); }
+            constexpr uint64 crc64(const int64 value) noexcept { return crc64(static_cast<uint64>(value)); }
 
             template<typename T>
             struct hash_info

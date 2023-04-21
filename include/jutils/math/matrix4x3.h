@@ -12,4 +12,4 @@ namespace jutils
     }
 }
 
-JUTILS_STRING_FORMATTER(jutils::math::matrix4x3, jutils::math::matrixToString);
+JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::matrix4x3, jutils::math::matrixToString);

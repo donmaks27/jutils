@@ -139,4 +139,4 @@ namespace jutils
     inline jstring jstringID_to_jstring(const jstringID& stringID) { return stringID.toString(); }
 }
 
-JUTILS_STRING_FORMATTER(jutils::jstringID, jutils::jstringID_to_jstring);
+JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::jstringID, jutils::jstringID_to_jstring);

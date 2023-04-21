@@ -21,7 +21,7 @@ namespace jutils
         }
 
         template<vector_size_type Size, typename Type1, typename Type2>
-        constexpr bool isVectorsEqual(const math::vector<Size, Type1>& value1, const math::vector<Size, Type2>& value2, const float eps = EPSILON_DEFAULT)
+        constexpr bool isVectorsEqual(const math::vector<Size, Type1>& value1, const math::vector<Size, Type2>& value2, const float eps = EpsDefault<>)
         {
             for (vector_size_type i = 0; i < Size; i++)
             {
@@ -43,7 +43,7 @@ namespace jutils
         constexpr float length(const vector<Size, Type>& value) { return math::sqrt(lengthSqr(value)); }
 
         template<vector_size_type Size>
-        constexpr vector<Size, float> normalize(const vector<Size, float>& value, const float eps = EPSILON_DEFAULT)
+        constexpr vector<Size, float> normalize(const vector<Size, float>& value, const float eps = EpsDefault<>)
         {
             const float lenSqr = math::lengthSqr(value);
             return math::isEqual(lenSqr, 0.0f, eps) ? vector<Size, float>(0.0f) : value / math::sqrt(lenSqr);

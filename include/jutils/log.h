@@ -36,13 +36,13 @@ JUTILS_STRING_FORMATTER(jutils::log::verbosityLevel, jutils::log::verbosityLevel
 
 #ifndef JUTILS_LOG_DISABLED
 
-#define JUTILS_LOG(type, formatStr, ...) jutils::log::print(JSTR_FORMAT(                    \
-        JSTR("{} {}({}): {}\n"), jutils::log::verbosityLevel::type, __FUNCTION__, __LINE__,   \
-            JSTR_FORMAT(formatStr, __VA_ARGS__)                                             \
+#define JUTILS_LOG(type, formatStr, ...) jutils::log::print(JSTR_FORMAT(                                                \
+        JSTR("{} {}({}): {}\n"), jutils::log::verbosityLevel::type, static_cast<const char*>(__FUNCTION__), __LINE__,   \
+            JSTR_FORMAT(formatStr, __VA_ARGS__)                                                                         \
     ))
-#define JUTILS_ERROR_LOG(errorCode, formatStr, ...) jutils::log::print(JSTR_FORMAT(                                                  \
-        JSTR("{} {}({}): Code {:#x}. {}\n"), jutils::log::verbosityLevel::error, __FUNCTION__, __LINE__, static_cast<int64>(errorCode),\
-            JSTR_FORMAT(formatStr, __VA_ARGS__)                                                                                      \
+#define JUTILS_ERROR_LOG(errorCode, formatStr, ...) jutils::log::print(JSTR_FORMAT(                                         \
+        JSTR("{} {}({}): Code {:#x}. {}\n"), jutils::log::verbosityLevel::error, static_cast<const char*>(__FUNCTION__),    \
+            __LINE__, static_cast<int64>(errorCode), JSTR_FORMAT(formatStr, __VA_ARGS__)                                    \
     ))
 
 #else

@@ -25,7 +25,7 @@ namespace jutils
                 {
                 case json_value_type::boolean: return data->asBool();
                 case json_value_type::number: return data->asNumber();
-                case json_value_type::string: return data->asString().getInternalData();
+                case json_value_type::string: return data->asString().toBase();
                 case json_value_type::array:
                     {
                         nlohmann::json config;
@@ -40,7 +40,7 @@ namespace jutils
                         nlohmann::json config;
                         for (const auto& jsonPair : data->asObject())
                         {
-                            config[jsonPair.key.toString().getInternalData()] = toNlohmannJSON(jsonPair.value);
+                            config[jsonPair.key.toString().toBase()] = toNlohmannJSON(jsonPair.value);
                         }
                         return config;
                     }
@@ -52,7 +52,7 @@ namespace jutils
 
         json_value parse(const jstring& data)
         {
-            return parse(nlohmann::json::parse(std::istringstream(data.getInternalData())));
+            return parse(nlohmann::json::parse(std::istringstream(data.toBase())));
         }
         json_value parseFile(const jstring& filePath)
         {

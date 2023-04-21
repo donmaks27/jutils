@@ -14,6 +14,6 @@ namespace jutils
     }
 }
 
-JUTILS_STRING_FORMATTER(jutils::math::box2, jutils::math::boxToString);
-JUTILS_STRING_FORMATTER(jutils::math::ibox2, jutils::math::boxToString);
-JUTILS_STRING_FORMATTER(jutils::math::ubox2, jutils::math::boxToString);
+JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::box2, jutils::math::boxToString);
+JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::ibox2, jutils::math::boxToString);
+JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::ubox2, jutils::math::boxToString);

@@ -14,4 +14,4 @@ namespace jutils
     }
 }
 
-JUTILS_STRING_FORMATTER(jutils::math::matrix2x2, jutils::math::matrixToString);
+JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::matrix2x2, jutils::math::matrixToString);
