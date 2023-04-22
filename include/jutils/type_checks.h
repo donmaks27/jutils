@@ -4,6 +4,7 @@
 
 #include <concepts>
 
+// TODO: Replace all TEMPLATE_ENABLE macroses with "require ..."
 #define TEMPLATE_ENABLE_IMPL(...) std::enable_if_t<(__VA_ARGS__)>*
 #define TEMPLATE_ENABLE(...) TEMPLATE_ENABLE_IMPL(__VA_ARGS__) = nullptr
 

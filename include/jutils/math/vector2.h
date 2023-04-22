@@ -13,7 +13,3 @@ namespace jutils
         using uvector2 = vector<2, uint32>;
     }
 }
-
-JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::vector2, jutils::math::vectorToString);
-JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::ivector2, jutils::math::vectorToString);
-JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::uvector2, jutils::math::vectorToString);

@@ -338,59 +338,78 @@ namespace jutils
         template<typename T>
         struct formatter : std::bool_constant<std::is_arithmetic_v<std::remove_cvref_t<T>>>
         {
-            static jstring format(T value) { return std::to_string(value); }
+            static jstring format(T value) noexcept { return std::to_string(value); }
         };
         template<typename T>
-        constexpr bool is_formatter_defined = formatter<std::remove_cvref_t<T>>::value;
+        using has_jstring_formatter = std::bool_constant<formatter<T>::value>;
+        template<typename T>
+        constexpr bool has_jstring_formatter_v = has_jstring_formatter<T>::value;
 
-        template<typename T> requires is_formatter_defined<T>
-        constexpr jstring toString(T value) { return formatter<T>::format(value); }
+        template<typename T> requires has_jstring_formatter_v<T>
+        constexpr jstring toString(T value) noexcept { return formatter<T>::format(value); }
 
-        static jstring format(const char* str) { return str; }
-        template<typename... Args> requires (is_formatter_defined<Args> && ...)
-        static jstring format(const std::format_string<Args...> formatStr, Args&&... args)
+        template<typename T, typename Ctx = std::format_context>
+        struct has_formatter
+        {
+        private:
+            template<typename T1, typename Ctx1> requires requires(T1& val, Ctx1& ctx)
+            {
+                std::declval<typename Ctx1::template formatter_type<std::remove_cvref_t<T1>>>().format(val, ctx);
+            }
+            static constexpr bool _has_formatter(int32) noexcept { return true; }
+            template<typename, typename>
+            static constexpr bool _has_formatter(int8) noexcept { return false; }
+        public:
+            static constexpr bool value = _has_formatter<T, Ctx>(0);
+        };
+        template<typename T, typename Ctx = std::format_context>
+        constexpr bool has_formatter_v = has_formatter<T, Ctx>::value;
+
+        inline jstring format(const char* str) { return str; }
+        template<typename... Args> requires (has_formatter_v<Args> && ...)
+        jstring format(const std::format_string<Args...> formatStr, Args&&... args)
         {
             return std::format(formatStr, std::forward<Args>(args)...);
         }
     }
     
-    inline jstring operator+(const jstring& str1, const jstring::character_type character) { return str1.toBase() + character; }
-    inline jstring operator+(const jstring::character_type character, const jstring& str1) { return character + str1.toBase(); }
-    inline jstring operator+(const jstring& str1, const jstring& str2) { return str1.toBase() + str2.toBase(); }
-    inline jstring operator+(const jstring& str1, const jstring::character_type* str2) { return str1.toBase() + str2; }
-    inline jstring operator+(const jstring::character_type* const str1, const jstring& str2) { return str1 + str2.toBase(); }
+    constexpr jstring operator+(const jstring& str1, const jstring::character_type character) { return str1.toBase() + character; }
+    constexpr jstring operator+(const jstring::character_type character, const jstring& str1) { return character + str1.toBase(); }
+    constexpr jstring operator+(const jstring& str1, const jstring& str2) { return str1.toBase() + str2.toBase(); }
+    constexpr jstring operator+(const jstring& str1, const jstring::character_type* str2) { return str1.toBase() + str2; }
+    constexpr jstring operator+(const jstring::character_type* const str1, const jstring& str2) { return str1 + str2.toBase(); }
 
-    inline bool operator==(const jstring& str1, const jstring& str2) { return str1.compare(str2) == 0; }
-    inline bool operator==(const jstring& str1, const jstring::character_type* const str2) { return str1.compare(str2) == 0; }
-    inline bool operator==(const jstring::character_type* const str1, const jstring& str2) { return str2 == str1; }
+    constexpr bool operator==(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) == 0; }
+    constexpr bool operator==(const jstring& str1, const jstring::character_type* const str2) noexcept { return str1.compare(str2) == 0; }
+    constexpr bool operator==(const jstring::character_type* const str1, const jstring& str2) noexcept { return str2 == str1; }
 
-    inline bool operator!=(const jstring& str1, const jstring& str2) { return !(str1 == str2); }
-    inline bool operator!=(const jstring& str1, const jstring::character_type* const str2) { return !(str1 == str2); }
-    inline bool operator!=(const jstring::character_type* const str1, const jstring& str2) { return !(str1 == str2); }
+    constexpr bool operator!=(const jstring& str1, const jstring& str2) noexcept { return !(str1 == str2); }
+    constexpr bool operator!=(const jstring& str1, const jstring::character_type* const str2) noexcept { return !(str1 == str2); }
+    constexpr bool operator!=(const jstring::character_type* const str1, const jstring& str2) noexcept { return !(str1 == str2); }
 
-    inline bool operator<(const jstring& str1, const jstring& str2) { return str1.compare(str2) < 0; }
-    inline bool operator<(const jstring& str1, const jstring::character_type* const str2) { return str1.compare(str2) < 0; }
-    inline bool operator<(const jstring::character_type* const str1, const jstring& str2) { return str2.compare(str1) > 0; }
+    constexpr bool operator<(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) < 0; }
+    constexpr bool operator<(const jstring& str1, const jstring::character_type* const str2) noexcept { return str1.compare(str2) < 0; }
+    constexpr bool operator<(const jstring::character_type* const str1, const jstring& str2) noexcept { return str2.compare(str1) > 0; }
     
-    inline bool operator>(const jstring& str1, const jstring& str2) { return str1.compare(str2) > 0; }
-    inline bool operator>(const jstring& str1, const jstring::character_type* const str2) { return str1.compare(str2) > 0; }
-    inline bool operator>(const jstring::character_type* const str1, const jstring& str2) { return str2.compare(str1) < 0; }
+    constexpr bool operator>(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) > 0; }
+    constexpr bool operator>(const jstring& str1, const jstring::character_type* const str2) noexcept { return str1.compare(str2) > 0; }
+    constexpr bool operator>(const jstring::character_type* const str1, const jstring& str2) noexcept { return str2.compare(str1) < 0; }
 }
 
 template<>
 struct jutils::string::formatter<const char*> : std::true_type
 {
-    static constexpr jutils::jstring format(const char* value) { return value; }
+    static constexpr jutils::jstring format(const char* value) noexcept { return value; }
 };
 template<>
 struct jutils::string::formatter<std::string> : std::true_type
 {
-    static constexpr jutils::jstring format(std::string value) { return value; }
+    static constexpr jutils::jstring format(std::string value) noexcept { return value; }
 };
 template<>
 struct jutils::string::formatter<jutils::jstring> : std::true_type
 {
-    static constexpr jutils::jstring format(jutils::jstring value) { return value; }
+    static constexpr jutils::jstring format(jutils::jstring value) noexcept { return value; }
 };
 
 template<typename CharT>
@@ -403,9 +422,14 @@ struct std::formatter<jutils::jstring, CharT> : std::formatter<const jutils::jst
     }
 };
 
-#define JUTILS_STRING_FORMATTER(type, funcName)                                                 \
+#define JUTILS_JSTRING_FORMATTER(type, funcName)                                                \
 template<> struct jutils::string::formatter<std::remove_cvref_t< type >> : std::true_type       \
-    { static constexpr jutils::jstring format(const type& value) { return funcName(value); } }; \
+    { static constexpr jutils::jstring format(const type& value) { return funcName(value); } };
+#define JUTILS_JSTRING_FORMATTER_NOT_CONSTEXPR(type, funcName)                               \
+template<> struct jutils::string::formatter<std::remove_cvref_t< type >> : std::true_type   \
+    { static jutils::jstring format(const type& value) { return funcName(value); } };
+
+#define JUTILS_STD_FORMATTER(type, funcName)                                                    \
 template<typename CharT>                                                                        \
 struct std::formatter<type, CharT> : std::formatter<decltype(funcName(type())), CharT>          \
 {                                                                                               \
@@ -414,19 +438,14 @@ struct std::formatter<type, CharT> : std::formatter<decltype(funcName(type())), 
     {                                                                                           \
         return std::formatter<decltype(funcName(type())), CharT>::format(funcName(value), ctx); \
     }                                                                                           \
-}
-#define JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(type, funcName)                                   \
-template<> struct jutils::string::formatter<std::remove_cvref_t< type >> : std::true_type       \
-    { static jutils::jstring format(const type& value) { return funcName(value); } };           \
-template<typename CharT>                                                                        \
-struct std::formatter<type, CharT> : std::formatter<decltype(funcName(type())), CharT>          \
-{                                                                                               \
-    template<typename FormatContext>                                                            \
-    auto format(const type& value, FormatContext& ctx)                                          \
-    {                                                                                           \
-        return std::formatter<decltype(funcName(type())), CharT>::format(funcName(value), ctx); \
-    }                                                                                           \
-}
+};
+
+#define JUTILS_STRING_FORMATTER(type, funcName) \
+    JUTILS_JSTRING_FORMATTER(type, funcName)    \
+    JUTILS_STD_FORMATTER(type, funcName)
+#define JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(type, funcName)   \
+    JUTILS_JSTRING_FORMATTER_NOT_CONSTEXPR(type, funcName)      \
+    JUTILS_STD_FORMATTER(type, funcName)
 
 #define JSTR(str) str
 #define TO_JSTR(value) jutils::string::toString(value)
