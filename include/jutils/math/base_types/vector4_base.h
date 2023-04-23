@@ -83,9 +83,11 @@ namespace jutils
             template<typename Other>
             constexpr bool operator!=(const vector<size, Other>& value) const noexcept { return !this->operator==(value); }
 
-            constexpr type& get(const vector_size_type index)
+            constexpr type& get(const vector_size_type index) JUTILS_VECTOR_THROW_FUNCTION
             {
+#ifndef JUTILS_VECTOR_DISABLE_THROW_ERRORS
                 _checkIndexValid(index);
+#endif
                 switch (index)
                 {
                 case 0: return x;
@@ -93,11 +95,13 @@ namespace jutils
                 case 2: return z;
                 default: ;
                 }
-                return w;
+                return index < 0 ? x : w;
             }
-            constexpr const type& get(const vector_size_type index) const
+            constexpr const type& get(const vector_size_type index) const JUTILS_VECTOR_THROW_FUNCTION
             {
+#ifndef JUTILS_VECTOR_DISABLE_THROW_ERRORS
                 _checkIndexValid(index);
+#endif
                 switch (index)
                 {
                 case 0: return x;
@@ -105,10 +109,10 @@ namespace jutils
                 case 2: return z;
                 default: ;
                 }
-                return w;
+                return index < 0 ? x : w;
             }
-            constexpr type& operator[](const vector_size_type index) { return get(index); }
-            constexpr const type& operator[](const vector_size_type index) const { return get(index); }
+            constexpr type& operator[](const vector_size_type index) JUTILS_VECTOR_THROW_FUNCTION { return get(index); }
+            constexpr const type& operator[](const vector_size_type index) const JUTILS_VECTOR_THROW_FUNCTION { return get(index); }
             
             constexpr type* getData() noexcept { return &x; }
             constexpr const type* getData() const noexcept { return &x; }
@@ -189,6 +193,7 @@ namespace jutils
 
             jstring toString() const noexcept { return JSTR_FORMAT("{{ {}; {}; {}; {} }}", x, y, z, w); }
 
+#ifndef JUTILS_VECTOR_DISABLE_THROW_ERRORS
         private:
 
             static constexpr void _checkIndexValid(const vector_size_type index)
@@ -198,6 +203,7 @@ namespace jutils
                     throw std::out_of_range("Invalid index");
                 }
             }
+#endif
         };
 
         template<typename T1, typename T2> requires std::is_arithmetic_v<T2>

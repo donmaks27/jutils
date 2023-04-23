@@ -9,9 +9,6 @@ namespace jutils
     namespace math
     {
         using matrix4x4 = matrix<4, 4, float>;
-
         using matrix4 = matrix4x4;
     }
 }
-
-JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::matrix4x4, jutils::math::matrixToString);

@@ -4,6 +4,13 @@
 
 #include "../../jstring.h"
 
+//#define JUTILS_VECTOR_DISABLE_THROW_ERRORS
+#ifdef JUTILS_VECTOR_DISABLE_THROW_ERRORS
+    #define JUTILS_VECTOR_THROW_FUNCTION noexcept
+#else
+    #define JUTILS_VECTOR_THROW_FUNCTION
+#endif
+
 namespace jutils
 {
     namespace math
@@ -60,11 +67,11 @@ struct jutils::string::formatter<jutils::math::vector<Size, T>> : std::true_type
 };
 
 template<typename CharT, jutils::math::vector_size_type Size, typename T> requires jutils::math::is_valid_vector_v<Size, T>
-struct std::formatter<jutils::math::vector<Size, T>, CharT> : std::formatter<jutils::jstring, CharT>
+struct std::formatter<jutils::math::vector<Size, T>, CharT> : std::formatter<const char*, CharT>
 {
     template<typename FormatContext>
     auto format(const jutils::math::vector<Size, T>& value, FormatContext& ctx)
     {
-        return std::formatter<jutils::jstring, CharT>::format(jutils::math::vectorToString(value), ctx);
+        return std::formatter<const char*, CharT>::format(*jutils::math::vectorToString(value), ctx);
     }
 };

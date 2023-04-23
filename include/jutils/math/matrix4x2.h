@@ -11,5 +11,3 @@ namespace jutils
         using matrix4x2 = matrix<4, 2, float>;
     }
 }
-
-JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::matrix4x2, jutils::math::matrixToString);

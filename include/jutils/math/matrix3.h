@@ -9,9 +9,6 @@ namespace jutils
     namespace math
     {
         using matrix3x3 = matrix<3, 3, float>;
-
         using matrix3 = matrix3x3;
     }
 }
-
-JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::matrix3x3, jutils::math::matrixToString);
