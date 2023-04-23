@@ -374,10 +374,16 @@ namespace jutils
     }
     
     constexpr jstring operator+(const jstring& str1, const jstring::character_type character) { return str1.toBase() + character; }
+    constexpr jstring operator+(jstring&& str1, const jstring::character_type character) { return std::move(str1 += character); }
     constexpr jstring operator+(const jstring::character_type character, const jstring& str1) { return character + str1.toBase(); }
+    constexpr jstring operator+(const jstring::character_type character, jstring&& str1) { return std::move(str1.addAt(0, character)); }
     constexpr jstring operator+(const jstring& str1, const jstring& str2) { return str1.toBase() + str2.toBase(); }
+    constexpr jstring operator+(const jstring& str1, jstring&& str2) { return std::move(str2.addAt(0, str1)); }
+    constexpr jstring operator+(jstring&& str1, const jstring& str2) { return std::move(str1 += str2); }
     constexpr jstring operator+(const jstring& str1, const jstring::character_type* str2) { return str1.toBase() + str2; }
+    constexpr jstring operator+(jstring&& str1, const jstring::character_type* str2) { return std::move(str1 += str2); }
     constexpr jstring operator+(const jstring::character_type* const str1, const jstring& str2) { return str1 + str2.toBase(); }
+    constexpr jstring operator+(const jstring::character_type* const str1, jstring&& str2) { return std::move(str2.addAt(0, str1)); }
 
     constexpr bool operator==(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) == 0; }
     constexpr bool operator==(const jstring& str1, const jstring::character_type* const str2) noexcept { return str1.compare(str2) == 0; }

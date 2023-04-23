@@ -25,12 +25,8 @@ namespace jutils
             explicit constexpr vector(const type value) noexcept
                 : x(value), y(value)
             {}
-            template<typename Other>
-            constexpr vector(const vector<size, Other>& value) noexcept
-                : x(static_cast<type>(value.x)), y(static_cast<type>(value.y))
-            {}
-            template<vector_size_type Size, typename Other> requires (Size > size)
-            explicit constexpr vector(const vector<Size, Other>& value) noexcept
+            template<vector_size_type Size, typename Other> requires (Size >= size)
+            constexpr vector(const vector<Size, Other>& value) noexcept
                 : x(static_cast<type>(value.x)), y(static_cast<type>(value.y))
             {}
 
@@ -61,6 +57,8 @@ namespace jutils
             constexpr type* getData() noexcept { return &x; }
             constexpr const type* getData() const noexcept { return &x; }
 
+            constexpr vector copy() const noexcept { return *this; }
+
             template<typename Other>
             constexpr bool operator==(const vector<size, Other>& value) const noexcept
             {
@@ -79,8 +77,8 @@ namespace jutils
 
             constexpr vector& operator++() noexcept { ++x; ++y; return *this; }
             constexpr vector& operator--() noexcept { --x; --y; return *this; }
-            constexpr vector operator++(int) noexcept { vector temp = *this; this->operator++(); return temp; }
-            constexpr vector operator--(int) noexcept { vector temp = *this; this->operator--(); return temp; }
+            constexpr vector operator++(int) noexcept { vector temp = copy(); this->operator++(); return temp; }
+            constexpr vector operator--(int) noexcept { vector temp = copy(); this->operator--(); return temp; }
             constexpr vector operator-() const noexcept { return { -x, -y }; }
 
             template<typename Other> requires std::is_arithmetic_v<Other>
@@ -146,57 +144,43 @@ namespace jutils
         };
 
         template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
-        constexpr vector<2, T1> operator+(const vector<2, T1>& value1, const T2 value2) noexcept
-        {
-            return vector<2, T1>(value1) += value2;
-        }
+        constexpr vector<2, T1> operator+(const vector<2, T1>& value1, const T2 value2) noexcept { return value1.copy() += value2; }
+        template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
+        constexpr vector<2, T1> operator+(vector<2, T1>&& value1, const T2 value2) noexcept { return value1 += value2; }
         template<typename T1, typename T2>
-        constexpr vector<2, T1> operator+(const vector<2, T1>& value1, const vector<2, T2>& value2) noexcept
-        {
-            return vector<2, T1>(value1) += value2;
-        }
+        constexpr vector<2, T1> operator+(const vector<2, T1>& value1, const vector<2, T2>& value2) noexcept { return value1.copy() += value2; }
+        template<typename T1, typename T2>
+        constexpr vector<2, T1> operator+(vector<2, T1>&& value1, const vector<2, T2>& value2) noexcept { return value1 += value2; }
 
         template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
-        constexpr vector<2, T1> operator-(const vector<2, T1>& value1, const T2 value2) noexcept
-        {
-            return vector<2, T1>(value1) -= value2;
-        }
+        constexpr vector<2, T1> operator-(const vector<2, T1>& value1, const T2 value2) noexcept { return value1.copy() -= value2; }
+        template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
+        constexpr vector<2, T1> operator-(vector<2, T1>&& value1, const T2 value2) noexcept { return value1 -= value2; }
         template<typename T1, typename T2>
-        constexpr vector<2, T1> operator-(const vector<2, T1>& value1, const vector<2, T2>& value2) noexcept
-        {
-            return vector<2, T1>(value1) -= value2;
-        }
+        constexpr vector<2, T1> operator-(const vector<2, T1>& value1, const vector<2, T2>& value2) noexcept { return value1.copy() -= value2; }
+        template<typename T1, typename T2>
+        constexpr vector<2, T1> operator-(vector<2, T1>&& value1, const vector<2, T2>& value2) noexcept { return value1 -= value2; }
 
         template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
-        constexpr vector<2, T1> operator*(const vector<2, T1>& value1, const T2 value2) noexcept
-        {
-            return vector<2, T1>(value1) *= value2;
-        }
+        constexpr vector<2, T1> operator*(const vector<2, T1>& value1, const T2 value2) noexcept { return value1.copy() *= value2; }
+        template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
+        constexpr vector<2, T1> operator*(vector<2, T1>&& value1, const T2 value2) noexcept { return value1 *= value2; }
         template<typename T1, typename T2> requires std::is_arithmetic_v<T1>
-        constexpr vector<2, T1> operator*(const T1 value1, const vector<2, T2>& value2) noexcept
-        {
-            return vector<2, T1>(value2) *= value1;
-        }
+        constexpr vector<2, T1> operator*(const T1 value1, const vector<2, T2>& value2) noexcept { return vector<2, T1>(value1) *= value2; }
         template<typename T1, typename T2>
-        constexpr vector<2, T1> operator*(const vector<2, T1>& value1, const vector<2, T2>& value2) noexcept
-        {
-            return vector<2, T1>(value1) *= value2;
-        }
+        constexpr vector<2, T1> operator*(const vector<2, T1>& value1, const vector<2, T2>& value2) noexcept { return value1.copy() *= value2; }
+        template<typename T1, typename T2>
+        constexpr vector<2, T1> operator*(vector<2, T1>&& value1, const vector<2, T2>& value2) noexcept { return value1 *= value2; }
 
         template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
-        constexpr vector<2, T1> operator/(const vector<2, T1>& value1, const T2 value2) noexcept
-        {
-            return vector<2, T1>(value1) /= value2;
-        }
+        constexpr vector<2, T1> operator/(const vector<2, T1>& value1, const T2 value2) noexcept { return value1.copy() /= value2; }
+        template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
+        constexpr vector<2, T1> operator/(vector<2, T1>&& value1, const T2 value2) noexcept { return value1 /= value2; }
         template<typename T1, typename T2> requires std::is_arithmetic_v<T1>
-        constexpr vector<2, T1> operator/(const T1 value1, const vector<2, T2>& value2) noexcept
-        {
-            return vector<2, T1>(value1) /= value2;
-        }
+        constexpr vector<2, T1> operator/(const T1 value1, const vector<2, T2>& value2) noexcept { return vector<2, T1>(value1) /= value2; }
         template<typename T1, typename T2>
-        constexpr vector<2, T1> operator/(const vector<2, T1>& value1, const vector<2, T2>& value2) noexcept
-        {
-            return vector<2, T1>(value1) /= value2;
-        }
+        constexpr vector<2, T1> operator/(const vector<2, T1>& value1, const vector<2, T2>& value2) noexcept { return value1.copy() /= value2; }
+        template<typename T1, typename T2>
+        constexpr vector<2, T1> operator/(vector<2, T1>&& value1, const vector<2, T2>& value2) noexcept { return value1 /= value2; }
     }
 }
