@@ -29,7 +29,25 @@ namespace jutils
         constexpr bool is_valid_vector_type_v = is_valid_vector_type<T>::value;
         template<vector_size_type Size, typename T>
         constexpr bool is_valid_vector_v = is_valid_vector_type_v<vector<Size, T>>;
-        
+
+        template<vector_size_type Size, typename T> requires jutils::math::is_valid_vector_v<Size, T>
+        constexpr vector<Size, T> abs(const vector<Size, T>& value) noexcept { return value.abs(); }
+
+        template<vector_size_type Size, typename T, typename R = std::conditional_t<std::is_floating_point_v<T>, T, float>>
+            requires is_valid_vector_v<Size, T> && std::floating_point<R>
+        R vectorLength(const vector<Size, T>& value) noexcept { return static_cast<R>(jutils::math::sqrt(static_cast<R>(value.lengthSqr()))); }
+        template<vector_size_type Size, typename T, typename R = std::conditional_t<std::is_floating_point_v<T>, T, float>>
+            requires is_valid_vector_v<Size, T> && std::floating_point<R>
+        vector<Size, R> vectorNormalize(const vector<Size, T>& value, const R eps = jutils::math::EpsDefault<R>) noexcept
+        {
+            const R lengthSqr = static_cast<R>(value.lengthSqr());
+            if (jutils::math::isNearlyZero(lengthSqr, eps))
+            {
+                return vector<Size, R>(0);
+            }
+            return value.template copy<R>() / static_cast<R>(jutils::math::sqrt(lengthSqr));
+        }
+
         template<vector_size_type Size, typename T> requires is_valid_vector_v<Size, T>
         jstring vectorToString(const vector<Size, T>& value) noexcept { return value.toString(); }
     }

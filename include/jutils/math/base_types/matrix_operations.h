@@ -4,7 +4,6 @@
 
 #include "matrix_base.h"
 #include "../../type_checks.h"
-#include "../math_vector.h"
 
 namespace jutils
 {
@@ -547,17 +546,17 @@ namespace jutils
         template<vector_size_type ColumnsCount, typename Type, typename OtherType>
         constexpr vector<2, Type> operator*(const matrix<2, ColumnsCount, Type>& value1, const vector<ColumnsCount, OtherType>& value2)
         {
-            return { math::dot(value1.rows[0], value2), math::dot(value1.rows[1], value2) };
+            return { value1.rows[0].dot(value2), value1.rows[1].dot(value2) };
         }
         template<vector_size_type ColumnsCount, typename Type, typename OtherType>
         constexpr vector<3, Type> operator*(const matrix<3, ColumnsCount, Type>& value1, const vector<ColumnsCount, OtherType>& value2)
         {
-            return { math::dot(value1.rows[0], value2), math::dot(value1.rows[1], value2), math::dot(value1.rows[2], value2) };
+            return { value1.rows[0].dot(value2), value1.rows[1].dot(value2), value1.rows[2].dot(value2) };
         }
         template<vector_size_type ColumnsCount, typename Type, typename OtherType>
         constexpr vector<4, Type> operator*(const matrix<4, ColumnsCount, Type>& value1, const vector<ColumnsCount, OtherType>& value2)
         {
-            return { math::dot(value1.rows[0], value2), math::dot(value1.rows[1], value2), math::dot(value1.rows[2], value2), math::dot(value1.rows[3], value2) };
+            return { value1.rows[0].dot(value2), value1.rows[1].dot(value2), value1.rows[2].dot(value2), value1.rows[3].dot(value2) };
         }
 
         template<typename Type, typename OtherType>

@@ -44,11 +44,28 @@ namespace jutils
             { return jutils::math::min(jutils::math::max(value, minValue), maxValue); }
 
         template<typename T> requires std::is_arithmetic_v<T>
-        constexpr T sqr(const T value) { return value * value; }
+        constexpr T abs(const T& value) noexcept { return value < static_cast<T>(0) ? -value : value; }
+        
+        template<typename T> requires std::floating_point<T>
+        constexpr bool isEqual(const T value1, const T value2, const T eps = EpsDefault<T>) noexcept
+            { return jutils::math::abs(value2 - value1) < eps; }
+        template<typename T> requires std::floating_point<T>
+        constexpr bool isNearlyZero(const T value, const T eps = EpsDefault<T>) noexcept
+            { return jutils::math::isEqual(value, static_cast<T>(0), eps); }
+
+        template<typename T> requires std::is_arithmetic_v<T>
+        constexpr T sqr(const T value) noexcept { return value * value; }
         template<typename T, typename E> requires std::is_arithmetic_v<T> && std::is_arithmetic_v<E>
         auto pow(const T base, const E exp) { return std::pow(base, exp); }
         template<typename T> requires std::is_arithmetic_v<T>
         auto sqrt(const T value) { return std::sqrt(value); }
+        
+        template<typename R = int32, typename T = float> requires std::integral<R> && std::floating_point<T>
+        R round(const T value) { return static_cast<R>(std::round(value)); }
+        template<typename R = int32, typename T = float> requires std::integral<R> && std::floating_point<T>
+        R roundDown(const T value) { return static_cast<R>(std::floor(value)); }
+        template<typename R = int32, typename T = float> requires std::integral<R> && std::floating_point<T>
+        R roundUp(const T value) { return static_cast<R>(std::ceil(value)); }
 
         template<typename T> requires std::is_arithmetic_v<T>
         constexpr auto degreesToRads(const T degrees)
@@ -70,19 +87,5 @@ namespace jutils
         auto tan(const T angleRad) noexcept { return std::tan(angleRad); }
         template<typename T> requires std::is_arithmetic_v<T>
         auto atan(const T angleRad) noexcept { return std::atan(angleRad); }
-
-        template<typename T>
-        constexpr T abs(const T& value) noexcept { return value < static_cast<T>(0) ? -value : value; }
-
-        template<typename R = int32, typename T = float> requires std::integral<R> && std::floating_point<T>
-        R round(const T value) { return static_cast<R>(std::round(value)); }
-        template<typename R = int32, typename T = float> requires std::integral<R> && std::floating_point<T>
-        R roundDown(const T value) { return static_cast<R>(std::floor(value)); }
-        template<typename R = int32, typename T = float> requires std::integral<R> && std::floating_point<T>
-        R roundUp(const T value) { return static_cast<R>(std::ceil(value)); }
-        
-        template<typename T> requires std::floating_point<T>
-        constexpr bool isEqual(const T value1, const T value2, const T eps = EpsDefault<T>)
-            { return jutils::math::abs(value2 - value1) < eps; }
     }
 }

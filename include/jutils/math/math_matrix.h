@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "math_vector.h"
 #include "matrix4.h"
 #include "vector2.h"
+#include "vector3.h"
 
 namespace jutils
 {
@@ -15,7 +15,7 @@ namespace jutils
         {
             for (vector_size_type i = 0; i < Rows; i++)
             {
-                if (!math::isVectorsEqual(value1.rows[i], value2.rows[i], eps))
+                if (value1.rows[i] != value2.rows[i])
                 {
                     return false;
                 }
@@ -23,22 +23,22 @@ namespace jutils
             return true;
         }
 
-        constexpr math::matrix4 viewMatrix_lookAt(const math::vector3& viewPosition, const math::vector3& targetPosition, const math::vector3& upDirection)
+        inline math::matrix4 viewMatrix_lookAt(const math::vector3& viewPosition, const math::vector3& targetPosition, const math::vector3& upDirection)
         {
-            const math::vector3 forward = math::normalize(targetPosition - viewPosition);
-            const math::vector3 right = math::normalize(math::cross(upDirection, forward));
-            const math::vector3 up = math::cross(forward, right);
+            const math::vector3 forward = (targetPosition - viewPosition).normalize();
+            const math::vector3 right = upDirection.cross(forward).normalize();
+            const math::vector3 up = forward.cross(right);
             math::matrix4 result(1.0f);
             result[0][0] = right.x; result[0][1] = up.x; result[0][2] = forward.x;
             result[1][0] = right.y; result[1][1] = up.y; result[1][2] = forward.y;
             result[2][0] = right.z; result[2][1] = up.z; result[2][2] = forward.z;
-            result[3][0] = -math::dot(right, viewPosition);
-            result[3][1] = -math::dot(up, viewPosition);
-            result[3][2] = -math::dot(forward, viewPosition);
+            result[3][0] = -right.dot(viewPosition);
+            result[3][1] = -up.dot(viewPosition);
+            result[3][2] = -forward.dot(viewPosition);
             return result;
         }
 
-        constexpr math::matrix4 projectionMatrix_perspective(const float angleFOV, const float aspect, const float zNear, const float zFar, const bool invertVertically = false)
+        inline math::matrix4 projectionMatrix_perspective(const float angleFOV, const float aspect, const float zNear, const float zFar, const bool invertVertically = false)
         {
             if (math::isEqual(aspect, 0.0f) || jutils::math::isEqual(zNear, zFar))
             {

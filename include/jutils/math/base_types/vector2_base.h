@@ -40,6 +40,22 @@ namespace jutils
 
             type x = 0;
             type y = 0;
+            
+            template<typename Other>
+            constexpr bool operator==(const vector<size, Other>& value) const noexcept
+            {
+                if constexpr (std::is_integral_v<type>)
+                {
+                    return (x == static_cast<type>(value.x)) && (y == static_cast<type>(value.y));
+                }
+                else
+                {
+                    return jutils::math::isEqual(x, static_cast<type>(value.x))
+                        && jutils::math::isEqual(y, static_cast<type>(value.y));
+                }
+            }
+            template<typename Other>
+            constexpr bool operator!=(const vector<size, Other>& value) const noexcept { return !this->operator==(value); }
 
             constexpr type& get(const vector_size_type index)
             {
@@ -57,23 +73,23 @@ namespace jutils
             constexpr type* getData() noexcept { return &x; }
             constexpr const type* getData() const noexcept { return &x; }
 
-            constexpr vector copy() const noexcept { return *this; }
-
+            template<typename R = type>
+            constexpr vector<size, R> copy() const noexcept { return *this; }
+            constexpr vector abs() const noexcept { return { jutils::math::abs(x), jutils::math::abs(y) }; }
+            constexpr type lengthSqr() const noexcept { return x * x + y * y; }
             template<typename Other>
-            constexpr bool operator==(const vector<size, Other>& value) const noexcept
+            constexpr type dot(const vector<size, Other>& value) const noexcept
             {
-                if constexpr (std::is_integral_v<type>)
-                {
-                    return (x == static_cast<type>(value.x)) && (y == static_cast<type>(value.y));
-                }
-                else
-                {
-                    return jutils::math::isEqual(x, static_cast<type>(value.x))
-                        && jutils::math::isEqual(y, static_cast<type>(value.y));
-                }
+                return x * static_cast<type>(value.x) + y * static_cast<type>(value.y);
             }
-            template<typename Other>
-            constexpr bool operator!=(const vector<size, Other>& value) const noexcept { return !this->operator==(value); }
+
+            template<typename R = std::conditional_t<std::is_floating_point_v<type>, type, float>> requires std::floating_point<R>
+            R length() const noexcept { return jutils::math::vectorLength<size, type, R>(*this); }
+            template<typename R = std::conditional_t<std::is_floating_point_v<type>, type, float>> requires std::floating_point<R>
+            vector<size, R> normalize(const R eps = jutils::math::EpsDefault<R>) const noexcept
+            {
+                return jutils::math::vectorNormalize<size, type, R>(*this, eps);
+            }
 
             constexpr vector& operator++() noexcept { ++x; ++y; return *this; }
             constexpr vector& operator--() noexcept { --x; --y; return *this; }
