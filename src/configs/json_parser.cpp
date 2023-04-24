@@ -40,7 +40,7 @@ namespace jutils
                         nlohmann::json config;
                         for (const auto& jsonPair : data->asObject())
                         {
-                            config[jsonPair.key.toString().toBase()] = toNlohmannJSON(jsonPair.value);
+                            config[jsonPair.first.toString().toBase()] = toNlohmannJSON(jsonPair.second);
                         }
                         return config;
                     }

@@ -19,10 +19,10 @@ namespace jutils
 			ini_t* config = ini_create(nullptr);
 			for (const auto& sectionData : configData)
 			{
-			    const int32 sectionIndex = ini_section_add(config, *sectionData.key, 0);
-				for (const auto& propertyData : sectionData.value)
+			    const int32 sectionIndex = ini_section_add(config, *sectionData.first, 0);
+				for (const auto& propertyData : sectionData.second)
 				{
-				    ini_property_add(config, sectionIndex, *propertyData.key, 0, *propertyData.value, 0);
+				    ini_property_add(config, sectionIndex, *propertyData.first, 0, *propertyData.second, 0);
 				}
 			}
 

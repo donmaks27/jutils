@@ -16,19 +16,19 @@ namespace jutils
         
         using type = T;
         using base_type = std::vector<type>;
-        using index_type = int32;
+        using size_type = int32;
 
-        static constexpr index_type invalidIndex = -1;
-        static constexpr index_type maxSize = std::numeric_limits<index_type>::max();
+        static constexpr size_type invalidIndex = -1;
+        static constexpr size_type maxSize = std::numeric_limits<size_type>::max();
         
         using const_iterator = typename base_type::const_iterator;
         using iterator = typename base_type::iterator;
 
         constexpr jarray() noexcept = default;
-        constexpr explicit jarray(const index_type count)
+        constexpr explicit jarray(const size_type count)
             : base_type(count)
         {}
-        constexpr jarray(const index_type count, const type& defaultValue)
+        constexpr jarray(const size_type count, const type& defaultValue)
             : base_type(count, defaultValue)
         {}
         constexpr jarray(const std::initializer_list<type> values)
@@ -73,9 +73,9 @@ namespace jutils
 
         constexpr const base_type& toBase() const noexcept { return *this; }
 
-        constexpr index_type getSize() const noexcept { return static_cast<index_type>(jutils::math::min(base_type::size(), maxSize)); }
+        constexpr size_type getSize() const noexcept { return static_cast<size_type>(jutils::math::min(base_type::size(), maxSize)); }
         constexpr bool isEmpty() const noexcept { return base_type::empty(); }
-        constexpr bool isValidIndex(const index_type index) const noexcept
+        constexpr bool isValidIndex(const size_type index) const noexcept
         {
             return (index >= 0) && (static_cast<typename base_type::size_type>(index) < base_type::size());
         }
@@ -91,20 +91,20 @@ namespace jutils
 
         constexpr jarray copy() const { return *this; }
         
-        constexpr type& get(const index_type index) noexcept { return base_type::operator[](index); }
-        constexpr const type& get(const index_type index) const noexcept { return base_type::operator[](index); }
-        constexpr type& operator[](const index_type index) noexcept { return get(index); }
-        constexpr const type& operator[](const index_type index) const noexcept { return get(index); }
+        constexpr type& get(const size_type index) noexcept { return base_type::operator[](index); }
+        constexpr const type& get(const size_type index) const noexcept { return base_type::operator[](index); }
+        constexpr type& operator[](const size_type index) noexcept { return get(index); }
+        constexpr const type& operator[](const size_type index) const noexcept { return get(index); }
 
         constexpr type& getFirst() noexcept { return base_type::front(); }
         constexpr type& getLast() noexcept { return base_type::back(); }
         constexpr const type& getFirst() const noexcept { return base_type::front(); }
         constexpr const type& getLast() const noexcept { return base_type::back(); }
         
-        constexpr index_type indexOf(const type& value) const noexcept
+        constexpr size_type indexOf(const type& value) const noexcept
         {
-            const index_type size = getSize();
-            for (index_type index = 0; index < size; ++index)
+            const size_type size = getSize();
+            for (size_type index = 0; index < size; ++index)
             {
                 if (value == get(index))
                 {
@@ -114,17 +114,14 @@ namespace jutils
             return invalidIndex;
         }
         template<typename Pred> requires std::predicate<Pred, type>
-        constexpr index_type indexOf(Pred pred) const noexcept
+        constexpr size_type indexOf(Pred pred) const noexcept
         {
-            if (pred != nullptr)
+            const size_type size = getSize();
+            for (size_type index = 0; index < size; ++index)
             {
-                const index_type size = getSize();
-                for (index_type index = 0; index < size; ++index)
+                if (pred(get(index)))
                 {
-                    if (pred(get(index)))
-                    {
-                        return index;
-                    }
+                    return index;
                 }
             }
             return invalidIndex;
@@ -132,33 +129,33 @@ namespace jutils
         
         constexpr type* find(const type& value) noexcept
         {
-            const index_type index = indexOf(value);
+            const size_type index = indexOf(value);
             return index != invalidIndex ? get(index) : nullptr;
         }
         template<typename Pred> requires std::predicate<Pred, type>
         constexpr type* find(Pred pred) noexcept
         {
-            const index_type index = indexOf(pred);
+            const size_type index = indexOf(pred);
             return index != invalidIndex ? get(index) : nullptr;
         }
         constexpr const type* find(const type& value) const noexcept
         {
-            const index_type index = indexOf(value);
+            const size_type index = indexOf(value);
             return index != invalidIndex ? get(index) : nullptr;
         }
         template<typename Pred> requires std::predicate<Pred, type>
         constexpr const type* find(Pred pred) const noexcept
         {
-            const index_type index = indexOf(pred);
+            const size_type index = indexOf(pred);
             return index != invalidIndex ? get(index) : nullptr;
         }
         
-        constexpr index_type contains(const type& value) const noexcept { return indexOf(value) != invalidIndex; }
+        constexpr size_type contains(const type& value) const noexcept { return indexOf(value) != invalidIndex; }
         template<typename Pred> requires std::predicate<Pred, type>
-        constexpr index_type contains(Pred pred) const noexcept { return indexOf(pred) != invalidIndex; }
+        constexpr size_type contains(Pred pred) const noexcept { return indexOf(pred) != invalidIndex; }
 
-        constexpr void reserve(const index_type capacity) { base_type::reserve(jutils::math::max(capacity, 0)); }
-        constexpr void resize(const index_type size, const type& defaultValue = type()) { base_type::resize(jutils::math::max(size, 0), defaultValue); }
+        constexpr void reserve(const size_type capacity) { base_type::reserve(jutils::math::max(capacity, 0)); }
+        constexpr void resize(const size_type size, const type& defaultValue = type()) { base_type::resize(jutils::math::max(size, 0), defaultValue); }
 
         template<typename... Args>
         constexpr type& putBack(Args&&... args)
@@ -167,7 +164,7 @@ namespace jutils
             return base_type::emplace_back(std::forward<Args>(args)...);
         }
         template<typename... Args>
-        constexpr type& putAt(const index_type index, Args&&... args)
+        constexpr type& putAt(const size_type index, Args&&... args)
         {
             _checkSize();
             return base_type::emplace(std::next(base_type::begin(), jutils::math::clamp(index, 0, getSize())), std::forward<Args>(args)...);
@@ -178,18 +175,18 @@ namespace jutils
         constexpr type& addDefault() { return putBack(); }
         constexpr type& addUnique(const type& value)
         {
-            const index_type index = indexOf(value);
+            const size_type index = indexOf(value);
             return index == invalidIndex ? add(value) : get(index);
         }
         constexpr type& addUnique(type&& value)
         {
-            const index_type index = indexOf(value);
+            const size_type index = indexOf(value);
             return index == invalidIndex ? add(std::move(value)) : get(index);
         }
 
-        constexpr type& addAt(const index_type index, const type& value) { return putAt(index, value); }
-        constexpr type& addAt(const index_type index, type&& value) { return putAt(index, std::move(value)); }
-        constexpr type& addDefaultAt(const index_type index) { return putAt(index); }
+        constexpr type& addAt(const size_type index, const type& value) { return putAt(index, value); }
+        constexpr type& addAt(const size_type index, type&& value) { return putAt(index, std::move(value)); }
+        constexpr type& addDefaultAt(const size_type index) { return putAt(index); }
 
         constexpr jarray& append(const std::initializer_list<type> values)
         {
@@ -208,9 +205,9 @@ namespace jutils
         }
         constexpr jarray& append(const jarray& value) { return append(value.toBase()); }
 
-        constexpr void removeAt(index_type index, index_type count = 1) noexcept
+        constexpr void removeAt(size_type index, size_type count = 1) noexcept
         {
-            const index_type size = getSize();
+            const size_type size = getSize();
             if (size > 0)
             {
                 index = jutils::math::clamp(index, 0, size - 1);
@@ -239,9 +236,9 @@ namespace jutils
                 base_type::erase(end() - 1);
             }
         }
-        constexpr index_type remove(const type& value) noexcept { return static_cast<index_type>(std::erase(*this, value)); }
+        constexpr size_type remove(const type& value) noexcept { return static_cast<size_type>(std::erase(*this, value)); }
         template<typename Pred> requires std::predicate<Pred, type>
-        constexpr index_type remove(Pred pred) noexcept { return static_cast<index_type>(std::erase_if(*this, pred)); }
+        constexpr size_type remove(Pred pred) noexcept { return static_cast<size_type>(std::erase_if(*this, pred)); }
 
         constexpr void clear() noexcept { base_type::clear(); }
 
