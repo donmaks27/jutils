@@ -1,4 +1,4 @@
-﻿// Copyright 2021 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -8,6 +8,9 @@ namespace jutils
 {
     namespace math
     {
+        template<vector_size_type Rows, vector_size_type Columns, typename T> requires is_valid_matrix_v<Rows, Columns, T>
+        constexpr matrix<Rows, Columns, T> abs(const matrix<Rows, Columns, T>& value) noexcept { return value.abs(); }
+
         template<vector_size_type R, vector_size_type C, typename T, typename Other>
         constexpr matrix<R, C, T> operator+(const matrix<R, C, T>& value1, const matrix<R, C, Other>& value2) noexcept
         {

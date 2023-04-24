@@ -1,4 +1,4 @@
-﻿// Copyright 2021 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -76,9 +76,6 @@ namespace jutils
         constexpr bool is_valid_matrix_type_v = is_valid_matrix_type<T>::value;
         template<vector_size_type Rows, vector_size_type Columns, typename T>
         constexpr bool is_valid_matrix_v = is_valid_matrix_type_v<matrix<Rows, Columns, T>>;
-
-        template<vector_size_type Rows, vector_size_type Columns, typename T> requires is_valid_matrix_v<Rows, Columns, T>
-        constexpr matrix<Rows, Columns, T> abs(const matrix<Rows, Columns, T>& value) noexcept { return value.abs(); }
 
         template<vector_size_type Rows, vector_size_type Columns, typename T> requires is_valid_matrix_v<Rows, Columns, T>
         jstring matrixToString(const matrix<Rows, Columns, T>& value) noexcept { return value.toString(); }

@@ -1,39 +1,34 @@
-﻿// Copyright 2022 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
-#include "box_base.h"
+#include "box_operations.h"
 #include "vector2_base.h"
 
 namespace jutils
 {
     namespace math
     {
-        template<typename Type>
-        class box<2, Type>
+        template<typename T> requires std::is_arithmetic_v<T>
+        class box<2, T>
         {
         public:
 
             static constexpr vector_size_type size = 2;
-
-            using type = Type;
+            using type = T;
             using vector_type = vector<size, type>;
 
-            constexpr box() = default;
-            constexpr box(const vector_type& v0, const vector_type& v1)
+            constexpr box() noexcept = default;
+            constexpr box(const vector_type& v0, const vector_type& v1) noexcept
                 : v0(v0), v1(v1)
             {}
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr box(const box<size, OtherType>& value)
-                : v0(value.v0), v1(value.v1)
-            {}
-            template<vector_size_type Size, typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type> && (Size > size))>
-            explicit constexpr box(const box<Size, OtherType>& value)
+            template<vector_size_type Size, typename Other> requires (Size >= size)
+            constexpr box(const box<Size, Other>& value) noexcept
                 : v0(value.v0), v1(value.v1)
             {}
 
-            template<vector_size_type Size, typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type> && (Size >= size))>
-            constexpr box& operator=(const box<Size, OtherType>& value)
+            template<vector_size_type Size, typename Other> requires (Size >= size)
+            constexpr box& operator=(const box<Size, Other>& value) noexcept
             {
                 v0 = value.v0; v1 = value.v1;
                 return *this;
@@ -42,204 +37,107 @@ namespace jutils
             vector_type v0;
             vector_type v1;
 
-            constexpr vector_type& get(const vector_size_type index)
-            {
-                assert((index >= 0) && (index < size));
-                return index == 0 ? v0 : v1;
-            }
-            constexpr const vector_type& get(const vector_size_type index) const
-            {
-                assert((index >= 0) && (index < size));
-                return index == 0 ? v0 : v1;
-            }
-            constexpr vector_type& operator[](const vector_size_type index) { return get(index); }
-            constexpr const vector_type& operator[](const vector_size_type index) const { return get(index); }
+            template<typename Other>
+            constexpr bool operator==(const box<size, Other>& value) const noexcept { return (v0 == value.v0) && (v1 == value.v1); }
+            template<typename Other>
+            constexpr bool operator!=(const box<size, Other>& value) const noexcept { return !this->operator==(value); }
 
-            constexpr type* getData() { return v0.getData(); }
-            constexpr const type* getData() const { return v0.getData(); }
+            constexpr vector_type& get(const vector_size_type index) JUTILS_VECTOR_THROW_FUNCTION
+            {
+#ifndef JUTILS_VECTOR_DISABLE_THROW_ERRORS
+                _checkIndex(index);
+#endif
+                return index <= 0 ? v0 : v1;
+            }
+            constexpr const vector_type& get(const vector_size_type index) const JUTILS_VECTOR_THROW_FUNCTION
+            {
+#ifndef JUTILS_VECTOR_DISABLE_THROW_ERRORS
+                _checkIndex(index);
+#endif
+                return index <= 0 ? v0 : v1;
+            }
+            constexpr vector_type& operator[](const vector_size_type index) JUTILS_VECTOR_THROW_FUNCTION { return get(index); }
+            constexpr const vector_type& operator[](const vector_size_type index) const JUTILS_VECTOR_THROW_FUNCTION { return get(index); }
 
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr bool operator==(const box<size, OtherType>& value) const
+            constexpr type* getData() noexcept { return v0.getData(); }
+            constexpr const type* getData() const noexcept { return v0.getData(); }
+
+            template<typename R = type>
+            constexpr box<size, R> copy() const noexcept { return *this; }
+            constexpr box abs() const noexcept { return { jutils::math::abs(v0), jutils::math::abs(v1) }; }
+
+            constexpr box& operator++() noexcept { ++v0; ++v1; return *this; }
+            constexpr box& operator--() noexcept { --v0; --v1; return *this; }
+            constexpr box operator++(int) noexcept { box temp = copy(); this->operator++(); return temp; }
+            constexpr box operator--(int) noexcept { box temp = copy(); this->operator--(); return temp; }
+            constexpr box operator-() const noexcept { return { -v0, -v1 }; }
+
+            template<typename Other> requires std::is_arithmetic_v<Other>
+            constexpr box& operator+=(const Other value) noexcept
             {
-                return (v0 == value.v0) && (v1 == value.v1);
+                v0 += value; v1 += value;
+                return *this;
             }
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr bool operator!=(const box<size, OtherType>& value) const
+            template<typename Other>
+            constexpr box& operator+=(const vector<size, Other>& value) noexcept
             {
-                return !this->operator==(value);
+                v0 += value; v1 += value;
+                return *this;
+            }
+            template<typename Other> requires std::is_arithmetic_v<Other>
+            constexpr box& operator-=(const Other value) noexcept
+            {
+                v0 -= value; v1 -= value;
+                return *this;
+            }
+            template<typename Other>
+            constexpr box& operator-=(const vector<size, Other>& value) noexcept
+            {
+                v0 -= value; v1 -= value;
+                return *this;
+            }
+            template<typename Other> requires std::is_arithmetic_v<Other>
+            constexpr box& operator*=(const Other value) noexcept
+            {
+                v0 *= value; v1 *= value;
+                return *this;
+            }
+            template<typename Other>
+            constexpr box& operator*=(const vector<size, Other>& value) noexcept
+            {
+                v0 *= value; v1 *= value;
+                return *this;
+            }
+            template<typename Other> requires std::is_arithmetic_v<Other>
+            constexpr box& operator/=(const Other value) noexcept
+            {
+                v0 /= value; v1 /= value;
+                return *this;
+            }
+            template<typename Other>
+            constexpr box& operator/=(const vector<size, Other>& value) noexcept
+            {
+                v0 /= value; v1 /= value;
+                return *this;
             }
 
-            jstring toString() const { return JSTR_FORMAT("{{ {}; {} }}", v0, v1); }
+            jstring toString() const noexcept { return JSTR_FORMAT("{{ {}; {} }}", v0, v1); }
 
-            constexpr box& operator++() { ++v0; ++v1; return *this; }
-            constexpr box& operator--() { --v0; --v1; return *this; }
-            constexpr box operator++(int) { const box temp = *this; this->operator++(); return temp; }
-            constexpr box operator--(int) { const box temp = *this; this->operator--(); return temp; }
-
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr box& operator+=(const OtherType value)
+#ifndef JUTILS_VECTOR_DISABLE_THROW_ERRORS
+        private:
+            static constexpr void _checkIndex(const vector_size_type index)
             {
-                v0 += value; v1 += value; return *this;
+                if ((index < 0) || (index >= size))
+                {
+                    throw std::out_of_range("Invalid index");
+                }
             }
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr box& operator+=(const vector<size, OtherType>& value)
-            {
-                v0 += value; v1 += value; return *this;
-            }
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr box& operator+=(const box<size, OtherType>& value)
-            {
-                v0 += value.v0; v1 += value.v1; return *this;
-            }
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr box& operator-=(const OtherType value)
-            {
-                v0 -= value; v1 -= value; return *this;
-            }
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr box& operator-=(const vector<size, OtherType>& value)
-            {
-                v0 -= value; v1 -= value; return *this;
-            }
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr box& operator-=(const box<size, OtherType>& value)
-            {
-                v0 -= value.v0; v1 -= value.v1; return *this;
-            }
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr box& operator*=(const OtherType value)
-            {
-                v0 *= value; v1 *= value; return *this;
-            }
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr box& operator*=(const vector<size, OtherType>& value)
-            {
-                v0 *= value; v1 *= value; return *this;
-            }
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr box& operator*=(const box<size, OtherType>& value)
-            {
-                v0 *= value.v0; v1 *= value.v1; return *this;
-            }
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr box& operator/=(const OtherType value)
-            {
-                v0 /= value; v1 /= value; return *this;
-            }
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr box& operator/=(const vector<size, OtherType>& value)
-            {
-                v0 /= value; v1 /= value; return *this;
-            }
-            template<typename OtherType, TEMPLATE_ENABLE(is_castable<OtherType, type>)>
-            constexpr box& operator/=(const box<size, OtherType>& value)
-            {
-                v0 /= value.v0; v1 /= value.v1; return *this;
-            }
+#endif
         };
 
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator+(const box<2, Type1>& value1, const Type2 value2)
-        {
-            return box<2, Type1>(value1) += value2;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator+(const Type1 value1, const box<2, Type2>& value2)
-        {
-            return box<2, Type1>(value2) += value1;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator+(const box<2, Type1>& value1, const vector<2, Type2>& value2)
-        {
-            return box<2, Type1>(value1) += value2;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator+(const vector<2, Type1>& value1, const box<2, Type2>& value2)
-        {
-            return box<2, Type1>(value2) += value1;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator+(const box<2, Type1>& value1, const box<2, Type2>& value2)
-        {
-            return box<2, Type1>(value1) += value2;
-        }
-
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator-(const box<2, Type1>& value1, const Type2 value2)
-        {
-            return box<2, Type1>(value1) -= value2;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator-(const Type1 value1, const box<2, Type2>& value2)
-        {
-            return box<2, Type1>(value2) -= value1;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator-(const box<2, Type1>& value1, const vector<2, Type2>& value2)
-        {
-            return box<2, Type1>(value1) -= value2;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator-(const vector<2, Type1>& value1, const box<2, Type2>& value2)
-        {
-            return box<2, Type1>(value2) -= value1;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator-(const box<2, Type1>& value1, const box<2, Type2>& value2)
-        {
-            return box<2, Type1>(value1) -= value2;
-        }
-
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator*(const box<2, Type1>& value1, const Type2 value2)
-        {
-            return box<2, Type1>(value1) *= value2;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator*(const Type1 value1, const box<2, Type2>& value2)
-        {
-            return box<2, Type1>(value2) *= value1;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator*(const box<2, Type1>& value1, const vector<2, Type2>& value2)
-        {
-            return box<2, Type1>(value1) *= value2;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator*(const vector<2, Type1>& value1, const box<2, Type2>& value2)
-        {
-            return box<2, Type1>(value2) *= value1;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator*(const box<2, Type1>& value1, const box<2, Type2>& value2)
-        {
-            return box<2, Type1>(value1) *= value2;
-        }
-
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator/(const box<2, Type1>& value1, const Type2 value2)
-        {
-            return box<2, Type1>(value1) /= value2;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator/(const Type1 value1, const box<2, Type2>& value2)
-        {
-            return box<2, Type1>(value2) /= value1;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator/(const box<2, Type1>& value1, const vector<2, Type2>& value2)
-        {
-            return box<2, Type1>(value1) /= value2;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator/(const vector<2, Type1>& value1, const box<2, Type2>& value2)
-        {
-            return box<2, Type1>(value2) /= value1;
-        }
-        template<typename Type1, typename Type2, TEMPLATE_ENABLE(is_castable<Type2, Type1>)>
-        constexpr box<2, Type1> operator/(const box<2, Type1>& value1, const box<2, Type2>& value2)
-        {
-            return box<2, Type1>(value1) /= value2;
-        }
+        template<typename T1, typename T2> requires std::is_arithmetic_v<T1>
+        constexpr box<2, T1> operator/(const T1& value1, const box<2, T2>& value2) noexcept { return { value1 / value2.v0, value1 / value2.v1 }; }
+        template<typename T1, typename T2>
+        constexpr box<2, T1> operator/(const vector<2, T1>& value1, const box<2, T2>& value2) noexcept { return { value1 / value2.v0, value1 / value2.v1 }; }
     }
 }

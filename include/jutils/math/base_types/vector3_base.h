@@ -1,4 +1,4 @@
-﻿// Copyright © 2022-2023 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -194,45 +194,5 @@ namespace jutils
             }
 #endif
         };
-
-        template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
-        constexpr vector<3, T1> operator+(const vector<3, T1>& value1, const T2 value2) noexcept { return value1.copy() += value2; }
-        template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
-        constexpr vector<3, T1> operator+(vector<3, T1>&& value1, const T2 value2) noexcept { return value1 += value2; }
-        template<typename T1, typename T2>
-        constexpr vector<3, T1> operator+(const vector<3, T1>& value1, const vector<3, T2>& value2) noexcept { return value1.copy() += value2; }
-        template<typename T1, typename T2>
-        constexpr vector<3, T1> operator+(vector<3, T1>&& value1, const vector<3, T2>& value2) noexcept { return value1 += value2; }
-
-        template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
-        constexpr vector<3, T1> operator-(const vector<3, T1>& value1, const T2 value2) noexcept { return value1.copy() -= value2; }
-        template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
-        constexpr vector<3, T1> operator-(vector<3, T1>&& value1, const T2 value2) noexcept { return value1 -= value2; }
-        template<typename T1, typename T2>
-        constexpr vector<3, T1> operator-(const vector<3, T1>& value1, const vector<3, T2>& value2) noexcept { return value1.copy() -= value2; }
-        template<typename T1, typename T2>
-        constexpr vector<3, T1> operator-(vector<3, T1>&& value1, const vector<3, T2>& value2) noexcept { return value1 -= value2; }
-
-        template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
-        constexpr vector<3, T1> operator*(const vector<3, T1>& value1, const T2 value2) noexcept { return value1.copy() *= value2; }
-        template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
-        constexpr vector<3, T1> operator*(vector<3, T1>&& value1, const T2 value2) noexcept { return value1 *= value2; }
-        template<typename T1, typename T2> requires std::is_arithmetic_v<T1>
-        constexpr vector<3, T1> operator*(const T1 value1, const vector<3, T2>& value2) noexcept { return vector<3, T1>(value1) *= value2; }
-        template<typename T1, typename T2>
-        constexpr vector<3, T1> operator*(const vector<3, T1>& value1, const vector<3, T2>& value2) noexcept { return value1.copy() *= value2; }
-        template<typename T1, typename T2>
-        constexpr vector<3, T1> operator*(vector<3, T1>&& value1, const vector<3, T2>& value2) noexcept { return value1 *= value2; }
-
-        template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
-        constexpr vector<3, T1> operator/(const vector<3, T1>& value1, const T2 value2) noexcept { return value1.copy() /= value2; }
-        template<typename T1, typename T2> requires std::is_arithmetic_v<T2>
-        constexpr vector<3, T1> operator/(vector<3, T1>&& value1, const T2 value2) noexcept { return value1 /= value2; }
-        template<typename T1, typename T2> requires std::is_arithmetic_v<T1>
-        constexpr vector<3, T1> operator/(const T1 value1, const vector<3, T2>& value2) noexcept { return vector<3, T1>(value1) /= value2; }
-        template<typename T1, typename T2>
-        constexpr vector<3, T1> operator/(const vector<3, T1>& value1, const vector<3, T2>& value2) noexcept { return value1.copy() /= value2; }
-        template<typename T1, typename T2>
-        constexpr vector<3, T1> operator/(vector<3, T1>&& value1, const vector<3, T2>& value2) noexcept { return value1 /= value2; }
     }
 }

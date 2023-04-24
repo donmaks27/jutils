@@ -13,7 +13,3 @@ namespace jutils
         using ubox2 = box<2, uint32>;
     }
 }
-
-JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::box2, jutils::math::boxToString);
-JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::ibox2, jutils::math::boxToString);
-JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::math::ubox2, jutils::math::boxToString);
