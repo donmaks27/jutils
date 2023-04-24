@@ -77,16 +77,8 @@ namespace jutils
             _correctSize();
             return *this;
         }
-        constexpr jstring& operator=(const jstring& str)
-        {
-            base_type::operator=(str);
-            return *this;
-        }
-        constexpr jstring& operator=(jstring&& str) noexcept
-        {
-            base_type::operator=(std::move(static_cast<base_type&>(str)));
-            return *this;
-        }
+        constexpr jstring& operator=(const jstring&) = default;
+        constexpr jstring& operator=(jstring&&) noexcept = default;
 
         constexpr const base_type& toBase() const noexcept { return *this; }
 
@@ -103,11 +95,11 @@ namespace jutils
         constexpr const_iterator begin() const noexcept { return base_type::begin(); }
         constexpr const_iterator end() const noexcept { return base_type::end(); }
 
-        constexpr character_type* getRawString() noexcept { return base_type::data(); }
-        constexpr const character_type* getRawString() const noexcept { return base_type::c_str(); }
+        constexpr character_type* getData() noexcept { return base_type::data(); }
+        constexpr const character_type* getData() const noexcept { return base_type::c_str(); }
 
-        constexpr character_type* operator*() noexcept { return getRawString(); }
-        constexpr const character_type* operator*() const noexcept { return getRawString(); }
+        constexpr character_type* operator*() noexcept { return getData(); }
+        constexpr const character_type* operator*() const noexcept { return getData(); }
 
         constexpr character_type& get(const index_type index) noexcept
         {
@@ -320,7 +312,7 @@ namespace jutils
         }
         constexpr void clear() noexcept { base_type::clear(); }
         
-        constexpr uint64 hash() const noexcept { return jutils::math::hash::crc64(getRawString(), getSize()); }
+        constexpr uint64 hash() const noexcept { return jutils::math::hash::crc64(getData(), getSize()); }
         
     private:
 

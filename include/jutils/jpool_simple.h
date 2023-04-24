@@ -77,8 +77,8 @@ namespace jutils
         template<>     void _initPoolObject<true>(type* object) { jpool_simple::_initDefaultPoolObject(object); }
         template<>     void _clearPoolObject<true>(type* object) { jpool_simple::_clearDefaultPoolObject(object); }
 
-        void _initPoolObject(type* object) { this->_initPoolObject<jutils::is_base<jpool_simple_object, type>>(object); }
-        void _clearPoolObject(type* object) { this->_clearPoolObject<jutils::is_base<jpool_simple_object, type>>(object); }
+        void _initPoolObject(type* object) { this->_initPoolObject<std::is_base_of_v<jpool_simple_object, type>>(object); }
+        void _clearPoolObject(type* object) { this->_clearPoolObject<std::is_base_of_v<jpool_simple_object, type>>(object); }
     };
     
     template<typename T, bool SyncAccess>

@@ -1,4 +1,4 @@
-﻿// Copyright 2022 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -8,7 +8,7 @@
 
 namespace jutils
 {
-    template<typename T, TEMPLATE_ENABLE(math::hash::hash_info<T>::has_hash)>
+    template<typename T> requires jutils::math::hash::hash_info<T>::has_hash
     class jhash_table_chain
     {
     public:
@@ -326,7 +326,7 @@ namespace jutils
 
         template<typename KeyType>
         static bool _compareObjects(const type& object, const KeyType& key) { return object == key; }
-        template<typename KeyType, TEMPLATE_ENABLE(math::hash::hash_info<KeyType>::has_hash)>
+        template<typename KeyType> requires jutils::math::hash::hash_info<KeyType>::has_hash
         static constexpr hash_type _getObjectHash(const KeyType& key) { return math::hash::getHash(key); }
 
         void _allocateMoreChainNodes()
