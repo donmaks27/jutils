@@ -4,6 +4,8 @@
 
 #include "../type_defines.h"
 
+#include <type_traits>
+
 namespace jutils
 {
     namespace math

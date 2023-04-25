@@ -5,6 +5,7 @@
 #include "../type_defines.h"
 
 #include <cmath>
+#include <concepts>
 #include <numbers>
 
 namespace jutils

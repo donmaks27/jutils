@@ -3,13 +3,13 @@
 #pragma once
 
 #include "type_defines.h"
-#include "type_checks.h"
 
 #include <limits>
+#include <type_traits>
 
 namespace jutils
 {
-    template<typename IdType = uint64, TEMPLATE_ENABLE(std::is_integral_v<IdType>)>
+    template<typename IdType = uint64> requires std::is_integral_v<IdType>
     class juid
     {
     public:

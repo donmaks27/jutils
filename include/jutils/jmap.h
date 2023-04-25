@@ -5,6 +5,7 @@
 #include "jarray.h"
 
 #include <map>
+#include <ranges>
 
 namespace jutils
 {
@@ -63,9 +64,13 @@ namespace jutils
 
         iterator begin() noexcept { return base_type::begin(); }
         iterator end() noexcept { return base_type::end(); }
-
         const_iterator begin() const noexcept { return base_type::begin(); }
         const_iterator end() const noexcept { return base_type::end(); }
+
+        constexpr auto keys() { return std::views::keys(*this); }
+        constexpr auto keys() const { return std::views::keys(*this); }
+        constexpr auto values() { return std::views::values(*this); }
+        constexpr auto values() const { return std::views::values(*this); }
 
         jmap copy() const { return *this; }
         jarray<key_type> getKeys() const
@@ -84,7 +89,7 @@ namespace jutils
 
         value_type& operator[](const key_type& key) { return base_type::operator[](key); }
         value_type& operator[](key_type&& key) { return base_type::operator[](std::move(key)); }
-        const value_type& operator[](const key_type& key) const { return base_type::operator[](key); }
+        const value_type& operator[](const key_type& key) const { return get(key); }
 
         value_type& getOrAdd(const key_type& key) { return base_type::operator[](key); }
         value_type& getOrAdd(key_type&& key) { return base_type::operator[](std::move(key)); }
@@ -127,7 +132,28 @@ namespace jutils
         bool contains(const key_type& key) const noexcept { return base_type::contains(key); }
         template<typename Pred> requires std::predicate<Pred, key_type, value_type>
         bool contains(Pred pred) const noexcept { return find(pred) != nullptr; }
-        
+
+        template<typename... Args>
+        value_type& put(const key_type& key, Args&&... args)
+        {
+            std::pair<iterator, bool> result = base_type::try_emplace(key, std::forward<Args>(args)...);
+            if (!result.second)
+            {
+                result.first->second = value_type(std::forward<Args>(args)...);
+            }
+            return result.first->second;
+        }
+        template<typename... Args>
+        value_type& put(key_type&& key, Args&&... args)
+        {
+            std::pair<iterator, bool> result = base_type::try_emplace(std::move(key), std::forward<Args>(args)...);
+            if (!result.second)
+            {
+                result.first->second = value_type(std::forward<Args>(args)...);
+            }
+            return result.first->second;
+        }
+
         value_type& add(const key_type& key, const value_type& value)
         {
             return base_type::insert_or_assign(key, value).first->second;
@@ -144,8 +170,8 @@ namespace jutils
         {
             return base_type::insert_or_assign(std::move(key), std::move(value)).first->second;
         }
-        value_type& add(const key_type& key) { return add(key, value_type()); }
-        value_type& add(key_type&& key) { return add(std::move(key), value_type()); }
+        value_type& add(const key_type& key) { return put(key); }
+        value_type& add(key_type&& key) { return put(std::move(key)); }
 
         jmap& append(const std::initializer_list<pair_type> values)
         {
@@ -242,7 +268,17 @@ namespace jutils
         return value1.copy() += value2;
     }
     template<typename Key, typename Value, typename Pred>
+    jmap<Key, Value, Pred> operator+(const jmap<Key, Value, Pred>& value1, jmap<Key, Value, Pred>&& value2)
+    {
+        return value2 += value1;
+    }
+    template<typename Key, typename Value, typename Pred>
     jmap<Key, Value, Pred> operator+(jmap<Key, Value, Pred>&& value1, const jmap<Key, Value, Pred>& value2)
+    {
+        return value1 += value2;
+    }
+    template<typename Key, typename Value, typename Pred>
+    jmap<Key, Value, Pred> operator+(jmap<Key, Value, Pred>&& value1, jmap<Key, Value, Pred>&& value2)
     {
         return value1 += value2;
     }
