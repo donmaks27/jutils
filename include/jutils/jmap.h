@@ -49,7 +49,7 @@ namespace jutils
             base_type::operator=(value);
             return *this;
         }
-        jmap& operator=(base_type&& value)
+        jmap& operator=(base_type&& value) noexcept
         {
             base_type::operator=(std::move(value));
             return *this;
@@ -183,10 +183,19 @@ namespace jutils
         }
         jmap& append(const base_type& value)
         {
-            base_type::merge(value);
+            for (const auto& pair : values)
+            {
+                add(pair.first, pair.second);
+            }
+            return *this;
+        }
+        jmap& append(base_type&& value)
+        {
+            base_type::merge(std::move(value));
             return *this;
         }
         jmap& append(const jmap& value) { return append(value.toBase()); }
+        jmap& append(jmap&& value) { return append(static_cast<base_type&&>(value)); }
 
         bool remove(const key_type& key) noexcept { return base_type::erase(key) > 0; }
         template<typename Pred> requires std::predicate<Pred, key_type, value_type>
@@ -217,7 +226,9 @@ namespace jutils
         }
         jmap& operator+=(const std::initializer_list<pair_type> values) { return append(values); }
         jmap& operator+=(const base_type& value) { return append(value); }
+        jmap& operator+=(base_type&& value) { return append(std::move(value)); }
         jmap& operator+=(const jmap& value) { return append(value); }
+        jmap& operator+=(jmap&& value) { return append(std::move(value)); }
     };
     
     template<typename Key, typename Value, typename Pred>
@@ -280,6 +291,6 @@ namespace jutils
     template<typename Key, typename Value, typename Pred>
     jmap<Key, Value, Pred> operator+(jmap<Key, Value, Pred>&& value1, jmap<Key, Value, Pred>&& value2)
     {
-        return value1 += value2;
+        return value1 += std::move(value2);
     }
 }
