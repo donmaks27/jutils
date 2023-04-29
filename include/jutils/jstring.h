@@ -414,36 +414,24 @@ template<typename CharT>
 struct std::formatter<jutils::jstring, CharT> : std::formatter<const jutils::jstring::character_type*, CharT>
 {
     template<typename FormatContext>
-    auto format(const jutils::jstring& str, FormatContext& ctx)
+    auto format(const jutils::jstring& str, FormatContext& ctx) const
     {
         return std::formatter<const jutils::jstring::character_type*, CharT>::format(*str, ctx);
     }
 };
 
-#define JUTILS_JSTRING_FORMATTER(type, funcName)                                                \
+#define JUTILS_STRING_FORMATTER(type, funcName)                                                 \
 template<> struct jutils::string::formatter<std::remove_cvref_t< type >> : std::true_type       \
-    { static constexpr jutils::jstring format(const type& value) { return funcName(value); } };
-#define JUTILS_JSTRING_FORMATTER_NOT_CONSTEXPR(type, funcName)                               \
-template<> struct jutils::string::formatter<std::remove_cvref_t< type >> : std::true_type   \
-    { static jutils::jstring format(const type& value) { return funcName(value); } };
-
-#define JUTILS_STD_FORMATTER(type, funcName)                                                    \
+    { static constexpr jutils::jstring format(const type& value) { return funcName(value); } }; \
 template<typename CharT>                                                                        \
 struct std::formatter<type, CharT> : std::formatter<decltype(funcName(type())), CharT>          \
 {                                                                                               \
     template<typename FormatContext>                                                            \
-    auto format(const type& value, FormatContext& ctx)                                          \
+    auto format(const type& value, FormatContext& ctx) const                                    \
     {                                                                                           \
         return std::formatter<decltype(funcName(type())), CharT>::format(funcName(value), ctx); \
     }                                                                                           \
 };
-
-#define JUTILS_STRING_FORMATTER(type, funcName) \
-    JUTILS_JSTRING_FORMATTER(type, funcName)    \
-    JUTILS_STD_FORMATTER(type, funcName)
-#define JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(type, funcName)   \
-    JUTILS_JSTRING_FORMATTER_NOT_CONSTEXPR(type, funcName)      \
-    JUTILS_STD_FORMATTER(type, funcName)
 
 #define JSTR(str) str
 #define TO_JSTR(value) jutils::string::toString(value)

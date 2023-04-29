@@ -23,7 +23,7 @@ namespace jutils
 
         jset() noexcept = default;
         jset(const std::initializer_list<type> values)
-            : base_type()
+            : base_type(values)
         {}
         jset(const base_type& value)
             : base_type(value)

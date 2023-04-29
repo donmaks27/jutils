@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "jhash_table_chain.h"
+#include "jset_hash.h"
 #include "jstring.h"
 
 #include <shared_mutex>
@@ -13,21 +13,21 @@ namespace jutils
     {
     public:
 
-        using index_type = int32;
+        using index_type = jarray_index_type;
 
-        static void CreateInstance()
+        static void CreateInstance() noexcept
         {
             if (Instance == nullptr)
             {
                 Instance = new jstring_hash_table();
             }
         }
-        static jstring_hash_table* GetInstanse()
+        static jstring_hash_table* GetInstanse() noexcept
         {
             CreateInstance();
             return Instance;
         }
-        static void ClearInstance()
+        static void ClearInstance() noexcept
         {
             if (Instance != nullptr)
             {
@@ -40,75 +40,86 @@ namespace jutils
         {
             if (str.isEmpty())
             {
-                return -1;
+                return jarrayInvalidIndex;
             }
 
-            rwMutex.lock();
-            hash_table_entry& entry = hashTable.put(str, str);
-            if (!pointers.isValidIndex(entry.pointerIndex))
+            index_type strIndex;
             {
-                entry.pointerIndex = pointers.getSize();
-                pointers.add(&entry);
+                strings_table_entry entry = { str };
+                std::scoped_lock lock(rwMutex);
+                const strings_table_entry* entryPtr = stringsTable.find(entry);
+                if (entryPtr != nullptr)
+                {
+                    strIndex = entryPtr->pointerIndex;
+                }
+                else
+                {
+                    strIndex = entry.pointerIndex = stringPointers.getSize();
+                    stringPointers.add( &stringsTable.add(std::move(entry)) );
+                }
             }
-            rwMutex.unlock();
-            return entry.pointerIndex;
+            return strIndex;
         }
-        bool contains(const index_type index) const
+        bool contains(const index_type index) const noexcept
         {
             std::shared_lock lock(rwMutex);
-            return pointers.isValidIndex(index);
+            return stringPointers.isValidIndex(index);
         }
-        jstring get(const index_type index) const
+        jstring get(const index_type index) const noexcept
         {
-            std::shared_lock lock(rwMutex);
-            return contains(index) ? pointers[index]->string : jstring();
+            {
+                std::shared_lock lock(rwMutex);
+                if (stringPointers.isValidIndex(index))
+                {
+                    return stringPointers[index]->string;
+                }
+            }
+            return {};
         }
 
     private:
 
         inline static jstring_hash_table* Instance = nullptr;
 
-        jstring_hash_table() = default;
-        ~jstring_hash_table() = default;
+        jstring_hash_table() noexcept = default;
+        ~jstring_hash_table() noexcept = default;
 
-        struct hash_table_entry
+        struct strings_table_entry
         {
-            hash_table_entry()
-                : string(), pointerIndex(-1)
-            {}
-            hash_table_entry(const jstring& str)
+            constexpr strings_table_entry() noexcept = default;
+            constexpr strings_table_entry(const jstring& str)
                 : string(str)
             {}
-            hash_table_entry(jstring&& str)
+            constexpr strings_table_entry(jstring&& str) noexcept
                 : string(std::move(str))
             {}
-            hash_table_entry(const hash_table_entry&) = default;
-            hash_table_entry(hash_table_entry&&) noexcept = default;
+            constexpr strings_table_entry(const strings_table_entry&) = default;
+            constexpr strings_table_entry(strings_table_entry&&) noexcept = default;
 
-            hash_table_entry& operator=(const hash_table_entry&) = default;
-            hash_table_entry& operator=(hash_table_entry&&) noexcept = default;
+            constexpr strings_table_entry& operator=(const strings_table_entry&) = default;
+            constexpr strings_table_entry& operator=(strings_table_entry&&) noexcept = default;
 
             jstring string;
             index_type pointerIndex = -1;
 
-            uint64 hash() const { return math::hash::getHash(string); }
+            constexpr uint64 hash() const noexcept { return math::hash::getHash(string); }
 
-            bool operator==(const jstring& str) const { return string == str; }
-            bool operator==(const hash_table_entry& entry) const { return operator==(entry.string); }
+            constexpr bool operator==(const jstring& str) const noexcept { return string == str; }
+            constexpr bool operator==(const strings_table_entry& entry) const noexcept { return operator==(entry.string); }
 
-            bool operator!=(const jstring& str) const { return !operator==(str); }
-            bool operator!=(const hash_table_entry& entry) const { return operator!=(entry.string); }
+            constexpr bool operator!=(const jstring& str) const noexcept { return !operator==(str); }
+            constexpr bool operator!=(const strings_table_entry& entry) const noexcept { return operator!=(entry.string); }
         };
-
-        jhash_table_chain<hash_table_entry> hashTable = jhash_table_chain<hash_table_entry>(65536);
-        jarray<hash_table_entry*> pointers;
+        
+        jset_hash<strings_table_entry> stringsTable;
+        jarray<const strings_table_entry*> stringPointers;
         mutable std::shared_mutex rwMutex;
     };
 
     class jstringID
     {
     public:
-        constexpr jstringID() = default;
+        constexpr jstringID() noexcept = default;
         jstringID(const jstring::character_type* const str)
             : jstringID(jstring(str))
         {}
@@ -116,18 +127,18 @@ namespace jutils
         {
             pointerIndex = jstring_hash_table::GetInstanse()->addOrFind(str);
         }
-        constexpr jstringID(const jstringID&) = default;
+        constexpr jstringID(const jstringID&) noexcept = default;
 
-        jstringID& operator=(const jstringID&) = default;
+        constexpr jstringID& operator=(const jstringID&) noexcept = default;
 
-        bool isValid() const { return pointerIndex >= 0; }
-        jstring toString() const { return jstring_hash_table::GetInstanse()->get(pointerIndex); }
+        constexpr bool isValid() const noexcept { return pointerIndex >= 0; }
+        jstring toString() const noexcept { return jstring_hash_table::GetInstanse()->get(pointerIndex); }
 
-        bool operator==(const jstringID& strID) const { return isValid() && (pointerIndex == strID.pointerIndex); }
-        bool operator!=(const jstringID& strID) const { return !operator==(strID); }
+        constexpr bool operator==(const jstringID& strID) const noexcept { return isValid() && (pointerIndex == strID.pointerIndex); }
+        constexpr bool operator!=(const jstringID& strID) const noexcept { return !operator==(strID); }
 
-        bool operator<(const jstringID& strID) const { return isValid() && (pointerIndex < strID.pointerIndex); }
-        bool operator>(const jstringID& strID) const { return isValid() && (pointerIndex > strID.pointerIndex); }
+        constexpr bool operator<(const jstringID& strID) const noexcept { return isValid() && (pointerIndex < strID.pointerIndex); }
+        constexpr bool operator>(const jstringID& strID) const noexcept { return isValid() && (pointerIndex > strID.pointerIndex); }
 
     private:
 
@@ -135,8 +146,19 @@ namespace jutils
     };
 
     constexpr jstringID jstringID_NONE = jstringID();
-
-    inline jstring jstringID_to_jstring(const jstringID& stringID) { return stringID.toString(); }
 }
 
-JUTILS_STRING_FORMATTER_NOT_CONSTEXPR(jutils::jstringID, jutils::jstringID_to_jstring);
+template<>
+struct jutils::string::formatter<std::remove_cvref_t< jutils::jstringID >> : std::true_type
+{
+    static jutils::jstring format(const jutils::jstringID& value) noexcept { return value.toString(); }
+};
+template<typename CharT>
+struct std::formatter<jutils::jstringID, CharT> : std::formatter<const char*, CharT>
+{
+    template<typename FormatContext>
+    auto format(const jutils::jstringID& value, FormatContext& ctx) const
+    {
+        return std::formatter<const char*, CharT>::format(*value.toString(), ctx);
+    }
+};

@@ -9,6 +9,9 @@
 
 namespace jutils
 {
+    using jarray_index_type = int32;
+    constexpr jarray_index_type jarrayInvalidIndex = -1;
+
     template<typename T>
     class jarray : private std::vector<T>
     {
@@ -16,9 +19,9 @@ namespace jutils
         
         using type = T;
         using base_type = std::vector<type>;
-        using size_type = int32;
+        using size_type = jarray_index_type;
 
-        static constexpr size_type invalidIndex = -1;
+        static constexpr size_type invalidIndex = jarrayInvalidIndex;
         static constexpr size_type maxSize = std::numeric_limits<size_type>::max();
         
         using const_iterator = typename base_type::const_iterator;

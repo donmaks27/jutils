@@ -109,33 +109,37 @@ namespace jutils
             struct hash_info
             {
             private:
-                template<typename TestingType>
-                static constexpr auto _helper_call_hash_function(int32, const TestingType& value) noexcept -> decltype(value.hash()) { return value.hash(); }
-                template<typename TestingType>
-                static constexpr auto _helper_call_hash_function(int16, const TestingType& value) noexcept -> decltype(crc64(value)) { return crc64(value); }
-                template<typename TestingType>
-                static constexpr auto _helper_call_hash_function(int8, const TestingType& value) noexcept -> void {}
-
-                template<typename TestingType, bool>
-                struct _helper_get_hash
-                {
-                    static constexpr uint8 call(const TestingType& value) noexcept { return 0; }
-                };
-                template<typename TestingType>
-                struct _helper_get_hash<TestingType, true>
-                {
-                    static constexpr auto call(const TestingType& value) noexcept { return hash_info::_helper_call_hash_function(0, value); }
-                };
+                template<typename T1> requires requires(T1 value) { value.hash(); }
+                static constexpr auto _helper_func(int32, const T1& value) noexcept { return value.hash(); }
+                template<typename T1> requires requires(T1 value) { jutils::math::hash::crc64(value); }
+                static constexpr auto _helper_func(int16, const T1& value) noexcept { return jutils::math::hash::crc64(value); }
+                template<typename T1>
+                static constexpr uint8 _helper_func(int8, const T1&) noexcept { return 0; }
             public:
-                
-                using type = T;
-                using hash_type = decltype(_helper_call_hash_function(0, type()));
-                static constexpr bool has_hash = std::is_integral_v<hash_type> && std::is_unsigned_v<hash_type>;
 
-                static constexpr auto getHash(const type& value) noexcept { return _helper_get_hash<type, has_hash>::call(value); }
+                using type = T;
+                using hash_type = decltype(_helper_func(0, std::declval<type>()));
+                static constexpr bool has_hash = std::is_integral_v<hash_type> && std::is_unsigned_v<hash_type>;
+                static constexpr hash_type getHash(const type& value) noexcept
+                {
+                    if constexpr (has_hash)
+                    {
+                        return _helper_func(0, value);
+                    }
+                    return 0;
+                }
             };
             template<typename T> requires hash_info<T>::has_hash
             constexpr typename hash_info<T>::hash_type getHash(const T& value) noexcept { return hash_info<T>::getHash(value); }
+
+            template<typename T>
+            struct hasher
+            {
+                constexpr std::size_t operator()(const T& value) const noexcept
+                {
+                    return static_cast<std::size_t>(jutils::math::hash::getHash(value));
+                }
+            };
         }
     }
 }
