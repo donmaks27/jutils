@@ -26,7 +26,7 @@ namespace jutils
             return JSTR("      ");
         }
 
-        inline void print(const char* str) { std::printf(str); }
+        inline void print(const char* str) { std::printf("%s", str); }
         inline void print(const std::string& str) { jutils::log::print(str.c_str()); }
         inline void print(const jstring& str) { jutils::log::print(*str); }
     }
@@ -42,7 +42,7 @@ JUTILS_STRING_FORMATTER(jutils::log::verbosityLevel, jutils::log::verbosityLevel
     ))
 #define JUTILS_ERROR_LOG(errorCode, formatStr, ...) jutils::log::print(JSTR_FORMAT(                                         \
         JSTR("{} {}({}): Code {:#x}. {}\n"), jutils::log::verbosityLevel::error, static_cast<const char*>(__FUNCTION__),    \
-            __LINE__, static_cast<int64>(errorCode), JSTR_FORMAT(formatStr, __VA_ARGS__)                                    \
+            __LINE__, static_cast<jutils::int64>(errorCode), JSTR_FORMAT(formatStr, __VA_ARGS__)                                    \
     ))
 
 #else

@@ -6,12 +6,20 @@
 #include "math/math.h"
 #include "math/hash.h"
 
-#include <format>
+#if defined(JUTILS_USE_FMT)
+    #include <fmt/format.h>
+#else
+    #include <format>
+#endif
 #include <string>
 
 namespace jutils
 {
+#if defined(JUTILS_JSRTING_PUBLIC_BASE)
+    class jstring : public std::string
+#else
     class jstring : private std::string
+#endif
     {
     public:
         
@@ -340,6 +348,31 @@ namespace jutils
         template<typename T> requires has_jstring_formatter_v<T>
         constexpr jstring toString(T value) noexcept { return formatter<T>::format(value); }
 
+#if defined(JUTILS_USE_FMT)
+        template<typename T, typename Ctx = fmt::format_context>
+        struct has_formatter
+        {
+        private:
+            template<typename T1, typename Ctx1> requires requires(T1& val, Ctx1& ctx)
+            {
+                std::declval<typename Ctx1::template formatter_type<std::remove_cvref_t<T1>>>().format(val, ctx);
+            }
+            static constexpr bool _has_formatter(int32) noexcept { return true; }
+            template<typename, typename>
+            static constexpr bool _has_formatter(int8) noexcept { return false; }
+        public:
+            static constexpr bool value = _has_formatter<T, Ctx>(0);
+        };
+        template<typename T, typename Ctx = fmt::format_context>
+        constexpr bool has_formatter_v = has_formatter<T, Ctx>::value;
+
+        inline jstring format(const char* str) { return str; }
+        template<typename... Args> requires (has_formatter_v<Args> && ...)
+        jstring format(const fmt::format_string<Args...> formatStr, Args&&... args)
+        {
+            return fmt::format(formatStr, std::forward<Args>(args)...);
+        }
+#else
         template<typename T, typename Ctx = std::format_context>
         struct has_formatter
         {
@@ -363,6 +396,7 @@ namespace jutils
         {
             return std::format(formatStr, std::forward<Args>(args)...);
         }
+#endif
     }
     
     constexpr jstring operator+(const jstring& str1, const jstring::character_type character) { return str1.toBase() + character; }
@@ -410,29 +444,52 @@ struct jutils::string::formatter<jutils::jstring> : std::true_type
     static constexpr jutils::jstring format(jutils::jstring value) noexcept { return value; }
 };
 
-template<typename CharT>
-struct std::formatter<jutils::jstring, CharT> : std::formatter<const jutils::jstring::character_type*, CharT>
-{
-    template<typename FormatContext>
-    auto format(const jutils::jstring& str, FormatContext& ctx) const
+#if defined(JUTILS_USE_FMT)
+    template<>
+    struct fmt::formatter<jutils::jstring> : fmt::formatter<const jutils::jstring::character_type*>
     {
-        return std::formatter<const jutils::jstring::character_type*, CharT>::format(*str, ctx);
-    }
-};
-
-#define JUTILS_STRING_FORMATTER(type, funcName)                                                 \
-template<> struct jutils::string::formatter<std::remove_cvref_t< type >> : std::true_type       \
-    { static constexpr jutils::jstring format(const type& value) { return funcName(value); } }; \
-template<typename CharT>                                                                        \
-struct std::formatter<type, CharT> : std::formatter<decltype(funcName(type())), CharT>          \
-{                                                                                               \
-    template<typename FormatContext>                                                            \
-    auto format(const type& value, FormatContext& ctx) const                                    \
-    {                                                                                           \
-        return std::formatter<decltype(funcName(type())), CharT>::format(funcName(value), ctx); \
-    }                                                                                           \
-};
+        template<typename FormatContext>
+        auto format(const jutils::jstring& str, FormatContext& ctx) const
+        {
+            return fmt::formatter<const jutils::jstring::character_type*>::format(*str, ctx);
+        }
+    };
+    #define JUTILS_STRING_FORMATTER(type, funcName)                                                 \
+    template<> struct jutils::string::formatter<std::remove_cvref_t< type >> : std::true_type       \
+        { static constexpr jutils::jstring format(const type& value) { return funcName(value); } }; \
+    template<>                                                                        \
+    struct fmt::formatter<type> : fmt::formatter<decltype(funcName(type()))>          \
+    {                                                                                               \
+        template<typename FormatContext>                                                            \
+        auto format(const type& value, FormatContext& ctx) const                                    \
+        {                                                                                           \
+            return fmt::formatter<decltype(funcName(type()))>::format(funcName(value), ctx); \
+        }                                                                                           \
+    };
+#else
+    template<typename CharT>
+    struct std::formatter<jutils::jstring, CharT> : std::formatter<const jutils::jstring::character_type*, CharT>
+    {
+        template<typename FormatContext>
+        auto format(const jutils::jstring& str, FormatContext& ctx) const
+        {
+            return std::formatter<const jutils::jstring::character_type*, CharT>::format(*str, ctx);
+        }
+    };
+    #define JUTILS_STRING_FORMATTER(type, funcName)                                                 \
+    template<> struct jutils::string::formatter<std::remove_cvref_t< type >> : std::true_type       \
+        { static constexpr jutils::jstring format(const type& value) { return funcName(value); } }; \
+    template<typename CharT>                                                                        \
+    struct std::formatter<type, CharT> : std::formatter<decltype(funcName(type())), CharT>          \
+    {                                                                                               \
+        template<typename FormatContext>                                                            \
+        auto format(const type& value, FormatContext& ctx) const                                    \
+        {                                                                                           \
+            return std::formatter<decltype(funcName(type())), CharT>::format(funcName(value), ctx); \
+        }                                                                                           \
+    };
+#endif
 
 #define JSTR(str) str
 #define TO_JSTR(value) jutils::string::toString(value)
-#define JSTR_FORMAT(formatStr, ...) jutils::string::format(formatStr, __VA_ARGS__)
+#define JSTR_FORMAT(formatStr, ...) jutils::string::format(formatStr __VA_OPT__(,) __VA_ARGS__)
