@@ -15,14 +15,10 @@
 
 namespace jutils
 {
-#if defined(JUTILS_JSRTING_PUBLIC_BASE)
-    class jstring : public std::string
-#else
-    class jstring : private std::string
-#endif
+    class jstring
     {
     public:
-        
+
         using base_type = std::string;
         using character_type = base_type::value_type;
         using index_type = std::make_signed_t<base_type::size_type>;
@@ -35,26 +31,26 @@ namespace jutils
 
         constexpr jstring() noexcept = default;
         constexpr jstring(const character_type character)
-            : base_type(1, character)
+            : _internalString(1, character)
         {}
         constexpr jstring(const character_type* const str)
-            : base_type(str)
+            : _internalString(str)
         {
             _correctSize();
         }
         constexpr jstring(const character_type* const str, const index_type count)
-            : base_type(str, jutils::math::max(count, 0))
+            : _internalString(str, jutils::math::max(count, 0))
         {}
         constexpr jstring(const int32 count, const character_type character)
-            : base_type(jutils::math::max(count, 0), character)
+            : _internalString(jutils::math::max(count, 0), character)
         {}
         constexpr jstring(const base_type& str)
-            : base_type(str)
+            : _internalString(str)
         {
             _correctSize();
         }
         constexpr jstring(base_type&& str) noexcept
-            : base_type(std::move(str))
+            : _internalString(std::move(str))
         {
             _correctSize();
         }
@@ -64,58 +60,58 @@ namespace jutils
         
         constexpr jstring& operator=(const character_type character)
         {
-            base_type::operator=(character);
+            _internalString = character;
             return *this;
         }
         constexpr jstring& operator=(const character_type* const str)
         {
-            base_type::operator=(str);
+            _internalString = str;
             _correctSize();
             return *this;
         }
         constexpr jstring& operator=(const base_type& str)
         {
-            base_type::operator=(str);
+            _internalString = str;
             _correctSize();
             return *this;
         }
         constexpr jstring& operator=(base_type&& str) noexcept
         {
-            base_type::operator=(std::move(str));
+            _internalString = std::move(str);
             _correctSize();
             return *this;
         }
         constexpr jstring& operator=(const jstring&) = default;
         constexpr jstring& operator=(jstring&&) noexcept = default;
 
-        constexpr const base_type& toBase() const noexcept { return *this; }
+        constexpr const base_type& toBase() const noexcept { return _internalString; }
 
-        constexpr index_type getSize() const noexcept { return static_cast<index_type>(jutils::math::min(base_type::size(), maxSize)); }
-        constexpr bool isEmpty() const noexcept { return base_type::empty(); }
+        constexpr index_type getSize() const noexcept { return static_cast<index_type>(jutils::math::min(_internalString.size(), maxSize)); }
+        constexpr bool isEmpty() const noexcept { return _internalString.empty(); }
         constexpr bool isValidIndex(const index_type index) const noexcept
         {
-            return (index >= 0) && (static_cast<base_type::size_type>(index) < base_type::size());
+            return (index >= 0) && (static_cast<base_type::size_type>(index) < _internalString.size());
         }
 
-        constexpr iterator begin() noexcept { return base_type::begin(); }
-        constexpr iterator end() noexcept { return base_type::end(); }
+        constexpr iterator begin() noexcept { return _internalString.begin(); }
+        constexpr iterator end() noexcept { return _internalString.end(); }
         
-        constexpr const_iterator begin() const noexcept { return base_type::begin(); }
-        constexpr const_iterator end() const noexcept { return base_type::end(); }
+        constexpr const_iterator begin() const noexcept { return _internalString.begin(); }
+        constexpr const_iterator end() const noexcept { return _internalString.end(); }
 
-        constexpr character_type* getData() noexcept { return base_type::data(); }
-        constexpr const character_type* getData() const noexcept { return base_type::c_str(); }
+        constexpr character_type* getData() noexcept { return _internalString.data(); }
+        constexpr const character_type* getData() const noexcept { return _internalString.c_str(); }
 
         constexpr character_type* operator*() noexcept { return getData(); }
         constexpr const character_type* operator*() const noexcept { return getData(); }
 
         constexpr character_type& get(const index_type index) noexcept
         {
-            return base_type::operator[](index < 0 ? base_type::npos : index);
+            return _internalString[index < 0 ? base_type::npos : index];
         }
         constexpr const character_type& get(const index_type index) const noexcept
         {
-            return base_type::operator[](index < 0 ? base_type::npos : index);
+            return _internalString[index < 0 ? base_type::npos : index];
         }
         constexpr character_type& operator[](const index_type index) noexcept { return get(index); }
         constexpr const character_type& operator[](const index_type index) const noexcept { return get(index); }
@@ -123,7 +119,7 @@ namespace jutils
         constexpr index_type indexOf(const character_type character, const index_type startIndex = 0, 
             const index_type finishIndex = invalidIndex) const noexcept
         {
-            const base_type::size_type index = base_type::find(character, jutils::math::max(startIndex, 0));
+            const base_type::size_type index = _internalString.find(character, jutils::math::max(startIndex, 0));
             if (index > static_cast<base_type::size_type>(maxSize))
             {
                 return invalidIndex;
@@ -137,7 +133,7 @@ namespace jutils
         constexpr index_type indexOf(const character_type* const str, const index_type startIndex = 0, 
             const index_type finishIndex = invalidIndex) const noexcept
         {
-            const base_type::size_type index = base_type::find(str, jutils::math::max(startIndex, 0));
+            const base_type::size_type index = _internalString.find(str, jutils::math::max(startIndex, 0));
             if (index > static_cast<base_type::size_type>(maxSize))
             {
                 return invalidIndex;
@@ -151,7 +147,7 @@ namespace jutils
         constexpr index_type indexOf(const character_type* const str, const index_type strLength, const index_type startIndex, 
             const index_type finishIndex) const noexcept
         {
-            const base_type::size_type index = base_type::find(str, jutils::math::max(0, startIndex), jutils::math::max(strLength, 0));
+            const base_type::size_type index = _internalString.find(str, jutils::math::max(0, startIndex), jutils::math::max(strLength, 0));
             if (index > static_cast<base_type::size_type>(maxSize))
             {
                 return invalidIndex;
@@ -207,15 +203,15 @@ namespace jutils
                 return {};
             }
             const index_type count = length < 0 ? size - offset : jutils::math::min(size - offset, length);
-            return base_type::substr(offset, count);
+            return _internalString.substr(offset, count);
         }
 
-        constexpr int compare(const character_type* const str) const noexcept { return base_type::compare(str); }
-        constexpr int compare(const std::string& str) const noexcept { return base_type::compare(str); }
-        constexpr int compare(const jstring& str) const noexcept { return base_type::compare(*str); }
+        constexpr int compare(const character_type* const str) const noexcept { return _internalString.compare(str); }
+        constexpr int compare(const std::string& str) const noexcept { return _internalString.compare(str); }
+        constexpr int compare(const jstring& str) const noexcept { return _internalString.compare(*str); }
         
-        constexpr void reserve(const index_type size) { base_type::reserve(jutils::math::max(size, 0)); }
-        constexpr void resize(const index_type size, const character_type character = character_type()) { base_type::resize(jutils::math::max(size, 0), character); }
+        constexpr void reserve(const index_type size) { _internalString.reserve(jutils::math::max(size, 0)); }
+        constexpr void resize(const index_type size, const character_type character = character_type()) { _internalString.resize(jutils::math::max(size, 0), character); }
 
         constexpr jstring& assign(const character_type character) { return this->operator=(character); }
         constexpr jstring& assign(const character_type* const str) { return this->operator=(str); }
@@ -227,7 +223,7 @@ namespace jutils
             }
             else
             {
-                base_type::assign(str, strLength);
+                _internalString.assign(str, strLength);
                 _correctSize();
             }
             return *this;
@@ -241,19 +237,19 @@ namespace jutils
         {
             if (getSize() != maxSize)
             {
-                base_type::operator+=(character);
+                _internalString += character;
             }
             return *this;
         }
         constexpr jstring& operator+=(const character_type* const str)
         {
-            base_type::operator+=(str);
+            _internalString += str;
             _correctSize();
             return *this;
         }
         constexpr jstring& operator+=(const std::string& str)
         {
-            base_type::operator+=(str);
+            _internalString += str;
             _correctSize();
             return *this;
         }
@@ -265,7 +261,7 @@ namespace jutils
         {
             if (strLength > 0)
             {
-                base_type::append(str, strLength);
+                _internalString.append(str, strLength);
                 _correctSize();
             }
             return *this;
@@ -277,7 +273,7 @@ namespace jutils
         {
             if ((getSize() < maxSize) && jutils::math::isWithin(index, 0, getSize()))
             {
-                base_type::insert(index, 1, character);
+                _internalString.insert(index, 1, character);
                 _correctSize();
             }
             return *this;
@@ -286,7 +282,7 @@ namespace jutils
         {
             if (jutils::math::isWithin(index, 0, getSize()))
             {
-                base_type::insert(index, str);
+                _internalString.insert(index, str);
                 _correctSize();
             }
             return *this;
@@ -295,7 +291,7 @@ namespace jutils
         {
             if (jutils::math::isWithin(index, 0, getSize()))
             {
-                base_type::insert(index, str, strLength);
+                _internalString.insert(index, str, strLength);
                 _correctSize();
             }
             return *this;
@@ -304,7 +300,7 @@ namespace jutils
         {
             if (jutils::math::isWithin(index, 0, getSize()))
             {
-                base_type::insert(index, str);
+                _internalString.insert(index, str);
                 _correctSize();
             }
             return *this;
@@ -315,20 +311,24 @@ namespace jutils
         {
             if (isValidIndex(index) && (count > 0))
             {
-                base_type::erase(index, count);
+                _internalString.erase(index, count);
             }
         }
-        constexpr void clear() noexcept { base_type::clear(); }
+        constexpr void clear() noexcept { _internalString.clear(); }
         
         constexpr uint64 hash() const noexcept { return jutils::math::hash::crc64(getData(), getSize()); }
         
     private:
 
+        std::string _internalString;
+
+        constexpr std::string& _base() { return _internalString; }
+
         constexpr void _correctSize() noexcept
         {
-            if (base_type::size() > static_cast<base_type::size_type>(maxSize))
+            if (_internalString.size() > static_cast<base_type::size_type>(maxSize))
             {
-                base_type::resize(maxSize);
+                _internalString.resize(maxSize);
             }
         }
     };
@@ -457,35 +457,35 @@ struct jutils::string::formatter<jutils::jstring> : std::true_type
     #define JUTILS_STRING_FORMATTER(type, funcName)                                                 \
     template<> struct jutils::string::formatter<std::remove_cvref_t< type >> : std::true_type       \
         { static constexpr jutils::jstring format(const type& value) { return funcName(value); } }; \
-    template<>                                                                        \
-    struct fmt::formatter<type> : fmt::formatter<decltype(funcName(type()))>          \
+    template<>                                                                                      \
+    struct fmt::formatter<type> : fmt::formatter<decltype(funcName(type()))>                        \
     {                                                                                               \
         template<typename FormatContext>                                                            \
         auto format(const type& value, FormatContext& ctx) const                                    \
         {                                                                                           \
-            return fmt::formatter<decltype(funcName(type()))>::format(funcName(value), ctx); \
+            return fmt::formatter<decltype(funcName(type()))>::format(funcName(value), ctx);        \
         }                                                                                           \
     };
 #else
-    template<typename CharT>
-    struct std::formatter<jutils::jstring, CharT> : std::formatter<const jutils::jstring::character_type*, CharT>
+    template<>
+    struct std::formatter<jutils::jstring> : std::formatter<const jutils::jstring::character_type*>
     {
         template<typename FormatContext>
         auto format(const jutils::jstring& str, FormatContext& ctx) const
         {
-            return std::formatter<const jutils::jstring::character_type*, CharT>::format(*str, ctx);
+            return std::formatter<const jutils::jstring::character_type*>::format(*str, ctx);
         }
     };
     #define JUTILS_STRING_FORMATTER(type, funcName)                                                 \
     template<> struct jutils::string::formatter<std::remove_cvref_t< type >> : std::true_type       \
         { static constexpr jutils::jstring format(const type& value) { return funcName(value); } }; \
-    template<typename CharT>                                                                        \
-    struct std::formatter<type, CharT> : std::formatter<decltype(funcName(type())), CharT>          \
+    template<>                                                                                      \
+    struct std::formatter<type> : std::formatter<decltype(funcName(type()))>                        \
     {                                                                                               \
         template<typename FormatContext>                                                            \
         auto format(const type& value, FormatContext& ctx) const                                    \
         {                                                                                           \
-            return std::formatter<decltype(funcName(type())), CharT>::format(funcName(value), ctx); \
+            return std::formatter<decltype(funcName(type()))>::format(funcName(value), ctx);        \
         }                                                                                           \
     };
 #endif

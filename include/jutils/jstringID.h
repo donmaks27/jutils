@@ -5,6 +5,7 @@
 #include "jset_hash.h"
 #include "jstring.h"
 
+#include <mutex>
 #include <shared_mutex>
 
 namespace jutils
@@ -153,12 +154,24 @@ struct jutils::string::formatter<std::remove_cvref_t< jutils::jstringID >> : std
 {
     static jutils::jstring format(const jutils::jstringID& value) noexcept { return value.toString(); }
 };
-template<typename CharT>
-struct std::formatter<jutils::jstringID, CharT> : std::formatter<const char*, CharT>
-{
-    template<typename FormatContext>
-    auto format(const jutils::jstringID& value, FormatContext& ctx) const
+#if defined(JUTILS_USE_FMT)
+    template<>
+    struct fmt::formatter<jutils::jstringID> : fmt::formatter<const char*>
     {
-        return std::formatter<const char*, CharT>::format(*value.toString(), ctx);
-    }
-};
+        template<typename FormatContext>
+        auto format(const jutils::jstringID& value, FormatContext& ctx) const
+        {
+            return fmt::formatter<const char*>::format(*value.toString(), ctx);
+        }
+    };
+#else
+    template<>
+    struct std::formatter<jutils::jstringID> : std::formatter<const char*>
+    {
+        template<typename FormatContext>
+        auto format(const jutils::jstringID& value, FormatContext& ctx) const
+        {
+            return std::formatter<const char*>::format(*value.toString(), ctx);
+        }
+    };
+#endif

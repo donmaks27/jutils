@@ -183,7 +183,7 @@ namespace jutils
         }
         jmap& append(const base_type& value)
         {
-            for (const auto& pair : values)
+            for (const auto& pair : value)
             {
                 add(pair.first, pair.second);
             }

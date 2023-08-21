@@ -7,6 +7,7 @@
 #include <cmath>
 #include <concepts>
 #include <numbers>
+#include <initializer_list>
 
 namespace jutils
 {

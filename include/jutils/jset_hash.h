@@ -79,7 +79,7 @@ namespace jutils
         
         const type* find(const type& value) const noexcept
         {
-            const iterator iter = base_type::find(value);
+            const const_iterator iter = base_type::find(value);
             return iter != end() ? iter.operator->() : nullptr;
         }
         template<typename Pred> requires std::predicate<Pred, type>
