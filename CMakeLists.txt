@@ -57,48 +57,4 @@ else()
         target_link_libraries(jutils INTERFACE fmt)
     endif()
 endif()
-if(NOT ${JUTILS_INSTALL})
-    target_include_directories(jutils INTERFACE include)
-endif()
-
-if(${JUTILS_INSTALL})
-    set(JUTILS_CONFIG_INSTALL_DIR "lib/cmake/${PROJECT_NAME}")
-    set(JUTILS_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
-    set(JUTILS_VERSION_CONFIG "${JUTILS_GENERATED_DIR}/${PROJECT_NAME}ConfigVersion.cmake")
-    set(JUTILS_PROJECT_CONFIG "${JUTILS_GENERATED_DIR}/${PROJECT_NAME}Config.cmake")
-    set(JUTILS_TARGETS_EXPORT_NAME "${PROJECT_NAME}Targets")
-
-    include(CMakePackageConfigHelpers)
-    write_basic_package_version_file(
-        "${JUTILS_VERSION_CONFIG}"
-        VERSION "1.0.0"
-        COMPATIBILITY SameMajorVersion
-    )
-    configure_package_config_file(
-        "cmake/config.cmake.in" 
-        "${JUTILS_PROJECT_CONFIG}" 
-        INSTALL_DESTINATION "${JUTILS_CONFIG_INSTALL_DIR}"
-    )
-
-    if(${JUTILS_CONFIG_ENABLED})
-        install(DIRECTORY include/jutils/ DESTINATION include/jutils FILES_MATCHING PATTERN "*.h")
-    else()
-        install(DIRECTORY include/jutils/ DESTINATION include/jutils FILES_MATCHING
-            PATTERN "include/jutils/configs" EXCLUDE 
-            PATTERN "*.h"
-        )
-    endif()
-    install(
-        FILES "${JUTILS_PROJECT_CONFIG}" "${JUTILS_VERSION_CONFIG}"
-        DESTINATION "${JUTILS_CONFIG_INSTALL_DIR}"
-    )
-    install(
-        TARGETS jutils
-        EXPORT "${JUTILS_TARGETS_EXPORT_NAME}"
-        LIBRARY DESTINATION lib/
-    )
-    install(
-        EXPORT "${JUTILS_TARGETS_EXPORT_NAME}"
-        DESTINATION "${JUTILS_CONFIG_INSTALL_DIR}"
-    )
-endif()
+target_include_directories(jutils INTERFACE include)
