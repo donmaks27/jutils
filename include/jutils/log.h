@@ -8,12 +8,35 @@
 
 #include "jstring.h"
 
+#if defined(JUTILS_LOG_COLOR_ENABLED) && defined(JUTILS_USE_FMT)
+    #include <fmt/color.h>
+#endif
+
+#if defined(__FILE_NAME__)
+    #define _JUTILS_FILENAME __FILE_NAME__
+#else
+    #define _JUTILS_FILENAME __FILE__
+#endif
+
 namespace jutils
 {
     namespace log
     {
         enum class verbosityLevel : uint8 { error, warning, info };
 
+#if defined(JUTILS_LOG_COLOR_ENABLED) && defined(JUTILS_USE_FMT)
+        constexpr jstring verbosityLevelToString(const verbosityLevel verbosity) noexcept
+        {
+            switch (verbosity)
+            {
+            case verbosityLevel::error:   return fmt::format(fmt::emphasis::bold | fmt::fg(fmt::color::red),    JSTR("[ERR] "));
+            case verbosityLevel::warning: return fmt::format(fmt::emphasis::bold | fmt::fg(fmt::color::yellow), JSTR("[WARN]"));
+            case verbosityLevel::info:    return fmt::format(fmt::emphasis::bold | fmt::fg(fmt::color::green),  JSTR("[INFO]"));
+            default: ;
+            }
+            return JSTR("      ");
+        }
+#else
         constexpr const char* verbosityLevelToString(const verbosityLevel verbosity) noexcept
         {
             switch (verbosity)
@@ -25,6 +48,7 @@ namespace jutils
             }
             return JSTR("      ");
         }
+#endif
 
         inline void print(const char* str) { std::printf("%s", str); }
         inline void print(const std::string& str) { jutils::log::print(str.c_str()); }
@@ -36,13 +60,13 @@ JUTILS_STRING_FORMATTER(jutils::log::verbosityLevel, jutils::log::verbosityLevel
 
 #ifndef JUTILS_LOG_DISABLED
 
-#define JUTILS_LOG(type, formatStr, ...) jutils::log::print(JSTR_FORMAT(                                                \
-        JSTR("{} {}({}): {}\n"), jutils::log::verbosityLevel::type, static_cast<const char*>(__FUNCTION__), __LINE__,   \
-            JSTR_FORMAT(formatStr, __VA_ARGS__)                                                                         \
+#define JUTILS_LOG(type, formatStr, ...) jutils::log::print(JSTR_FORMAT(                                                    \
+        JSTR("{} {}({}): {}\n"), jutils::log::verbosityLevel::type, static_cast<const char*>(_JUTILS_FILENAME), __LINE__,   \
+            JSTR_FORMAT(formatStr, __VA_ARGS__)                                                                             \
     ))
 #define JUTILS_ERROR_LOG(errorCode, formatStr, ...) jutils::log::print(JSTR_FORMAT(                                         \
-        JSTR("{} {}({}): Code {:#x}. {}\n"), jutils::log::verbosityLevel::error, static_cast<const char*>(__FUNCTION__),    \
-            __LINE__, static_cast<jutils::int64>(errorCode), JSTR_FORMAT(formatStr, __VA_ARGS__)                                    \
+        JSTR("{} {}({}): Code {:#x}. {}\n"), jutils::log::verbosityLevel::error, static_cast<const char*>(_JUTILS_FILENAME),\
+            __LINE__, static_cast<jutils::int64>(errorCode), JSTR_FORMAT(formatStr, __VA_ARGS__)                            \
     ))
 
 #else
