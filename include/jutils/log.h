@@ -12,10 +12,12 @@
     #include <fmt/color.h>
 #endif
 
-#if defined(__FILE_NAME__)
-    #define _JUTILS_FILENAME __FILE_NAME__
-#else
-    #define _JUTILS_FILENAME __FILE__
+#ifndef JUTILS_LOG_DISABLED
+    #if !defined(_MSC_VER) && defined(__FILE_NAME__)
+        #define _JUTILS_FILENAME __FILE_NAME__
+    #else
+        #define _JUTILS_FILENAME __FILE__
+    #endif
 #endif
 
 namespace jutils
