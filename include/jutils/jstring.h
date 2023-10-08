@@ -3,8 +3,8 @@
 #pragma once
 
 #include "type_defines.h"
-#include "math/math.h"
 #include "math/hash.h"
+#include "jarray.h"
 
 #if defined(JUTILS_USE_FMT)
     #include <fmt/format.h>
@@ -33,7 +33,7 @@ namespace jutils
         constexpr jstring(const character_type character)
             : _internalString(1, character)
         {}
-        constexpr jstring(const character_type* const str)
+        constexpr jstring(const character_type* str)
             : _internalString(str)
         {
             _correctSize();
@@ -183,7 +183,7 @@ namespace jutils
         }
         constexpr bool contains(const std::string& str, const index_type startIndex = 0, const index_type finishIndex = invalidIndex) const noexcept
         {
-            return indexOf(str.c_str(), jutils::math::min(str.size(), maxSize), startIndex, finishIndex) != invalidIndex;
+            return indexOf(str.c_str(), jutils::math::min(static_cast<index_type>(str.size()), maxSize), startIndex, finishIndex) != invalidIndex;
         }
         constexpr bool contains(const jstring& str, const index_type startIndex = 0, const index_type finishIndex = invalidIndex) const noexcept
         {
@@ -206,12 +206,30 @@ namespace jutils
             return _internalString.substr(offset, count);
         }
 
+        constexpr jarray<jstring> split(const character_type delimiter) const { return _split(delimiter, 1); }
+        constexpr jarray<jstring> split(const character_type* delimiter) const
+        {
+            return _split(delimiter, static_cast<index_type>(std::char_traits<character_type>::length(delimiter)));
+        }
+        constexpr jarray<jstring> split(const character_type* delimiter, const index_type delimiterLength) const
+        {
+            return _split(delimiter, delimiterLength);
+        }
+        constexpr jarray<jstring> split(const std::string& delimiter) const
+        {
+            return _split(delimiter, static_cast<index_type>(delimiter.size()));
+        }
+        constexpr jarray<jstring> split(const jstring& delimiter) const { return _split(delimiter, delimiter.getSize()); }
+
         constexpr int compare(const character_type* const str) const noexcept { return _internalString.compare(str); }
         constexpr int compare(const std::string& str) const noexcept { return _internalString.compare(str); }
         constexpr int compare(const jstring& str) const noexcept { return _internalString.compare(*str); }
         
         constexpr void reserve(const index_type size) { _internalString.reserve(jutils::math::max(size, 0)); }
-        constexpr void resize(const index_type size, const character_type character = character_type()) { _internalString.resize(jutils::math::max(size, 0), character); }
+        constexpr void resize(const index_type size, const character_type character = character_type())
+        {
+            _internalString.resize(jutils::math::max(size, 0), character);
+        }
 
         constexpr jstring& assign(const character_type character) { return this->operator=(character); }
         constexpr jstring& assign(const character_type* const str) { return this->operator=(str); }
@@ -329,6 +347,34 @@ namespace jutils
             if (_internalString.size() > static_cast<base_type::size_type>(maxSize))
             {
                 _internalString.resize(maxSize);
+            }
+        }
+
+        template<typename T>
+        constexpr jarray<jstring> _split(T delimiter, const index_type delimiterSize) const
+        {
+            if (isEmpty())
+            {
+                return {};
+            }
+            jarray<jstring> result;
+            jstring restStr = *this;
+            while (true)
+            {
+                const index_type index = restStr.indexOf(delimiter);
+                if (index != invalidIndex)
+                {
+                    if (index > 0)
+                    {
+                        result.add(restStr.substr(0, index));
+                    }
+                    restStr = restStr.substr(index + delimiterSize);
+                }
+                else
+                {
+                    result.add(std::move(restStr));
+                    return result;
+                }
             }
         }
     };
