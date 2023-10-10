@@ -20,7 +20,7 @@ namespace jutils
 		using uid_type = uint32;
 
 		constexpr jdescriptor_table_pointer() = default;
-		constexpr jdescriptor_table_pointer(nullptr_t) : jdescriptor_table_pointer() {}
+		constexpr jdescriptor_table_pointer(std::nullptr_t) : jdescriptor_table_pointer() {}
 		constexpr jdescriptor_table_pointer(const jdescriptor_table_pointer&) = default;
 	protected:
 		constexpr jdescriptor_table_pointer(const int32 descriptorIndex, const uid_type uid)
@@ -28,7 +28,7 @@ namespace jutils
 		{}
 	public:
 
-		constexpr jdescriptor_table_pointer& operator=(nullptr_t);
+		constexpr jdescriptor_table_pointer& operator=(std::nullptr_t);
 		constexpr jdescriptor_table_pointer& operator=(const jdescriptor_table_pointer&) = default;
 
 		constexpr bool operator==(const jdescriptor_table_pointer& otherPointer) const
@@ -60,7 +60,7 @@ namespace jutils
 
 		public:
 			constexpr weak_pointer() = default;
-			constexpr weak_pointer(nullptr_t) : weak_pointer() {}
+			constexpr weak_pointer(std::nullptr_t) : weak_pointer() {}
 			constexpr weak_pointer(const weak_pointer&) = default;
 		protected:
 			weak_pointer(jdescriptor_table* table, const int32 descriptorIndex, const uid_type uid)
@@ -68,7 +68,7 @@ namespace jutils
 			{}
 		public:
 
-			constexpr weak_pointer& operator=(nullptr_t);
+			constexpr weak_pointer& operator=(std::nullptr_t);
 			constexpr weak_pointer& operator=(const weak_pointer&) = default;
 			
 			constexpr bool operator==(const weak_pointer& otherPointer) const
@@ -92,7 +92,7 @@ namespace jutils
 
 		public:
 			constexpr pointer() = default;
-			constexpr pointer(nullptr_t) : pointer() {}
+			constexpr pointer(std::nullptr_t) : pointer() {}
 			pointer(const pointer& otherPointer) : weak_pointer(otherPointer) { _addReference(); }
 			constexpr pointer(pointer&& otherPointer) noexcept;
 			pointer(const weak_pointer& otherPointer) : weak_pointer(otherPointer) { _addReference(); }
@@ -103,7 +103,7 @@ namespace jutils
 			{}
 		public:
 
-			pointer& operator=(nullptr_t);
+			pointer& operator=(std::nullptr_t);
 			pointer& operator=(const pointer& otherPointer);
 			pointer& operator=(const weak_pointer& otherPointer);
 			pointer& operator=(pointer&& otherPointer) noexcept;
@@ -182,7 +182,7 @@ namespace jutils
 		void _destroyObject(int32 descriptorIndex);
 	};
 	
-	constexpr jdescriptor_table_pointer& jdescriptor_table_pointer::operator=(nullptr_t)
+	constexpr jdescriptor_table_pointer& jdescriptor_table_pointer::operator=(std::nullptr_t)
 	{
 		descriptorIndex = -1;
 		UID = juid<uid_type>::invalidUID;
@@ -198,7 +198,7 @@ namespace jutils
 	}
 	
 	template<typename T>
-	constexpr typename jdescriptor_table<T>::weak_pointer& jdescriptor_table<T>::weak_pointer::operator=(nullptr_t)
+	constexpr typename jdescriptor_table<T>::weak_pointer& jdescriptor_table<T>::weak_pointer::operator=(std::nullptr_t)
 	{
 		descriptorTable = nullptr;
 		poiter_type::operator=(nullptr);
@@ -215,7 +215,7 @@ namespace jutils
 	}
 
 	template<typename T>
-	typename jdescriptor_table<T>::pointer& jdescriptor_table<T>::pointer::operator=(nullptr_t)
+	typename jdescriptor_table<T>::pointer& jdescriptor_table<T>::pointer::operator=(std::nullptr_t)
 	{
 		_removeReference();
 		weak_pointer::operator=(nullptr);

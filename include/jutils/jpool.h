@@ -20,7 +20,7 @@ namespace jutils
         using uid_type = uint32;
 
         constexpr jpool_pointer() = default;
-        constexpr jpool_pointer(nullptr_t) : jpool_pointer() {}
+        constexpr jpool_pointer(std::nullptr_t) : jpool_pointer() {}
         constexpr jpool_pointer(const jpool_pointer&) = default;
     private:
         constexpr jpool_pointer(const int32 segment, const uint32 node, const uid_type uid)
@@ -28,11 +28,11 @@ namespace jutils
         {}
     public:
 
-        constexpr jpool_pointer& operator=(nullptr_t);
+        constexpr jpool_pointer& operator=(std::nullptr_t);
         constexpr jpool_pointer& operator=(const jpool_pointer&) = default;
 
-        constexpr bool operator==(nullptr_t) const { return (UID == juid<uid_type>::invalidUID) || (segmentIndex < 0); }
-        constexpr bool operator!=(nullptr_t) const { return !operator==(nullptr); }
+        constexpr bool operator==(std::nullptr_t) const { return (UID == juid<uid_type>::invalidUID) || (segmentIndex < 0); }
+        constexpr bool operator!=(std::nullptr_t) const { return !operator==(nullptr); }
 
         constexpr bool operator==(const jpool_pointer& pointer) const;
         constexpr bool operator!=(const jpool_pointer& pointer) const { return !operator==(pointer); }
@@ -152,7 +152,7 @@ namespace jutils
         void _pushNode(const pointer_type& pointer);
     };
 
-    constexpr jpool_pointer& jpool_pointer::operator=(nullptr_t)
+    constexpr jpool_pointer& jpool_pointer::operator=(std::nullptr_t)
     {
         segmentIndex = -1;
         nodeIndex = 0;

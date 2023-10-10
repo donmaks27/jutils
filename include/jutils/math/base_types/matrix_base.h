@@ -88,6 +88,18 @@ struct jutils::string::formatter<jutils::math::matrix<R, C, T>> : std::true_type
     static jstring format(const jutils::math::matrix<R, C, T>& value) noexcept { return jutils::math::matrixToString(value); }
 };
 
+#if defined(JUTILS_USE_FMT)
+template<typename CharT, jutils::math::vector_size_type R, jutils::math::vector_size_type C, typename T>
+    requires jutils::math::is_valid_matrix_v<R, C, T>
+struct fmt::formatter<jutils::math::matrix<R, C, T>, CharT> : fmt::formatter<const char*, CharT>
+{
+    template<typename FormatContext>
+    auto format(const jutils::math::matrix<R, C, T>& value, FormatContext& ctx)
+    {
+        return fmt::formatter<const char*, CharT>::format(*jutils::math::matrixToString(value), ctx);
+    }
+};
+#else
 template<typename CharT, jutils::math::vector_size_type R, jutils::math::vector_size_type C, typename T>
     requires jutils::math::is_valid_matrix_v<R, C, T>
 struct std::formatter<jutils::math::matrix<R, C, T>, CharT> : std::formatter<const char*, CharT>
@@ -98,3 +110,4 @@ struct std::formatter<jutils::math::matrix<R, C, T>, CharT> : std::formatter<con
         return std::formatter<const char*, CharT>::format(*jutils::math::matrixToString(value), ctx);
     }
 };
+#endif

@@ -39,6 +39,17 @@ struct jutils::string::formatter<jutils::math::box<Size, T>> : std::true_type
     static jstring format(const jutils::math::box<Size, T>& value) noexcept { return jutils::math::boxToString(value); }
 };
 
+#if defined(JUTILS_USE_FMT)
+template<typename CharT, jutils::math::vector_size_type Size, typename T> requires jutils::math::is_valid_box_v<Size, T>
+struct fmt::formatter<jutils::math::box<Size, T>, CharT> : fmt::formatter<const char*, CharT>
+{
+    template<typename FormatContext>
+    auto format(const jutils::math::vector<Size, T>& value, FormatContext& ctx)
+    {
+        return fmt::formatter<const char*, CharT>::format(*jutils::math::boxToString(value), ctx);
+    }
+};
+#else
 template<typename CharT, jutils::math::vector_size_type Size, typename T> requires jutils::math::is_valid_box_v<Size, T>
 struct std::formatter<jutils::math::box<Size, T>, CharT> : std::formatter<const char*, CharT>
 {
@@ -48,3 +59,4 @@ struct std::formatter<jutils::math::box<Size, T>, CharT> : std::formatter<const 
         return std::formatter<const char*, CharT>::format(*jutils::math::boxToString(value), ctx);
     }
 };
+#endif

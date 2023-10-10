@@ -128,7 +128,7 @@ namespace jutils
             {
                 return invalidIndex;
             }
-            return index;
+            return static_cast<index_type>(index);
         }
         constexpr index_type indexOf(const character_type* const str, const index_type startIndex = 0, 
             const index_type finishIndex = invalidIndex) const noexcept
@@ -142,7 +142,7 @@ namespace jutils
             {
                 return invalidIndex;
             }
-            return index;
+            return static_cast<index_type>(index);
         }
         constexpr index_type indexOf(const character_type* const str, const index_type strLength, const index_type startIndex, 
             const index_type finishIndex) const noexcept
@@ -156,12 +156,12 @@ namespace jutils
             {
                 return invalidIndex;
             }
-            return index;
+            return static_cast<index_type>(index);
         }
         constexpr index_type indexOf(const base_type& str, const index_type startIndex = 0, 
             const index_type finishIndex = invalidIndex) const noexcept
         {
-            return indexOf(str.c_str(), jutils::math::min(str.size(), maxSize), startIndex, finishIndex);
+            return indexOf(str.c_str(), jutils::math::min(static_cast<index_type>(str.size()), maxSize), startIndex, finishIndex);
         }
         constexpr index_type indexOf(const jstring& str, const index_type startIndex = 0, 
             const index_type finishIndex = invalidIndex) const noexcept

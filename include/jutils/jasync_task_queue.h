@@ -5,6 +5,7 @@
 #include "jarray.h"
 #include "jlist.h"
 
+#include <condition_variable>
 #include <functional>
 #include <mutex>
 
