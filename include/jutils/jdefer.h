@@ -1,3 +1,5 @@
+// Copyright © 2023 Leonov Maksim. All Rights Reserved.
+
 #pragma once
 
 #include <functional>

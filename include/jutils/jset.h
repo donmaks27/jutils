@@ -1,4 +1,4 @@
-﻿// Copyright 2022 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -9,13 +9,13 @@
 namespace jutils
 {
     template<typename T, typename ComparePred = std::less<T>>
-    class jset : private std::set<T, ComparePred>
+    class jset
     {
     public:
 
-        using base_type = std::set<T, ComparePred>;
-        using type = typename base_type::key_type;
-        using key_compare_predicator_type = typename base_type::key_compare;
+        using type = T;
+        using key_compare_predicator_type = ComparePred;
+        using base_type = std::set<type, key_compare_predicator_type>;
         using size_type = typename base_type::size_type;
         
         using const_iterator = typename base_type::const_iterator;
@@ -23,13 +23,13 @@ namespace jutils
 
         jset() noexcept = default;
         jset(const std::initializer_list<type> values)
-            : base_type(values)
+            : _internalData(values)
         {}
         jset(const base_type& value)
-            : base_type(value)
+            : _internalData(value)
         {}
         jset(base_type&& value) noexcept
-            : base_type(std::move(value))
+            : _internalData(std::move(value))
         {}
         jset(const jset&) = default;
         jset(jset&&) noexcept =default;
@@ -37,37 +37,37 @@ namespace jutils
 
         jset& operator=(const std::initializer_list<type> values)
         {
-            base_type::operator=(values);
+            _internalData = values;
             return *this;
         }
         jset& operator=(const base_type& value)
         {
-            base_type::operator=(value);
+            _internalData = value;
             return *this;
         }
         jset& operator=(base_type&& value) noexcept
         {
-            base_type::operator=(std::move(value));
+            _internalData = std::move(value);
             return *this;
         }
         jset& operator=(const jset&) = default;
         jset& operator=(jset&&) noexcept = default;
 
-        const base_type& toBase() const noexcept { return *this; }
+        const base_type& toBase() const noexcept { return _internalData; }
 
-        size_type getSize() const noexcept { return base_type::size(); }
-        bool isEmpty() const noexcept { return base_type::empty(); }
+        size_type getSize() const noexcept { return _internalData.size(); }
+        bool isEmpty() const noexcept { return _internalData.empty(); }
 
-        iterator begin() noexcept { return base_type::begin(); }
-        iterator end() noexcept { return base_type::end(); }
-        const_iterator begin() const noexcept { return base_type::begin(); }
-        const_iterator end() const noexcept { return base_type::end(); }
+        iterator begin() noexcept { return _internalData.begin(); }
+        iterator end() noexcept { return _internalData.end(); }
+        const_iterator begin() const noexcept { return _internalData.begin(); }
+        const_iterator end() const noexcept { return _internalData.end(); }
         
         jset copy() const { return *this; }
         jarray<T> getValues() const
         {
             jarray<T> values;
-            for (const auto& value : *this)
+            for (const auto& value : _internalData)
             {
                 values.add(value);
             }
@@ -76,13 +76,13 @@ namespace jutils
         
         const type* find(const type& value) const noexcept
         {
-            const const_iterator iter = base_type::find(value);
+            const const_iterator iter = _internalData.find(value);
             return iter != end() ? iter.operator->() : nullptr;
         }
         template<typename Pred> requires std::predicate<Pred, type>
         const type* find(Pred pred) const noexcept
         {
-            for (auto& value : *this)
+            for (auto& value : _internalData)
             {
                 if (pred(value))
                 {
@@ -96,8 +96,8 @@ namespace jutils
         template<typename Pred> requires std::predicate<Pred, type>
         bool contains(Pred pred) const noexcept { return find<Pred>(pred) != nullptr; }
 
-        const type& add(const type& value) { return *base_type::insert(value).first; }
-        const type& add(type&& value) { return *base_type::emplace(std::move(value)).first; }
+        const type& add(const type& value) { return *_internalData.insert(value).first; }
+        const type& add(type&& value) { return *_internalData.emplace(std::move(value)).first; }
 
         jset& append(const std::initializer_list<type> values)
         {
@@ -117,28 +117,28 @@ namespace jutils
         }
         jset& append(base_type&& values)
         {
-            base_type::merge(std::move(values));
+            _internalData.merge(std::move(values));
             return *this;
         }
         jset& append(const jset& value) { return append(value.toBase()); }
-        jset& append(jset&& value) { return append(static_cast<base_type&&>(value)); }
+        jset& append(jset&& value) { return append(std::move(value._internalData)); }
 
-        bool remove(const type& value) noexcept { return base_type::erase(value) > 0; }
+        bool remove(const type& value) noexcept { return _internalData.erase(value) > 0; }
         template<typename Pred> requires std::predicate<Pred, type>
         size_type remove(Pred pred) noexcept
         {
             size_type count = 0;
-            for (iterator iter = begin(); iter != end(); ++iter)
+            for (iterator iter = _internalData.begin(); iter != _internalData.end(); ++iter)
             {
                 if (pred(*iter))
                 {
-                    iter = base_type::erase(iter);
+                    iter = _internalData.erase(iter);
                     ++count;
                 }
             }
             return count;
         }
-        void clear() noexcept { base_type::clear(); }
+        void clear() noexcept { _internalData.clear(); }
 
         jset& operator+=(const type& value)
         {
@@ -155,25 +155,29 @@ namespace jutils
         jset& operator+=(base_type&& value) { return append(std::move(value)); }
         jset& operator+=(const jset& value) { return append(value); }
         jset& operator+=(jset&& value) { return append(std::move(value)); }
+
+    private:
+
+        base_type _internalData;
     };
     
     template<typename T, typename Pred>
     jset<T, Pred> operator+(const jset<T, Pred>& value1, const T& value2) { return value1.copy() += value2; }
     template<typename T, typename Pred>
-    jset<T, Pred> operator+(const jset<T, Pred>& value1, T&& value2) { return value1.copy() += std::move(value2); }
+    jset<T, Pred> operator+(const jset<T, Pred>& value1, T&& value2) { return value1.copy() += std::forward(value2); }
     template<typename T, typename Pred>
     jset<T, Pred> operator+(jset<T, Pred>&& value1, const T& value2) { return value1 += value2; }
     template<typename T, typename Pred>
-    jset<T, Pred> operator+(jset<T, Pred>&& value1, T&& value2) { return value1 += std::move(value2); }
+    jset<T, Pred> operator+(jset<T, Pred>&& value1, T&& value2) { return value1 += std::forward(value2); }
 
     template<typename T, typename Pred>
     jset<T, Pred> operator+(const T& value1, const jset<T, Pred>& value2) { return value2.copy() += value1; }
     template<typename T, typename Pred>
     jset<T, Pred> operator+(const T& value1, jset<T, Pred>&& value2) { return value2 += value1; }
     template<typename T, typename Pred>
-    jset<T, Pred> operator+(T&& value1, const jset<T, Pred>& value2) { return value2.copy() += std::move(value1); }
+    jset<T, Pred> operator+(T&& value1, const jset<T, Pred>& value2) { return value2.copy() += std::forward(value1); }
     template<typename T, typename Pred>
-    jset<T, Pred> operator+(T&& value1, jset<T, Pred>&& value2) { return value2 += std::move(value1); }
+    jset<T, Pred> operator+(T&& value1, jset<T, Pred>&& value2) { return value2 += std::forward(value1); }
 
     template<typename T, typename Pred>
     jset<T, Pred> operator+(const jset<T, Pred>& value1, const jset<T, Pred>& value2) { return value1.copy() += value2; }
@@ -182,5 +186,5 @@ namespace jutils
     template<typename T, typename Pred>
     jset<T, Pred> operator+(jset<T, Pred>&& value1, const jset<T, Pred>& value2) { return value1 += value2; }
     template<typename T, typename Pred>
-    jset<T, Pred> operator+(jset<T, Pred>&& value1, jset<T, Pred>&& value2) { return value1 += std::move(value2); }
+    jset<T, Pred> operator+(jset<T, Pred>&& value1, jset<T, Pred>&& value2) { return value1 += std::forward(value2); }
 }

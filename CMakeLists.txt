@@ -20,6 +20,7 @@ else()
 endif()
 
 list(APPEND JUTILS_HEADER_FILES
+    include/jutils/base_types.h
     include/jutils/jarray.h
     include/jutils/jasync_task_queue.h
     include/jutils/jdelegate.h
@@ -38,7 +39,6 @@ list(APPEND JUTILS_HEADER_FILES
     include/jutils/jstringID.h
     include/jutils/juid.h
     include/jutils/log.h
-    include/jutils/type_defines.h
     include/jutils/type_traits.h
 
     include/jutils/math/math.h

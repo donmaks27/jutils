@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../type_defines.h"
+#include "../base_types.h"
 
 #include <cmath>
 #include <concepts>

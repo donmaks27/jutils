@@ -13,7 +13,7 @@ namespace jutils
     constexpr jarray_index_type jarrayInvalidIndex = -1;
 
     template<typename T>
-    class jarray : private std::vector<T>
+    class jarray
     {
     public:
         
@@ -29,23 +29,23 @@ namespace jutils
 
         constexpr jarray() noexcept = default;
         constexpr explicit jarray(const size_type count)
-            : base_type(count)
+            : _internalData(count)
         {}
         constexpr jarray(const size_type count, const type& defaultValue)
-            : base_type(count, defaultValue)
+            : _internalData(count, defaultValue)
         {}
         constexpr jarray(const std::initializer_list<type> values)
-            : base_type(values)
+            : _internalData(values)
         {
             _correctSize();
         }
         constexpr jarray(const base_type& value)
-            : base_type(value)
+            : _internalData(value)
         {
             _correctSize();
         }
         constexpr jarray(base_type&& value) noexcept
-            : base_type(std::move(value))
+            : _internalData(std::move(value))
         {
             _correctSize();
         }
@@ -55,54 +55,57 @@ namespace jutils
 
         constexpr jarray& operator=(const std::initializer_list<type> values)
         {
-            base_type::operator=(values);
+            _internalData = values;
             _correctSize();
             return *this;
         }
         constexpr jarray& operator=(const base_type& value)
         {
-            base_type::operator=(value);
+            _internalData = value;
             _correctSize();
             return *this;
         }
         constexpr jarray& operator=(base_type&& value) noexcept
         {
-            base_type::operator=(std::move(value));
+            _internalData = std::move(value);
             _correctSize();
             return *this;
         }
         constexpr jarray& operator=(const jarray& value) = default;
         constexpr jarray& operator=(jarray&& value) noexcept = default;
 
-        constexpr const base_type& toBase() const noexcept { return *this; }
+        constexpr const base_type& toBase() const noexcept { return _internalData; }
 
-        constexpr size_type getSize() const noexcept { return static_cast<size_type>(jutils::math::min(base_type::size(), maxSize)); }
-        constexpr bool isEmpty() const noexcept { return base_type::empty(); }
+        constexpr size_type getSize() const noexcept
+        {
+            return static_cast<size_type>(jutils::math::min(_internalData.size(), maxSize));
+        }
+        constexpr bool isEmpty() const noexcept { return _internalData.empty(); }
         constexpr bool isValidIndex(const size_type index) const noexcept
         {
-            return (index >= 0) && (static_cast<typename base_type::size_type>(index) < base_type::size());
+            return (index >= 0) && (static_cast<typename base_type::size_type>(index) < _internalData.size());
         }
         
-        constexpr iterator begin() noexcept { return base_type::begin(); }
-        constexpr iterator end() noexcept { return base_type::end(); }
+        constexpr iterator begin() noexcept { return _internalData.begin(); }
+        constexpr iterator end() noexcept { return _internalData.end(); }
         
-        constexpr const_iterator begin() const noexcept { return base_type::begin(); }
-        constexpr const_iterator end() const noexcept { return base_type::end(); }
+        constexpr const_iterator begin() const noexcept { return _internalData.begin(); }
+        constexpr const_iterator end() const noexcept { return _internalData.end(); }
 
-        constexpr type* getData() noexcept { return base_type::data(); }
-        constexpr const type* getData() const noexcept { return base_type::data(); }
+        constexpr type* getData() noexcept { return _internalData.data(); }
+        constexpr const type* getData() const noexcept { return _internalData.data(); }
 
         constexpr jarray copy() const { return *this; }
         
-        constexpr type& get(const size_type index) noexcept { return base_type::operator[](index); }
-        constexpr const type& get(const size_type index) const noexcept { return base_type::operator[](index); }
+        constexpr type& get(const size_type index) noexcept { return _internalData[index]; }
+        constexpr const type& get(const size_type index) const noexcept { return _internalData[index]; }
         constexpr type& operator[](const size_type index) noexcept { return get(index); }
         constexpr const type& operator[](const size_type index) const noexcept { return get(index); }
 
-        constexpr type& getFirst() noexcept { return base_type::front(); }
-        constexpr type& getLast() noexcept { return base_type::back(); }
-        constexpr const type& getFirst() const noexcept { return base_type::front(); }
-        constexpr const type& getLast() const noexcept { return base_type::back(); }
+        constexpr type& getFirst() noexcept { return _internalData.front(); }
+        constexpr type& getLast() noexcept { return _internalData.back(); }
+        constexpr const type& getFirst() const noexcept { return _internalData.front(); }
+        constexpr const type& getLast() const noexcept { return _internalData.back(); }
         
         constexpr size_type indexOf(const type& value) const noexcept
         {
@@ -157,20 +160,29 @@ namespace jutils
         template<typename Pred> requires std::predicate<Pred, type>
         constexpr size_type contains(Pred pred) const noexcept { return indexOf(pred) != invalidIndex; }
 
-        constexpr void reserve(const size_type capacity) { base_type::reserve(jutils::math::max(capacity, 0)); }
-        constexpr void resize(const size_type size, const type& defaultValue = type()) { base_type::resize(jutils::math::max(size, 0), defaultValue); }
+        constexpr void reserve(const size_type capacity)
+        {
+            _internalData.reserve(jutils::math::max(capacity, 0));
+        }
+        constexpr void resize(const size_type size, const type& defaultValue = type())
+        {
+            _internalData.resize(jutils::math::max(size, 0), defaultValue);
+        }
 
         template<typename... Args>
         constexpr type& putBack(Args&&... args)
         {
             _checkSize();
-            return base_type::emplace_back(std::forward<Args>(args)...);
+            return _internalData.emplace_back(std::forward<Args>(args)...);
         }
         template<typename... Args>
         constexpr type& putAt(const size_type index, Args&&... args)
         {
             _checkSize();
-            return base_type::emplace(std::next(base_type::begin(), jutils::math::clamp(index, 0, getSize())), std::forward<Args>(args)...);
+            return _internalData.emplace(
+                std::next(_internalData.begin(), jutils::math::clamp(index, 0, getSize())),
+                std::forward<Args>(args)...
+            );
         }
 
         constexpr type& add(const type& value) { return putBack(value); }
@@ -193,7 +205,7 @@ namespace jutils
 
         constexpr jarray& append(const std::initializer_list<type> values)
         {
-            base_type::insert(end(), values);
+            _internalData.insert(end(), values);
             _correctSize();
             return *this;
         }
@@ -201,7 +213,7 @@ namespace jutils
         {
             if (this != &value)
             {
-                base_type::insert(end(), value.begin(), value.end());
+                _internalData.insert(end(), value.begin(), value.end());
                 _correctSize();
             }
             return *this;
@@ -217,11 +229,11 @@ namespace jutils
                 count = jutils::math::min(count, size - index);
                 if (count == 1)
                 {
-                    base_type::erase(std::next(begin(), index));
+                    _internalData.erase(std::next(begin(), index));
                 }
                 else if (count > 1)
                 {
-                    base_type::erase(std::next(begin(), index), std::next(begin(), index + count));
+                    _internalData.erase(std::next(begin(), index), std::next(begin(), index + count));
                 }
             }
         }
@@ -229,21 +241,21 @@ namespace jutils
         {
             if (!isEmpty())
             {
-                base_type::erase(begin());
+                _internalData.erase(begin());
             }
         }
         constexpr void removeLast() noexcept
         {
             if (!isEmpty())
             {
-                base_type::erase(end() - 1);
+                _internalData.erase(end() - 1);
             }
         }
-        constexpr size_type remove(const type& value) noexcept { return static_cast<size_type>(std::erase(*this, value)); }
+        constexpr size_type remove(const type& value) noexcept { return static_cast<size_type>(std::erase(_internalData, value)); }
         template<typename Pred> requires std::predicate<Pred, type>
-        constexpr size_type remove(Pred pred) noexcept { return static_cast<size_type>(std::erase_if(*this, pred)); }
+        constexpr size_type remove(Pred pred) noexcept { return static_cast<size_type>(std::erase_if(_internalData, pred)); }
 
-        constexpr void clear() noexcept { base_type::clear(); }
+        constexpr void clear() noexcept { _internalData.clear(); }
 
         constexpr jarray& operator+=(const type& value)
         {
@@ -261,11 +273,14 @@ namespace jutils
         
     private:
 
+        base_type _internalData;
+
+
         constexpr void _correctSize() noexcept
         {
-            if (base_type::size() > static_cast<typename base_type::size_type>(maxSize))
+            if (_internalData.size() > static_cast<typename base_type::size_type>(maxSize))
             {
-                base_type::resize(maxSize);
+                _internalData.resize(maxSize);
             }
         }
         constexpr void _checkSize() const
@@ -280,11 +295,11 @@ namespace jutils
     template<typename T>
     jarray<T> operator+(const jarray<T>& container, const T& value) { return container.copy() += value; }
     template<typename T>
-    jarray<T> operator+(const jarray<T>& container, T&& value) { return container.copy() += std::move(value); }
+    jarray<T> operator+(const jarray<T>& container, T&& value) { return container.copy() += std::forward(value); }
     template<typename T>
     jarray<T> operator+(jarray<T>&& container, const T& value) { return container += value; }
     template<typename T>
-    jarray<T> operator+(jarray<T>&& container, T&& value) { return container += std::move(value); }
+    jarray<T> operator+(jarray<T>&& container, T&& value) { return container += std::forward(value); }
 
     template<typename T>
     jarray<T> operator+(const T& value, const jarray<T>& container) { return jarray<T>(1, value) += container; }

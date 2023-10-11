@@ -1,15 +1,11 @@
-﻿// Copyright 2022 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
-#include "type_defines.h"
+#include "base_types.h"
 
 #include <utility>
 #include <new>
-
-#ifdef JUTILS_DEBUG_NEW
-    #undef new
-#endif
 
 namespace jutils
 {
@@ -53,7 +49,3 @@ namespace jutils
         }
     }
 }
-
-#ifdef JUTILS_DEBUG_NEW
-    #define new JUTILS_DEBUG_NEW
-#endif

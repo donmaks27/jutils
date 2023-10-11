@@ -59,7 +59,7 @@ namespace jutils
         {
             if ((object != nullptr) && (delegate_container != nullptr))
             {
-                const jdelegate_container_implementation<T>* container = dynamic_cast<const jdelegate_container_implementation<T>*>(delegate_container);
+                const auto* container = dynamic_cast<const jdelegate_container_implementation<T>*>(delegate_container);
                 if (container != nullptr)
                 {
                     return container->isBinded(object, function);
@@ -72,7 +72,7 @@ namespace jutils
         {
             if ((object != nullptr) && (delegate_container != nullptr))
             {
-                const jdelegate_container_implementation<T>* container = dynamic_cast<const jdelegate_container_implementation<T>*>(delegate_container);
+                const auto* container = dynamic_cast<const jdelegate_container_implementation<T>*>(delegate_container);
                 if (container != nullptr)
                 {
                     return container->isBinded(object);

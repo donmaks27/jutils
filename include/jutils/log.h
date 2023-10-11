@@ -1,4 +1,4 @@
-// Copyright 2021 Leonov Maksim. All Rights Reserved.
+// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -14,9 +14,9 @@
 
 #ifndef JUTILS_LOG_DISABLED
     #if !defined(_MSC_VER) && defined(__FILE_NAME__)
-        #define _JUTILS_FILENAME __FILE_NAME__
+        #define JUTILS_FILENAME __FILE_NAME__
     #else
-        #define _JUTILS_FILENAME __FILE__
+        #define JUTILS_FILENAME __FILE__
     #endif
 #endif
 
@@ -63,11 +63,11 @@ JUTILS_STRING_FORMATTER(jutils::log::verbosityLevel, jutils::log::verbosityLevel
 #ifndef JUTILS_LOG_DISABLED
 
 #define JUTILS_LOG(type, formatStr, ...) jutils::log::print(JSTR_FORMAT(                                                    \
-        JSTR("{} {}({}): {}\n"), jutils::log::verbosityLevel::type, static_cast<const char*>(_JUTILS_FILENAME), __LINE__,   \
+        JSTR("{} {}({}): {}\n"), jutils::log::verbosityLevel::type, static_cast<const char*>(JUTILS_FILENAME), __LINE__,   \
             JSTR_FORMAT(formatStr, __VA_ARGS__)                                                                             \
     ))
 #define JUTILS_ERROR_LOG(errorCode, formatStr, ...) jutils::log::print(JSTR_FORMAT(                                         \
-        JSTR("{} {}({}): Code {:#x}. {}\n"), jutils::log::verbosityLevel::error, static_cast<const char*>(_JUTILS_FILENAME),\
+        JSTR("{} {}({}): Code {:#x}. {}\n"), jutils::log::verbosityLevel::error, static_cast<const char*>(JUTILS_FILENAME),\
             __LINE__, static_cast<jutils::int64>(errorCode), JSTR_FORMAT(formatStr, __VA_ARGS__)                            \
     ))
 

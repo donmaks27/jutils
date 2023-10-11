@@ -1,8 +1,8 @@
-﻿// Copyright 2022 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022-2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
-#include "type_defines.h"
+#include "base_types.h"
 #include "jmemory.h"
 
 namespace jutils

@@ -3,7 +3,10 @@
 #pragma once
 
 #include "jarray.h"
+#include "jmemory.h"
 #include "juid.h"
+
+#include <cstring>
 
 namespace jutils
 {

@@ -255,15 +255,13 @@ namespace jutils
             std::unique_lock lock(tasksQueueMutex);
             if (worker->shouldStop)
             {
-                lock.unlock();
                 break;
             }
-            if (tasksQueue.isEmpty())
+            while (tasksQueue.isEmpty())
             {
                 taskAvailableCondition.wait(lock);
                 if (worker->shouldStop)
                 {
-                    lock.unlock();
                     break;
                 }
             }
