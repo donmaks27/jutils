@@ -394,6 +394,21 @@ namespace jutils
         template<typename T> requires has_jstring_formatter_v<T>
         constexpr jstring toString(T value) noexcept { return formatter<T>::format(value); }
 
+        template<typename T> requires has_jstring_formatter_v<T>
+        constexpr jstring join(const jarray<T>& values, const jstring& separator = "")
+        {
+            if (values.isEmpty())
+            {
+                return "";
+            }
+            jstring result = toString(values[0]);
+            for (typename jarray<T>::size_type index = 1; index < values.getSize(); index++)
+            {
+                result += separator + toString(values[index]);
+            }
+            return result;
+        }
+
 #if defined(JUTILS_USE_FMT)
         template<typename T, typename Ctx = fmt::format_context>
         struct has_formatter
