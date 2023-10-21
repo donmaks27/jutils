@@ -257,13 +257,18 @@ namespace jutils
             {
                 break;
             }
-            while (tasksQueue.isEmpty())
+            bool shouldStopWorker = false;
+            while (!shouldStopWorker && tasksQueue.isEmpty())
             {
                 taskAvailableCondition.wait(lock);
                 if (worker->shouldStop)
                 {
-                    break;
+                    shouldStopWorker = true;
                 }
+            }
+            if (shouldStopWorker)
+            {
+                break;
             }
             const task_description task = tasksQueue.getFirst();
             tasksQueue.removeFirst();
