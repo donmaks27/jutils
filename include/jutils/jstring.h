@@ -12,6 +12,7 @@
     #include <format>
 #endif
 #include <string>
+#include <regex>
 
 namespace jutils
 {
@@ -105,6 +106,8 @@ namespace jutils
         constexpr character_type* operator*() noexcept { return getData(); }
         constexpr const character_type* operator*() const noexcept { return getData(); }
 
+        constexpr jstring copy() const noexcept { return *this; }
+
         constexpr character_type& get(const index_type index) noexcept
         {
             return _internalString[index < 0 ? base_type::npos : index];
@@ -116,8 +119,9 @@ namespace jutils
         constexpr character_type& operator[](const index_type index) noexcept { return get(index); }
         constexpr const character_type& operator[](const index_type index) const noexcept { return get(index); }
 
-        constexpr index_type indexOf(const character_type character, const index_type startIndex = 0, 
-            const index_type finishIndex = invalidIndex) const noexcept
+
+
+        constexpr index_type indexOf(const character_type character, const index_type startIndex = 0, const index_type finishIndex = invalidIndex) const noexcept
         {
             const base_type::size_type index = _internalString.find(character, jutils::math::max(startIndex, 0));
             if (index > static_cast<base_type::size_type>(maxSize))
@@ -130,45 +134,19 @@ namespace jutils
             }
             return static_cast<index_type>(index);
         }
-        constexpr index_type indexOf(const character_type* const str, const index_type startIndex = 0, 
-            const index_type finishIndex = invalidIndex) const noexcept
+        constexpr index_type indexOf(const character_type* const str, const index_type startIndex = 0, const index_type finishIndex = invalidIndex) const noexcept
         {
-            const base_type::size_type index = _internalString.find(str, jutils::math::max(startIndex, 0));
-            if (index > static_cast<base_type::size_type>(maxSize))
-            {
-                return invalidIndex;
-            }
-            if ((finishIndex >= 0) && (static_cast<base_type::size_type>(finishIndex) < index))
-            {
-                return invalidIndex;
-            }
-            return static_cast<index_type>(index);
+            return _indexOf(str, std::char_traits<character_type>::length(str), startIndex, finishIndex);
         }
-        constexpr index_type indexOf(const character_type* const str, const index_type strLength, const index_type startIndex, 
-            const index_type finishIndex) const noexcept
+        constexpr index_type indexOf(const base_type& str, const index_type startIndex = 0, const index_type finishIndex = invalidIndex) const noexcept
         {
-            const base_type::size_type index = _internalString.find(str, jutils::math::max(0, startIndex), jutils::math::max(strLength, 0));
-            if (index > static_cast<base_type::size_type>(maxSize))
-            {
-                return invalidIndex;
-            }
-            if ((finishIndex >= 0) && (static_cast<base_type::size_type>(finishIndex) < index))
-            {
-                return invalidIndex;
-            }
-            return static_cast<index_type>(index);
+            return _indexOf(str.c_str(), str.size(), startIndex, finishIndex);
         }
-        constexpr index_type indexOf(const base_type& str, const index_type startIndex = 0, 
-            const index_type finishIndex = invalidIndex) const noexcept
+        constexpr index_type indexOf(const jstring& str, const index_type startIndex = 0, const index_type finishIndex = invalidIndex) const noexcept
         {
-            return indexOf(str.c_str(), jutils::math::min(static_cast<index_type>(str.size()), maxSize), startIndex, finishIndex);
+            return indexOf(*str, startIndex, finishIndex);
         }
-        constexpr index_type indexOf(const jstring& str, const index_type startIndex = 0, 
-            const index_type finishIndex = invalidIndex) const noexcept
-        {
-            return indexOf(*str, str.getSize(), startIndex, finishIndex);
-        }
-        
+
         constexpr bool contains(const character_type character, const index_type startIndex = 0, const index_type finishIndex = invalidIndex) const noexcept
         {
             return indexOf(character, startIndex, finishIndex) != invalidIndex;
@@ -177,19 +155,33 @@ namespace jutils
         {
             return indexOf(str, startIndex, finishIndex) != invalidIndex;
         }
-        constexpr bool contains(const character_type* const str, const index_type strLength, const index_type startIndex, const int32 finishIndex) const noexcept
-        {
-            return indexOf(str, strLength, startIndex, finishIndex) != invalidIndex;
-        }
         constexpr bool contains(const std::string& str, const index_type startIndex = 0, const index_type finishIndex = invalidIndex) const noexcept
         {
-            return indexOf(str.c_str(), jutils::math::min(static_cast<index_type>(str.size()), maxSize), startIndex, finishIndex) != invalidIndex;
+            return indexOf(str, startIndex, finishIndex) != invalidIndex;
         }
         constexpr bool contains(const jstring& str, const index_type startIndex = 0, const index_type finishIndex = invalidIndex) const noexcept
         {
-            return indexOf(*str, str.getSize(), startIndex, finishIndex) != invalidIndex;
+            return indexOf(*str, startIndex, finishIndex) != invalidIndex;
         }
-        
+
+        constexpr bool startsWith(const character_type character) const noexcept { return (getSize() > 0) && (get(0) == character); }
+        constexpr bool startsWith(const character_type* const str) const noexcept { return indexOf(str) == 0; }
+        constexpr bool startsWith(const base_type& str) const noexcept { return indexOf(str) == 0; }
+        constexpr bool startsWith(const jstring& str) const noexcept { return indexOf(str) == 0; }
+
+        constexpr bool endsWith(const character_type character) const noexcept { return (getSize() > 0) && (get(getSize() - 1) == character); }
+        constexpr bool endsWith(const character_type* const str) const noexcept
+        {
+            return contains(str, getSize() - static_cast<index_type>(std::char_traits<character_type>::length(str)));
+        }
+        constexpr bool endsWith(const base_type& str) const noexcept { return contains(str, getSize() - static_cast<index_type>(str.size())); }
+        constexpr bool endsWith(const jstring& str) const noexcept { return contains(str, getSize() - str.getSize()); }
+
+        constexpr int compare(const character_type* const str) const noexcept { return _internalString.compare(str); }
+        constexpr int compare(const std::string& str) const noexcept { return _internalString.compare(str); }
+        constexpr int compare(const jstring& str) const noexcept { return _internalString.compare(*str); }
+
+
         constexpr jstring substr(const index_type startIndex = 0, const index_type length = invalidIndex) const noexcept
         {
             if (length == 0)
@@ -211,20 +203,158 @@ namespace jutils
         {
             return _split(delimiter, static_cast<index_type>(std::char_traits<character_type>::length(delimiter)));
         }
-        constexpr jarray<jstring> split(const character_type* delimiter, const index_type delimiterLength) const
-        {
-            return _split(delimiter, delimiterLength);
-        }
         constexpr jarray<jstring> split(const std::string& delimiter) const
         {
             return _split(delimiter, static_cast<index_type>(delimiter.size()));
         }
         constexpr jarray<jstring> split(const jstring& delimiter) const { return _split(delimiter, delimiter.getSize()); }
 
-        constexpr int compare(const character_type* const str) const noexcept { return _internalString.compare(str); }
-        constexpr int compare(const std::string& str) const noexcept { return _internalString.compare(str); }
-        constexpr int compare(const jstring& str) const noexcept { return _internalString.compare(*str); }
-        
+
+        constexpr jstring& insert(const character_type value, const index_type index, const index_type length = 0)
+        {
+            return _insert(std::string() + value, 1, index, length);
+        }
+        constexpr jstring& insert(const character_type* value, const index_type index, const index_type length = 0)
+        {
+            return _insert(value, std::char_traits<character_type>::length(value), index, length);
+        }
+        constexpr jstring& insert(const std::string& value, const index_type index, const index_type length = 0)
+        {
+            return _insert(value.c_str(), value.size(), index, length);
+        }
+        constexpr jstring& insert(const jstring& value, const index_type index, const index_type length = 0)
+        {
+            return insert(value.toBase(), index, length);
+        }
+
+
+        constexpr jstring& replaceAll(const character_type searchValue, const character_type newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return replaceAll(std::string() + searchValue, newValue, startIndex, finishIndex);
+        }
+        constexpr jstring& replaceAll(const character_type searchValue, const character_type* const newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return replaceAll(std::string() + searchValue, newValue, startIndex, finishIndex);
+        }
+        constexpr jstring& replaceAll(const character_type searchValue, const std::string& newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return replaceAll(std::string() + searchValue, newValue, startIndex, finishIndex);
+        }
+        constexpr jstring& replaceAll(const character_type searchValue, const jstring& newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return replaceAll(std::string() + searchValue, newValue, startIndex, finishIndex);
+        }
+
+        constexpr jstring& replaceAll(const character_type* const searchValue, const character_type newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return replaceAll(searchValue, jstring() += newValue, startIndex, finishIndex);
+        }
+        constexpr jstring& replaceAll(const character_type* const searchValue, const character_type* const newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return _replaceAll(
+                searchValue, std::char_traits<character_type>::length(searchValue),
+                newValue, static_cast<index_type>(std::char_traits<character_type>::length(newValue)),
+                startIndex, finishIndex
+            );
+        }
+        constexpr jstring& replaceAll(const character_type* const searchValue, const std::string& newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return _replaceAll(
+                searchValue, std::char_traits<character_type>::length(searchValue),
+                newValue.c_str(), static_cast<index_type>(newValue.size()),
+                startIndex, finishIndex
+            );
+        }
+        constexpr jstring& replaceAll(const character_type* const searchValue, const jstring& newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return _replaceAll(
+                searchValue, std::char_traits<character_type>::length(searchValue),
+                newValue.getData(), newValue.getSize(),
+                startIndex, finishIndex
+            );
+        }
+
+        constexpr jstring& replaceAll(const std::string& searchValue, const character_type newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return replaceAll(searchValue, jstring() += newValue, startIndex, finishIndex);
+        }
+        constexpr jstring& replaceAll(const std::string& searchValue, const character_type* const newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return _replaceAll(
+                searchValue.c_str(), searchValue.size(),
+                newValue, static_cast<index_type>(std::char_traits<character_type>::length(newValue)),
+                startIndex, finishIndex
+            );
+        }
+        constexpr jstring& replaceAll(const std::string& searchValue, const std::string& newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return _replaceAll(
+                searchValue.c_str(), searchValue.size(),
+                newValue.c_str(), static_cast<index_type>(newValue.size()),
+                startIndex, finishIndex
+            );
+        }
+        constexpr jstring& replaceAll(const std::string& searchValue, const jstring& newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return _replaceAll(
+                searchValue.c_str(), searchValue.size(),
+                newValue.getData(), newValue.getSize(),
+                startIndex, finishIndex
+            );
+        }
+
+        constexpr jstring& replaceAll(const jstring& searchValue, const character_type newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return replaceAll(searchValue.toBase(), newValue, startIndex, finishIndex);
+        }
+        constexpr jstring& replaceAll(const jstring& searchValue, const character_type* const newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return replaceAll(searchValue.toBase(), newValue, startIndex, finishIndex);
+        }
+        constexpr jstring& replaceAll(const jstring& searchValue, const std::string& newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return replaceAll(searchValue.toBase(), newValue, startIndex, finishIndex);
+        }
+        constexpr jstring& replaceAll(const jstring& searchValue, const jstring& newValue,
+            const index_type startIndex = 0, const index_type finishIndex = invalidIndex)
+        {
+            return replaceAll(searchValue.toBase(), newValue, startIndex, finishIndex);
+        }
+
+        constexpr jstring& replaceAll(const std::basic_regex<character_type>& searchRegex, const character_type newValue)
+        {
+            return replaceAll(searchRegex, std::string() + newValue);
+        }
+        constexpr jstring& replaceAll(const std::basic_regex<character_type>& searchRegex, const character_type* const newValue)
+        {
+            return _replaceAll(searchRegex, newValue);
+        }
+        constexpr jstring& replaceAll(const std::basic_regex<character_type>& searchRegex, const std::string& newValue)
+        {
+            return _replaceAll(searchRegex, newValue);
+        }
+        constexpr jstring& replaceAll(const std::basic_regex<character_type>& searchRegex, const jstring& newValue)
+        {
+            return replaceAll(searchRegex, newValue.toBase());
+        }
+
+
+
         constexpr void reserve(const index_type size) { _internalString.reserve(jutils::math::max(size, 0)); }
         constexpr void resize(const index_type size, const character_type character = character_type())
         {
@@ -351,6 +481,20 @@ namespace jutils
         }
 
         template<typename T>
+        constexpr index_type _indexOf(const T str, const std::size_t strLength, const index_type startIndex, const index_type finishIndex) const noexcept
+        {
+            const base_type::size_type index = _internalString.find(str, jutils::math::max(0, startIndex), jutils::math::max(strLength, 0));
+            if (index > static_cast<base_type::size_type>(maxSize))
+            {
+                return invalidIndex;
+            }
+            if ((finishIndex >= 0) && (static_cast<base_type::size_type>(finishIndex) < index))
+            {
+                return invalidIndex;
+            }
+            return static_cast<index_type>(index);
+        }
+        template<typename T>
         constexpr jarray<jstring> _split(T delimiter, const index_type delimiterSize) const
         {
             if (isEmpty())
@@ -376,6 +520,41 @@ namespace jutils
                     return result;
                 }
             }
+        }
+        template<typename T>
+        constexpr jstring& _insert(const T value, const std::size_t valueLength, const index_type index, const index_type length)
+        {
+            if (index == getSize())
+            {
+                return add(value);
+            }
+            if (index < getSize())
+            {
+                _internalString.replace(index, math::max(length, 0), value, valueLength);
+            }
+            return *this;
+        }
+
+        template<typename T>
+        constexpr jstring& _replaceAll(const character_type* const searchValue, const std::size_t searchValueLength,
+            const T newValue, const index_type newValueLength,
+            const index_type startIndex, index_type finishIndex)
+        {
+            const index_type finishIndexDiff = -static_cast<index_type>(searchValueLength) + newValueLength;
+            index_type index = _indexOf(searchValue, searchValueLength, startIndex, finishIndex);
+            while (index != invalidIndex)
+            {
+                insert(newValue, index, searchValueLength);
+                finishIndex += finishIndexDiff;
+                index = _indexOf(searchValue, searchValueLength, index + newValueLength, finishIndex);
+            }
+            return *this;
+        }
+        template<typename T>
+        constexpr jstring& _replaceAll(const std::basic_regex<character_type>& searchRegex, const T newValue)
+        {
+            _internalString = std::regex_replace(_internalString, searchRegex, newValue);
+            return *this;
         }
     };
 
