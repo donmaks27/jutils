@@ -4,13 +4,10 @@
 
 #include "json.h"
 
-namespace jutils
+namespace jutils::json
 {
-    namespace json
-    {
-        jstring serialize(const json_value& data);
+    jstring serialize(const json::value& data, bool prettyPrint = false);
 
-        json_value parse(const jstring& data);
-        json_value parseFile(const jstring& filePath);
-    }
+    json::value parse(const jstring& data);
+    json::value parseFile(const jstring& filePath);
 }

@@ -6,98 +6,95 @@
 #include <sstream>
 #include <nlohmann/json.hpp>
 
-namespace jutils
+namespace jutils::json
 {
-    namespace json
-    {
-        json_value parse(const nlohmann::json& config);
-        nlohmann::json toNlohmannJSON(const json_value& data);
+    json::value parse(const nlohmann::json& config);
+    nlohmann::json toNlohmannJSON(const json::value& data);
 
-        jstring serialize(const json_value& data)
+    jstring serialize(const json::value& data, const bool prettyPrint)
+    {
+        return toNlohmannJSON(data).dump(prettyPrint ? 4 : -1);
+    }
+    nlohmann::json toNlohmannJSON(const json::value& data)
+    {
+        if (data != nullptr)
         {
-            return jstring(toNlohmannJSON(data).dump());
-        }
-        nlohmann::json toNlohmannJSON(const json_value& data)
-        {
-            if (data != nullptr)
+            switch (data->getType())
             {
-                switch (data->getType())
+            case type::boolean: return data->asBool();
+            case type::number: return data->asNumber();
+            case type::string: return data->asString().toBase();
+            case type::array:
                 {
-                case json_value_type::boolean: return data->asBool();
-                case json_value_type::number: return data->asNumber();
-                case json_value_type::string: return data->asString().toBase();
-                case json_value_type::array:
+                    nlohmann::json config;
+                    for (const auto& jsonValue : data->asArray())
                     {
-                        nlohmann::json config;
-                        for (const auto& jsonValue : data->asArray())
-                        {
-                            config.push_back(toNlohmannJSON(jsonValue));
-                        }
-                        return config;
+                        config.push_back(toNlohmannJSON(jsonValue));
                     }
-                case json_value_type::object:
-                    {
-                        nlohmann::json config;
-                        for (const auto& jsonPair : data->asObject())
-                        {
-                            config[jsonPair.first.toString().toBase()] = toNlohmannJSON(jsonPair.second);
-                        }
-                        return config;
-                    }
-                default: ;
+                    return config;
                 }
+            case type::object:
+                {
+                    nlohmann::json config;
+                    for (const auto& jsonPair : data->asObject())
+                    {
+                        config[jsonPair.first.toString().toBase()] = toNlohmannJSON(jsonPair.second);
+                    }
+                    return config;
+                }
+            default: ;
             }
+        }
+        return nullptr;
+    }
+
+    json::value parse(const jstring& data)
+    {
+        return parse(nlohmann::json::parse(std::istringstream(data.toBase())));
+    }
+    json::value parseFile(const jstring& filePath)
+    {
+        std::ifstream file(*filePath);
+        if (!file.is_open())
+        {
             return nullptr;
         }
-
-        json_value parse(const jstring& data)
+        const nlohmann::json config = nlohmann::json::parse(file);
+        file.close();
+        return parse(config);
+    }
+    json::value parse(const nlohmann::json& config)
+    {
+        if (config.is_null())
         {
-            return parse(nlohmann::json::parse(std::istringstream(data.toBase())));
+            return createValue<type::null>();
         }
-        json_value parseFile(const jstring& filePath)
+        if (config.is_boolean())
         {
-            std::ifstream file(*filePath);
-            if (!file.is_open())
-            {
-                return nullptr;
-            }
-            const nlohmann::json config = nlohmann::json::parse(file);
-            file.close();
-            return parse(config);
+            return createValue<type::boolean>(config.get<bool>());
         }
-        json_value parse(const nlohmann::json& config)
+        if (config.is_number())
         {
-            if (config.is_null())
-            {
-                return createJsonValue<json_value_type::null>();
-            }
-            if (config.is_boolean())
-            {
-                return createJsonValue<json_value_type::boolean>(config.get<bool>());
-            }
-            if (config.is_number())
-            {
-                return createJsonValue<json_value_type::number>(config.get<double>());
-            }
-            if (config.is_string())
-            {
-                return createJsonValue<json_value_type::string>(jstring(config.get<std::string>()));
-            }
-            if (config.is_array())
-            {
-                json_value_array jsonArray = createJsonValue<json_value_type::array>();
-                for (const auto& arrayValue : config)
-                {
-                    jsonArray->get().add(parse(arrayValue));
-                }
-                return jsonArray;
-            }
-            json_value_object jsonObject = createJsonValue<json_value_type::object>();
-            for (const auto& [key, value] : config.items())
-            {
-                jsonObject->get().add(jstring(key), parse(value));
-            }
-            return jsonObject;
+            return createValue<type::number>(config.get<double>());
         }
+        if (config.is_string())
+        {
+            return createValue<type::string>(jstring(config.get<std::string>()));
+        }
+        if (config.is_array())
+        {
+            value_array jsonArray = createValue<type::array>();
+            for (const auto& arrayValue : config)
+            {
+                jsonArray->get().add(parse(arrayValue));
+            }
+            return jsonArray;
+        }
+        value_object jsonObject = createValue<type::object>();
+        for (const auto& [key, value] : config.items())
+        {
+            jsonObject->get().add(jstring(key), parse(value));
+        }
+        return jsonObject;
     }
 }

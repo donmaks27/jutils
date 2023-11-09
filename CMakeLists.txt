@@ -53,11 +53,11 @@ list(APPEND JUTILS_HEADER_FILES
     include/jutils/math/matrix2x3.h
     include/jutils/math/matrix2x4.h
     include/jutils/math/matrix3.h
-    include/jutils/math/matrix3x3.h
+    include/jutils/math/matrix3x2.h
     include/jutils/math/matrix3x4.h
     include/jutils/math/matrix4.h
+    include/jutils/math/matrix4x2.h
     include/jutils/math/matrix4x3.h
-    include/jutils/math/matrix4x4.h
 
     include/jutils/math/base_types/vector_base.h
     include/jutils/math/base_types/vector_operations.h
@@ -105,7 +105,7 @@ elseif(JUTILS_LOG_COLOR_ENABLED)
 endif()
 
 if(JUTILS_CONFIG_ENABLED)
-    add_library(jutils STATIC ${JUTILS_SOURCE_FILES})
+    add_library(jutils STATIC ${JUTILS_HEADER_FILES} ${JUTILS_SOURCE_FILES})
     target_include_directories(jutils PUBLIC include PRIVATE
         third_party/mattiasgustavsson/include
         third_party/nlohmann/include

@@ -6,6 +6,7 @@
 #include <regex>
 #include <sstream>
 
+#include <cstring>
 #define INI_IMPLEMENTATION
 #define INI_STRNICMP( s1, s2, cnt ) ( std::strncmp( s1, s2, cnt ) )
 #include <mattiasgustavsson/ini.h>
