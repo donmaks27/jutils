@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "type_traits.h"
 #include "math/math.h"
 
 #include <stdexcept>
@@ -9,9 +10,6 @@
 
 namespace jutils
 {
-    using jarray_index_type = int32;
-    constexpr jarray_index_type jarrayInvalidIndex = -1;
-
     template<typename T>
     class jarray
     {
@@ -19,297 +17,280 @@ namespace jutils
         
         using type = T;
         using base_type = std::vector<type>;
-        using size_type = jarray_index_type;
-
-        static constexpr size_type invalidIndex = jarrayInvalidIndex;
-        static constexpr size_type maxSize = std::numeric_limits<size_type>::max();
-        
         using const_iterator = typename base_type::const_iterator;
         using iterator = typename base_type::iterator;
 
-        constexpr jarray() noexcept = default;
-        constexpr explicit jarray(const size_type count)
+        JUTILS_STD20_CONSTEXPR jarray() noexcept = default;
+        JUTILS_STD20_CONSTEXPR explicit jarray(const index_type count)
             : _internalData(count)
         {}
-        constexpr jarray(const size_type count, const type& defaultValue)
+        JUTILS_STD20_CONSTEXPR jarray(const index_type count, const type& defaultValue)
             : _internalData(count, defaultValue)
         {}
-        constexpr jarray(const std::initializer_list<type> values)
+        JUTILS_STD20_CONSTEXPR jarray(const std::initializer_list<type> values)
             : _internalData(values)
-        {
-            _correctSize();
-        }
-        constexpr jarray(const base_type& value)
+        {}
+        JUTILS_STD20_CONSTEXPR jarray(const base_type& value)
             : _internalData(value)
-        {
-            _correctSize();
-        }
-        constexpr jarray(base_type&& value) noexcept
+        {}
+        JUTILS_STD20_CONSTEXPR jarray(base_type&& value) noexcept
             : _internalData(std::move(value))
-        {
-            _correctSize();
-        }
-        constexpr jarray(const jarray&) = default;
-        constexpr jarray(jarray&&) noexcept = default;
-        constexpr ~jarray() noexcept = default;
+        {}
+        JUTILS_STD20_CONSTEXPR jarray(const jarray&) = default;
+        JUTILS_STD20_CONSTEXPR jarray(jarray&&) noexcept = default;
+        JUTILS_STD20_CONSTEXPR ~jarray() noexcept = default;
 
-        constexpr jarray& operator=(const std::initializer_list<type> values)
+        JUTILS_STD20_CONSTEXPR jarray& operator=(const std::initializer_list<type> values)
         {
             _internalData = values;
-            _correctSize();
             return *this;
         }
-        constexpr jarray& operator=(const base_type& value)
+        JUTILS_STD20_CONSTEXPR jarray& operator=(const base_type& value)
         {
             _internalData = value;
-            _correctSize();
             return *this;
         }
-        constexpr jarray& operator=(base_type&& value) noexcept
+        JUTILS_STD20_CONSTEXPR jarray& operator=(base_type&& value) noexcept
         {
             _internalData = std::move(value);
-            _correctSize();
             return *this;
         }
-        constexpr jarray& operator=(const jarray& value) = default;
-        constexpr jarray& operator=(jarray&& value) noexcept = default;
+        JUTILS_STD20_CONSTEXPR jarray& operator=(const jarray& value) = default;
+        JUTILS_STD20_CONSTEXPR jarray& operator=(jarray&& value) noexcept = default;
 
-        constexpr const base_type& toBase() const noexcept { return _internalData; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const base_type& toBase() const noexcept { return _internalData; }
 
-        constexpr size_type getSize() const noexcept
-        {
-            return static_cast<size_type>(jutils::math::min(_internalData.size(), maxSize));
-        }
-        constexpr bool isEmpty() const noexcept { return _internalData.empty(); }
-        constexpr bool isValidIndex(const size_type index) const noexcept
-        {
-            return (index >= 0) && (static_cast<typename base_type::size_type>(index) < _internalData.size());
-        }
-        
-        constexpr iterator begin() noexcept { return _internalData.begin(); }
-        constexpr iterator end() noexcept { return _internalData.end(); }
-        
-        constexpr const_iterator begin() const noexcept { return _internalData.begin(); }
-        constexpr const_iterator end() const noexcept { return _internalData.end(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type getSize() const noexcept { return _internalData.size(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool isEmpty() const noexcept { return _internalData.empty(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool isValidIndex(const index_type index) const noexcept { return index < getSize(); }
 
-        constexpr type* getData() noexcept { return _internalData.data(); }
-        constexpr const type* getData() const noexcept { return _internalData.data(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR iterator begin() noexcept { return _internalData.begin(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR iterator end() noexcept { return _internalData.end(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const_iterator begin() const noexcept { return _internalData.begin(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const_iterator end() const noexcept { return _internalData.end(); }
 
-        constexpr jarray copy() const { return *this; }
-        
-        constexpr type& get(const size_type index) noexcept { return _internalData[index]; }
-        constexpr const type& get(const size_type index) const noexcept { return _internalData[index]; }
-        constexpr type& operator[](const size_type index) noexcept { return get(index); }
-        constexpr const type& operator[](const size_type index) const noexcept { return get(index); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR type* getData() noexcept { return _internalData.data(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const type* getData() const noexcept { return _internalData.data(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR type* operator*() noexcept { return getData(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const type* operator*() const noexcept { return getData(); }
 
-        constexpr type& getFirst() noexcept { return _internalData.front(); }
-        constexpr type& getLast() noexcept { return _internalData.back(); }
-        constexpr const type& getFirst() const noexcept { return _internalData.front(); }
-        constexpr const type& getLast() const noexcept { return _internalData.back(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray copy() const { return *this; }
         
-        constexpr size_type indexOf(const type& value) const noexcept
-        {
-            const size_type size = getSize();
-            for (size_type index = 0; index < size; ++index)
-            {
-                if (value == get(index))
-                {
-                    return index;
-                }
-            }
-            return invalidIndex;
-        }
-        template<typename Pred> requires std::predicate<Pred, type>
-        constexpr size_type indexOf(Pred pred) const noexcept
-        {
-            const size_type size = getSize();
-            for (size_type index = 0; index < size; ++index)
-            {
-                if (pred(get(index)))
-                {
-                    return index;
-                }
-            }
-            return invalidIndex;
-        }
-        
-        constexpr type* find(const type& value) noexcept
-        {
-            const size_type index = indexOf(value);
-            return index != invalidIndex ? get(index) : nullptr;
-        }
-        template<typename Pred> requires std::predicate<Pred, type>
-        constexpr type* find(Pred pred) noexcept
-        {
-            const size_type index = indexOf(pred);
-            return index != invalidIndex ? get(index) : nullptr;
-        }
-        constexpr const type* find(const type& value) const noexcept
-        {
-            const size_type index = indexOf(value);
-            return index != invalidIndex ? get(index) : nullptr;
-        }
-        template<typename Pred> requires std::predicate<Pred, type>
-        constexpr const type* find(Pred pred) const noexcept
-        {
-            const size_type index = indexOf(pred);
-            return index != invalidIndex ? get(index) : nullptr;
-        }
-        
-        constexpr size_type contains(const type& value) const noexcept { return indexOf(value) != invalidIndex; }
-        template<typename Pred> requires std::predicate<Pred, type>
-        constexpr size_type contains(Pred pred) const noexcept { return indexOf(pred) != invalidIndex; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR type& get(const index_type index) noexcept { return _internalData[index]; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const type& get(const index_type index) const noexcept { return _internalData[index]; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR type& operator[](const index_type index) noexcept { return get(index); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const type& operator[](const index_type index) const noexcept { return get(index); }
 
-        constexpr void reserve(const size_type capacity)
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR type& getFirst() noexcept { return _internalData.front(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR type& getLast() noexcept { return _internalData.back(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const type& getFirst() const noexcept { return _internalData.front(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const type& getLast() const noexcept { return _internalData.back(); }
+
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type indexOf(const type& value) const noexcept;
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type indexOf(Pred pred) const noexcept;
+
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(const type& value) const noexcept { return indexOf(value) != index_invalid; }
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(Pred pred) const noexcept { return indexOf(pred) != index_invalid; }
+
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR type* find(const type& value) noexcept
         {
-            _internalData.reserve(jutils::math::max(capacity, 0));
+            const index_type index = indexOf(value);
+            return index != index_invalid ? get(index) : nullptr;
         }
-        constexpr void resize(const size_type size, const type& defaultValue = type())
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR type* find(Pred pred) noexcept
         {
-            _internalData.resize(jutils::math::max(size, 0), defaultValue);
+            const index_type index = indexOf(pred);
+            return index != index_invalid ? get(index) : nullptr;
         }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const type* find(const type& value) const noexcept
+        {
+            const index_type index = indexOf(value);
+            return index != index_invalid ? get(index) : nullptr;
+        }
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const type* find(Pred pred) const noexcept
+        {
+            const index_type index = indexOf(pred);
+            return index != index_invalid ? get(index) : nullptr;
+        }
+
+        JUTILS_STD20_CONSTEXPR void reserve(const index_type capacity) { _internalData.reserve(capacity); }
+        JUTILS_STD20_CONSTEXPR void resize(const index_type size, const type& defaultValue = type()) { _internalData.resize(size, defaultValue); }
 
         template<typename... Args>
-        constexpr type& putBack(Args&&... args)
-        {
-            _checkSize();
-            return _internalData.emplace_back(std::forward<Args>(args)...);
-        }
+        JUTILS_STD20_CONSTEXPR type& put(Args&&... args) { return _internalData.emplace_back(std::forward<Args>(args)...); }
         template<typename... Args>
-        constexpr type& putAt(const size_type index, Args&&... args)
+        JUTILS_STD20_CONSTEXPR type& putAt(const index_type index, Args&&... args)
         {
-            _checkSize();
-            return _internalData.emplace(
-                std::next(_internalData.begin(), jutils::math::clamp(index, 0, getSize())),
-                std::forward<Args>(args)...
-            );
+            return _internalData.emplace(std::next(begin(), jutils::math::min(index, getSize())), std::forward<Args>(args)...);
         }
 
-        constexpr type& add(const type& value) { return putBack(value); }
-        constexpr type& add(type&& value) { return putBack(std::move(value)); }
-        constexpr type& addDefault() { return putBack(); }
-        constexpr type& addUnique(const type& value)
+        JUTILS_STD20_CONSTEXPR type& add(const type& value) { return put(value); }
+        JUTILS_STD20_CONSTEXPR type& add(type&& value) { return put(std::move(value)); }
+        JUTILS_STD20_CONSTEXPR type& addDefault() { return put(); }
+        JUTILS_STD20_CONSTEXPR type& addUnique(const type& value)
         {
-            const size_type index = indexOf(value);
-            return index == invalidIndex ? add(value) : get(index);
+            const index_type index = indexOf(value);
+            return index == index_invalid ? add(value) : get(index);
         }
-        constexpr type& addUnique(type&& value)
+        JUTILS_STD20_CONSTEXPR type& addUnique(type&& value)
         {
-            const size_type index = indexOf(value);
-            return index == invalidIndex ? add(std::move(value)) : get(index);
+            const index_type index = indexOf(value);
+            return index == index_invalid ? add(std::move(value)) : get(index);
         }
 
-        constexpr type& addAt(const size_type index, const type& value) { return putAt(index, value); }
-        constexpr type& addAt(const size_type index, type&& value) { return putAt(index, std::move(value)); }
-        constexpr type& addDefaultAt(const size_type index) { return putAt(index); }
+        JUTILS_STD20_CONSTEXPR type& addAt(const index_type index, const type& value) { return putAt(index, value); }
+        JUTILS_STD20_CONSTEXPR type& addAt(const index_type index, type&& value) { return putAt(index, std::move(value)); }
+        JUTILS_STD20_CONSTEXPR type& addDefaultAt(const index_type index) { return putAt(index); }
 
-        constexpr jarray& append(const std::initializer_list<type> values)
+        JUTILS_STD20_CONSTEXPR jarray& append(const std::initializer_list<type> values)
         {
             _internalData.insert(end(), values);
-            _correctSize();
             return *this;
         }
-        constexpr jarray& append(const base_type& value)
+        JUTILS_STD20_CONSTEXPR jarray& append(const base_type& value)
         {
             if (this != &value)
             {
                 _internalData.insert(end(), value.begin(), value.end());
-                _correctSize();
             }
             return *this;
         }
-        constexpr jarray& append(const jarray& value) { return append(value.toBase()); }
+        JUTILS_STD20_CONSTEXPR jarray& append(const jarray& value) { return append(value.toBase()); }
 
-        constexpr void removeAt(size_type index, size_type count = 1) noexcept
+        JUTILS_STD20_CONSTEXPR jarray& operator+=(const type& value)
         {
-            const size_type size = getSize();
-            if (size > 0)
-            {
-                index = jutils::math::clamp(index, 0, size - 1);
-                count = jutils::math::min(count, size - index);
-                if (count == 1)
-                {
-                    _internalData.erase(std::next(begin(), index));
-                }
-                else if (count > 1)
-                {
-                    _internalData.erase(std::next(begin(), index), std::next(begin(), index + count));
-                }
-            }
+            add(value);
+            return *this;
         }
-        constexpr void removeFirst() noexcept
+        JUTILS_STD20_CONSTEXPR jarray& operator+=(type&& value)
+        {
+            add(std::move(value));
+            return *this;
+        }
+        JUTILS_STD20_CONSTEXPR jarray& operator+=(const std::initializer_list<type> values) { return append(values); }
+        JUTILS_STD20_CONSTEXPR jarray& operator+=(const base_type& value) { return append(value); }
+        JUTILS_STD20_CONSTEXPR jarray& operator+=(const jarray& value) { return append(value); }
+
+        JUTILS_STD20_CONSTEXPR void removeAt(index_type index, index_type count = 1) noexcept;
+        JUTILS_STD20_CONSTEXPR void removeFirst() noexcept
         {
             if (!isEmpty())
             {
                 _internalData.erase(begin());
             }
         }
-        constexpr void removeLast() noexcept
+        JUTILS_STD20_CONSTEXPR void removeLast() noexcept
         {
             if (!isEmpty())
             {
                 _internalData.erase(end() - 1);
             }
         }
-        constexpr size_type remove(const type& value) noexcept { return static_cast<size_type>(std::erase(_internalData, value)); }
-        template<typename Pred> requires std::predicate<Pred, type>
-        constexpr size_type remove(Pred pred) noexcept { return static_cast<size_type>(std::erase_if(_internalData, pred)); }
+        JUTILS_STD20_CONSTEXPR index_type remove(const type& value) noexcept;
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        JUTILS_STD20_CONSTEXPR index_type remove(Pred pred) noexcept;
 
-        constexpr void clear() noexcept { _internalData.clear(); }
-
-        constexpr jarray& operator+=(const type& value)
-        {
-            add(value);
-            return *this;
-        }
-        constexpr jarray& operator+=(type&& value)
-        {
-            add(std::move(value));
-            return *this;
-        }
-        constexpr jarray& operator+=(const std::initializer_list<type> values) { return append(values); }
-        constexpr jarray& operator+=(const base_type& value) { return append(value); }
-        constexpr jarray& operator+=(const jarray& value) { return append(value); }
+        JUTILS_STD20_CONSTEXPR void clear() noexcept { _internalData.clear(); }
         
     private:
 
         base_type _internalData;
-
-
-        constexpr void _correctSize() noexcept
-        {
-            if (_internalData.size() > static_cast<typename base_type::size_type>(maxSize))
-            {
-                _internalData.resize(maxSize);
-            }
-        }
-        constexpr void _checkSize() const
-        {
-            if (getSize() == maxSize)
-            {
-                throw std::length_error("jarray is too long");
-            }
-        }
     };
-    
-    template<typename T>
-    jarray<T> operator+(const jarray<T>& container, const T& value) { return container.copy() += value; }
-    template<typename T>
-    jarray<T> operator+(const jarray<T>& container, T&& value) { return container.copy() += std::forward(value); }
-    template<typename T>
-    jarray<T> operator+(jarray<T>&& container, const T& value) { return container += value; }
-    template<typename T>
-    jarray<T> operator+(jarray<T>&& container, T&& value) { return container += std::forward(value); }
 
     template<typename T>
-    jarray<T> operator+(const T& value, const jarray<T>& container) { return jarray<T>(1, value) += container; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container, const T& value) { return container.copy() += value; }
+    template<typename T>
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container, T&& value) { return container.copy() += std::forward(value); }
+    template<typename T>
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container, const T& value) { return container += value; }
+    template<typename T>
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container, T&& value) { return container += std::forward(value); }
+
+    template<typename T>
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const T& value, const jarray<T>& container) { return jarray<T>(1, value) += container; }
     
     template<typename T>
-    jarray<T> operator+(const jarray<T>& container1, const std::initializer_list<T> list) { return container1.copy() += list; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container1, const std::initializer_list<T> list) { return container1.copy() += list; }
     template<typename T>
-    jarray<T> operator+(jarray<T>&& container1, const std::initializer_list<T> list) { return container1 += list; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container1, const std::initializer_list<T> list) { return container1 += list; }
     template<typename T>
-    jarray<T> operator+(const jarray<T>& container1, const jarray<T>& container2) { return container1.copy() += container2; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container1, const jarray<T>& container2) { return container1.copy() += container2; }
     template<typename T>
-    jarray<T> operator+(jarray<T>&& container1, const jarray<T>& container2) { return container1 += container2; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container1, const jarray<T>& container2) { return container1 += container2; }
+
+    template<typename T>
+    JUTILS_STD20_CONSTEXPR index_type jarray<T>::indexOf(const type& value) const noexcept
+    {
+        const index_type size = getSize();
+        for (index_type index = 0; index < size; ++index)
+        {
+            if (value == get(index))
+            {
+                return index;
+            }
+        }
+        return index_invalid;
+    }
+    template<typename T>
+    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
+    JUTILS_STD20_CONSTEXPR index_type jarray<T>::indexOf(Pred pred) const noexcept
+    {
+        const index_type size = getSize();
+        for (index_type index = 0; index < size; ++index)
+        {
+            if (pred(get(index)))
+            {
+                return index;
+            }
+        }
+        return index_invalid;
+    }
+
+    template<typename T>
+    JUTILS_STD20_CONSTEXPR void jarray<T>::removeAt(const index_type index, const index_type count) noexcept
+    {
+        if (isValidIndex(index))
+        {
+            index_type elementsForDelete = jutils::math::min(count, getSize() - index);
+            if (elementsForDelete == 1)
+            {
+                _internalData.erase(std::next(begin(), index));
+            }
+            else if (elementsForDelete > 1)
+            {
+                const auto startIter = std::next(begin(), index);
+                _internalData.erase(startIter, std::next(startIter, count));
+            }
+        }
+    }
+
+    template<typename T>
+    JUTILS_STD20_CONSTEXPR index_type jarray<T>::remove(const type& value) noexcept
+    {
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+        return std::erase(_internalData, value);
+#else
+        const auto iter = std::remove(begin(), end(), value);
+        const index_type deletedElementsCount = end() - iter;
+        _internalData.erase(iter, end());
+        return deletedElementsCount;
+#endif
+    }
+    template<typename T>
+    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
+    JUTILS_STD20_CONSTEXPR index_type jarray<T>::remove(Pred pred) noexcept
+    {
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+        return std::erase_if(_internalData, pred);
+#else
+        const auto iter = std::remove_if(begin(), end(), pred);
+        const index_type deletedElementsCount = end() - iter;
+        _internalData.erase(iter, end());
+        return deletedElementsCount;
+#endif
+    }
 }

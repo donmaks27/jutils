@@ -14,8 +14,6 @@ namespace jutils
     {
     public:
 
-        using index_type = jarray_index_type;
-
         static void CreateInstance() noexcept
         {
             if (Instance == nullptr)
@@ -101,7 +99,7 @@ namespace jutils
             strings_table_entry& operator=(strings_table_entry&&) noexcept = default;
 
             jstring string;
-            index_type pointerIndex = -1;
+            index_type pointerIndex = index_invalid;
 
             [[nodiscard]] uint64 hash() const noexcept { return math::hash::getHash(string); }
 
@@ -132,7 +130,7 @@ namespace jutils
 
         constexpr jstringID& operator=(const jstringID&) noexcept = default;
 
-        [[nodiscard]] constexpr bool isValid() const noexcept { return pointerIndex >= 0; }
+        [[nodiscard]] constexpr bool isValid() const noexcept { return pointerIndex != index_invalid; }
         [[nodiscard]] jstring toString() const noexcept { return jstring_hash_table::GetInstanse()->get(pointerIndex); }
 
         [[nodiscard]] constexpr bool operator==(const jstringID& strID) const noexcept { return isValid() && (pointerIndex == strID.pointerIndex); }
@@ -143,7 +141,7 @@ namespace jutils
 
     private:
 
-        jstring_hash_table::index_type pointerIndex = -1;
+        index_type pointerIndex = index_invalid;
     };
 
     constexpr jstringID jstringID_NONE = jstringID();
