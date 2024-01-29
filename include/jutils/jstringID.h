@@ -1,9 +1,9 @@
-﻿// Copyright 2022 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022, 2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
 #include "jset_hash.h"
-#include "jstring.h"
+#include "format.h"
 
 #include <mutex>
 #include <shared_mutex>
@@ -87,29 +87,29 @@ namespace jutils
 
         struct strings_table_entry
         {
-            constexpr strings_table_entry() noexcept = default;
-            constexpr strings_table_entry(const jstring& str)
+            strings_table_entry() noexcept = default;
+            strings_table_entry(const jstring& str)
                 : string(str)
             {}
-            constexpr strings_table_entry(jstring&& str) noexcept
+            strings_table_entry(jstring&& str) noexcept
                 : string(std::move(str))
             {}
-            constexpr strings_table_entry(const strings_table_entry&) = default;
-            constexpr strings_table_entry(strings_table_entry&&) noexcept = default;
+            strings_table_entry(const strings_table_entry&) = default;
+            strings_table_entry(strings_table_entry&&) noexcept = default;
 
-            constexpr strings_table_entry& operator=(const strings_table_entry&) = default;
-            constexpr strings_table_entry& operator=(strings_table_entry&&) noexcept = default;
+            strings_table_entry& operator=(const strings_table_entry&) = default;
+            strings_table_entry& operator=(strings_table_entry&&) noexcept = default;
 
             jstring string;
             index_type pointerIndex = -1;
 
-            constexpr uint64 hash() const noexcept { return math::hash::getHash(string); }
+            [[nodiscard]] uint64 hash() const noexcept { return math::hash::getHash(string); }
 
-            constexpr bool operator==(const jstring& str) const noexcept { return string == str; }
-            constexpr bool operator==(const strings_table_entry& entry) const noexcept { return operator==(entry.string); }
+            [[nodiscard]] bool operator==(const jstring& str) const noexcept { return string == str; }
+            [[nodiscard]] bool operator==(const strings_table_entry& entry) const noexcept { return operator==(entry.string); }
 
-            constexpr bool operator!=(const jstring& str) const noexcept { return !operator==(str); }
-            constexpr bool operator!=(const strings_table_entry& entry) const noexcept { return operator!=(entry.string); }
+            [[nodiscard]] bool operator!=(const jstring& str) const noexcept { return !operator==(str); }
+            [[nodiscard]] bool operator!=(const strings_table_entry& entry) const noexcept { return operator!=(entry.string); }
         };
         
         jset_hash<strings_table_entry> stringsTable;
@@ -121,7 +121,7 @@ namespace jutils
     {
     public:
         constexpr jstringID() noexcept = default;
-        jstringID(const jstring::character_type* const str)
+        jstringID(const jstring::char_type* const str)
             : jstringID(jstring(str))
         {}
         jstringID(const jstring& str)
@@ -132,14 +132,14 @@ namespace jutils
 
         constexpr jstringID& operator=(const jstringID&) noexcept = default;
 
-        constexpr bool isValid() const noexcept { return pointerIndex >= 0; }
-        jstring toString() const noexcept { return jstring_hash_table::GetInstanse()->get(pointerIndex); }
+        [[nodiscard]] constexpr bool isValid() const noexcept { return pointerIndex >= 0; }
+        [[nodiscard]] jstring toString() const noexcept { return jstring_hash_table::GetInstanse()->get(pointerIndex); }
 
-        constexpr bool operator==(const jstringID& strID) const noexcept { return isValid() && (pointerIndex == strID.pointerIndex); }
-        constexpr bool operator!=(const jstringID& strID) const noexcept { return !operator==(strID); }
+        [[nodiscard]] constexpr bool operator==(const jstringID& strID) const noexcept { return isValid() && (pointerIndex == strID.pointerIndex); }
+        [[nodiscard]] constexpr bool operator!=(const jstringID& strID) const noexcept { return !operator==(strID); }
 
-        constexpr bool operator<(const jstringID& strID) const noexcept { return isValid() && (pointerIndex < strID.pointerIndex); }
-        constexpr bool operator>(const jstringID& strID) const noexcept { return isValid() && (pointerIndex > strID.pointerIndex); }
+        [[nodiscard]] constexpr bool operator<(const jstringID& strID) const noexcept { return isValid() && (pointerIndex < strID.pointerIndex); }
+        [[nodiscard]] constexpr bool operator>(const jstringID& strID) const noexcept { return isValid() && (pointerIndex > strID.pointerIndex); }
 
     private:
 
@@ -150,28 +150,29 @@ namespace jutils
 }
 
 template<>
-struct jutils::string::formatter<std::remove_cvref_t< jutils::jstringID >> : std::true_type
+struct jutils::formatter<jutils::remove_cvref_t< jutils::jstringID >> : std::true_type
 {
-    static jutils::jstring format(const jutils::jstringID& value) noexcept { return value.toString(); }
+    [[nodiscard]] static jutils::jstring format(const jutils::jstringID& value) noexcept { return value.toString(); }
 };
+
 #if defined(JUTILS_USE_FMT)
-    template<>
-    struct fmt::formatter<jutils::jstringID> : fmt::formatter<const char*>
+template<>
+struct fmt::formatter<jutils::jstringID> : fmt::formatter<const char*>
+{
+    template<typename FormatContext>
+    auto format(const jutils::jstringID& value, FormatContext& ctx) const
     {
-        template<typename FormatContext>
-        auto format(const jutils::jstringID& value, FormatContext& ctx) const
-        {
-            return fmt::formatter<const char*>::format(*value.toString(), ctx);
-        }
-    };
+        return fmt::formatter<const char*>::format(*value.toString(), ctx);
+    }
+};
 #else
-    template<>
-    struct std::formatter<jutils::jstringID> : std::formatter<const char*>
+template<>
+struct std::formatter<jutils::jstringID> : std::formatter<const char*>
+{
+    template<typename FormatContext>
+    auto format(const jutils::jstringID& value, FormatContext& ctx) const
     {
-        template<typename FormatContext>
-        auto format(const jutils::jstringID& value, FormatContext& ctx) const
-        {
-            return std::formatter<const char*>::format(*value.toString(), ctx);
-        }
-    };
+        return std::formatter<const char*>::format(*value.toString(), ctx);
+    }
+};
 #endif

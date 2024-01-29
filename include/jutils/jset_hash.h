@@ -1,4 +1,4 @@
-﻿// Copyright © 2022-2023 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022-2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -9,8 +9,10 @@
 
 namespace jutils
 {
-    template<typename T, typename EqualPred = std::equal_to<T>>
-        requires jutils::math::hash::hash_info<T>::has_hash && std::predicate<EqualPred, T, T>
+    JUTILS_TEMPLATE_CONDITION(
+        (jutils::math::hash::hash_info<T>::has_hash && jutils::is_predicate_v<EqualPred, T, T>),
+        typename T, typename EqualPred = std::equal_to<T>
+    )
     class jset_hash
     {
     public:

@@ -26,6 +26,7 @@ list(APPEND JUTILS_HEADER_FILES
     include/jutils/jdelegate.h
     include/jutils/jdelegate_multicast.h
     include/jutils/jdescriptor_table.h
+    include/jutils/format.h
     include/jutils/jlist.h
     include/jutils/jlist_allocator.h
     include/jutils/jmap.h
@@ -113,7 +114,7 @@ if(JUTILS_CONFIG_ENABLED)
     target_compile_definitions(jutils PUBLIC ${JUTILS_MACRO_DEFINITIONS})
     target_link_libraries(jutils PUBLIC ${JUTILS_LIBS})
 else()
-    add_library(jutils INTERFACE)
+    add_library(jutils INTERFACE ${JUTILS_HEADER_FILES})
     target_include_directories(jutils INTERFACE include)
     target_compile_definitions(jutils INTERFACE ${JUTILS_MACRO_DEFINITIONS})
     target_link_libraries(jutils INTERFACE ${JUTILS_LIBS})
