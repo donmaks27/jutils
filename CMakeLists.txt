@@ -28,7 +28,6 @@ list(APPEND JUTILS_HEADER_FILES
     include/jutils/jdescriptor_table.h
     include/jutils/format.h
     include/jutils/jlist.h
-    include/jutils/jlist_allocator.h
     include/jutils/jmap.h
     include/jutils/jmap_hash.h
     include/jutils/jmemory.h

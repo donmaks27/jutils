@@ -1,4 +1,4 @@
-// Copyright © 2024 Leonov Maksim. All rights reserved.
+// Copyright © 2022-2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
