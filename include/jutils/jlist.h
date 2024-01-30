@@ -1,12 +1,11 @@
-﻿// Copyright © 2022-2023 Leonov Maksim. All Rights Reserved.
+// Copyright © 2024 Leonov Maksim. All rights reserved.
 
 #pragma once
 
-#include "jlist_allocator.h"
 #include "math/math.h"
 
-#include <functional>
-#include <stdexcept>
+#include <algorithm>
+#include <list>
 
 namespace jutils
 {
@@ -16,666 +15,302 @@ namespace jutils
     public:
 
         using type = T;
-        using index_type = int32;
+        using base_type = std::list<type>;
+        using const_iterator = typename base_type::const_iterator;
+        using iterator = typename base_type::iterator;
 
-    private:
+        jlist() noexcept = default;
+        explicit jlist(const index_type count)
+            : _internalData(count)
+        {}
+        jlist(const index_type count, const type& defaultValue)
+            : _internalData(count, defaultValue)
+        {}
+        jlist(const std::initializer_list<type> values)
+            : _internalData(values)
+        {}
+        jlist(const base_type& value)
+            : _internalData(value)
+        {}
+        jlist(base_type&& value) noexcept
+        : _internalData(std::move(value))
+        {}
+        jlist(const jlist&) = default;
+        jlist(jlist&&) noexcept = default;
+        ~jlist() noexcept = default;
 
-        struct list_node
+        jlist& operator=(const std::initializer_list<type> values)
         {
-            type object;
-            list_node* nextNode = nullptr;
-            list_node* prevNode = nullptr;
-
-            void markUnused() { prevNode = this; }
-            bool isUnused() const { return prevNode == this; }
-        };
-
-    public:
-
-        friend class iterator;
-        friend class const_iterator;
-        class const_iterator
-        {
-            friend jlist;
-
-        public:
-            const_iterator() = default;
-            const_iterator(const const_iterator&) = default;
-        protected:
-            const_iterator(list_node* nodePtr)
-                : listNodePtr(nodePtr)
-            {}
-
-        public:
-
-            bool isValid() const { return (listNodePtr != nullptr) && !listNodePtr->isUnused(); }
-
-            const type& operator*() const { return listNodePtr->object; }
-            const type* operator->() const { return isValid() ? &listNodePtr->object : nullptr; }
-
-            const_iterator& operator++() { _incrementIterator(); return *this; }
-            const_iterator operator++(int) { iterator temp = *this; ++*this; return temp; }
-
-            const_iterator& operator--() { _decrementIterator(); return *this; }
-            const_iterator operator--(int) { iterator temp = *this; --*this; return temp; }
-
-            const_iterator& operator+=(const index_type offset) { _offsetIterator(offset); return *this; }
-            const_iterator& operator-=(const index_type offset) { _offsetIterator(-offset); return *this; }
-
-            const_iterator operator+(const index_type offset) const { return iterator(&this) += offset; }
-            const_iterator operator-(const index_type offset) const { return iterator(&this) -= offset; }
-
-            bool operator==(const const_iterator& iter) const { return isValid() ? (listNodePtr == iter.listNodePtr) : !iter.isValid(); }
-            bool operator!=(const const_iterator& iter) const { return !this->operator==(iter); }
-
-        protected:
-
-            list_node* listNodePtr = nullptr;
-
-
-            void _offsetIterator(index_type offset);
-            void _incrementIterator();
-            void _decrementIterator();
-        };
-        class iterator : public const_iterator
-        {
-            friend jlist;
-
-        public:
-            iterator() = default;
-            iterator(const iterator&) = default;
-        private:
-            iterator(list_node* nodePtr)
-                : const_iterator(nodePtr)
-            {}
-
-        public:
-
-            type& operator*() const { return this->listNodePtr->object; }
-            type* operator->() const { return this->isValid() ? &this->listNodePtr->object : nullptr; }
-
-            iterator& operator++() { this->_incrementIterator(); return *this; }
-            iterator operator++(int) { iterator temp = *this; ++*this; return temp; }
-
-            iterator& operator--() { this->_decrementIterator(); return *this; }
-            iterator operator--(int) { iterator temp = *this; --*this; return temp; }
-
-            iterator& operator+=(const index_type offset) { this->_offsetIterator(offset); return *this; }
-            iterator& operator-=(const index_type offset) { this->_offsetIterator(-offset); return *this; }
-
-            iterator operator+(const index_type offset) const { return iterator(&this) += offset; }
-            iterator operator-(const index_type offset) const { return iterator(&this) -= offset; }
-        };
-
-        jlist() = default;
-        jlist(const index_type size)
-        {
-            resize(size);
-        }
-        jlist(const index_type size, const type& defaultValue)
-        {
-            resize(size, defaultValue);
-        }
-        jlist(std::initializer_list<type> list)
-        {
-            append(list);
-        }
-        jlist(const jlist& list)
-        {
-            _appendList(list);
-        }
-        jlist(jlist&& list) noexcept
-        {
-            allocator = std::move(list.allocator);
-
-            firstNode = list.firstNode;
-            lastNode = list.lastNode;
-            nodeCount = list.nodeCount;
-            firstUnusedNode = list.firstUnusedNode;
-
-            list.firstNode = nullptr;
-            list.lastNode = nullptr;
-            list.nodeCount = 0;
-            list.firstUnusedNode = nullptr;
-        }
-        ~jlist()
-        {
-            _clearAllData();
-        }
-
-        jlist& operator=(std::initializer_list<type> list)
-        {
-            clear();
-            append(list);
+            _internalData = values;
             return *this;
         }
-        jlist& operator=(const jlist& list)
+        jlist& operator=(const base_type& value)
         {
-            if (this != &list)
-            {
-                clear();
-                _appendList(list);
-            }
+            _internalData = value;
             return *this;
         }
-        jlist& operator=(jlist&& list) noexcept
+        jlist& operator=(base_type&& value) noexcept
         {
-            _clearAllData();
-
-            allocator = std::move(list.allocator);
-
-            firstNode = list.firstNode;
-            lastNode = list.lastNode;
-            nodeCount = list.nodeCount;
-            firstUnusedNode = list.firstUnusedNode;
-
-            list.firstNode = nullptr;
-            list.lastNode = nullptr;
-            list.nodeCount = 0;
-            list.firstUnusedNode = nullptr;
-
+            _internalData = std::move(value);
             return *this;
         }
+        jlist& operator=(const jlist& value) = default;
+        jlist& operator=(jlist&& value) noexcept = default;
 
-        index_type getSize() const { return nodeCount; }
-        bool isEmpty() const { return getSize() == 0; }
-        bool isValidIndex(const index_type index) const { return jutils::math::isWithin(index, 0, getSize() - 1); }
+        [[nodiscard]] const base_type& toBase() const noexcept { return _internalData; }
 
-        iterator begin() noexcept { return iterator(firstNode); }
-        iterator end() noexcept { return iterator(); }
+        [[nodiscard]] index_type getSize() const noexcept { return _internalData.size(); }
+        [[nodiscard]] bool isEmpty() const noexcept { return _internalData.empty(); }
+        [[nodiscard]] bool isValidIndex(const index_type index) const noexcept { return index < getSize(); }
 
-        const_iterator begin() const noexcept { return const_iterator(firstNode); }
-        const_iterator end() const noexcept { return const_iterator(); }
+        [[nodiscard]] iterator begin() noexcept { return _internalData.begin(); }
+        [[nodiscard]] iterator end() noexcept { return _internalData.end(); }
+        [[nodiscard]] const_iterator begin() const noexcept { return _internalData.begin(); }
+        [[nodiscard]] const_iterator end() const noexcept { return _internalData.end(); }
 
-        iterator getIterByIndex(const index_type index) { return isValidIndex(index) ? _getIteratorByIndex(index) : end(); }
-        const_iterator getIterByIndex(const index_type index) const { return isValidIndex(index) ? _getIteratorByIndex(index) : end(); }
+        [[nodiscard]] type* getData() noexcept { return _internalData.data(); }
+        [[nodiscard]] const type* getData() const noexcept { return _internalData.data(); }
+        [[nodiscard]] type* operator*() noexcept { return getData(); }
+        [[nodiscard]] const type* operator*() const noexcept { return getData(); }
 
-        iterator getIterByValue(const type& value);
-        const_iterator getIterByValue(const type& value) const;
+        [[nodiscard]] jlist copy() const { return *this; }
 
-        type& get(const index_type index) { return *_getIteratorByIndex(index); }
-        const type& get(const index_type index) const { return *_getIteratorByIndex(index); }
-        type& operator[](const index_type index) { return get(index); }
-        const type& operator[](const index_type index) const { return get(index); }
+        [[nodiscard]] type& get(const index_type index) noexcept { return *std::next(begin(), index); }
+        [[nodiscard]] const type& get(const index_type index) const noexcept { return *std::next(begin(), index); }
+        [[nodiscard]] type& operator[](const index_type index) noexcept { return get(index); }
+        [[nodiscard]] const type& operator[](const index_type index) const noexcept { return get(index); }
 
-        type& getFirst() { return firstNode->object; }
-        type& getLast() { return lastNode->object; }
-        const type& getFirst() const { return firstNode->object; }
-        const type& getLast() const { return lastNode->object; }
+        [[nodiscard]] type& getFirst() noexcept { return _internalData.front(); }
+        [[nodiscard]] type& getLast() noexcept { return _internalData.back(); }
+        [[nodiscard]] const type& getFirst() const noexcept { return _internalData.front(); }
+        [[nodiscard]] const type& getLast() const noexcept { return _internalData.back(); }
 
-        type* findByIndex(const index_type index) { return isValidIndex(index) ? &*_getIteratorByIndex(index) : nullptr; }
-        type* findByValue(const type& value)
+        [[nodiscard]] iterator findIter(const type& value) noexcept { return std::find(begin(), end(), value); }
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] iterator findIter(Pred pred) noexcept { return std::find_if(begin(), end(), pred); }
+        [[nodiscard]] const_iterator findIter(const type& value) const noexcept { return std::find(begin(), end(), value); }
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] const_iterator findIter(Pred pred) const noexcept { return std::find_if(begin(), end(), pred); }
+
+        [[nodiscard]] index_type indexOf(const type& value) const noexcept;
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] index_type indexOf(Pred pred) const noexcept;
+
+        [[nodiscard]] bool contains(const type& value) const noexcept { return findIter(value) != end(); }
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] bool contains(Pred pred) const noexcept { return findIter(pred) != end(); }
+
+        [[nodiscard]] type* find(const type& value) noexcept
         {
-            auto iter = getIterByValue(value);
-            return iter.isValid() ? &*iter : nullptr;
+            const auto iter = findIter(value);
+            return iter != end() ? &*iter : nullptr;
         }
-        const type* findByIndex(const index_type index) const { return isValidIndex(index) ? &*_getIteratorByIndex(index) : nullptr; }
-        const type* findByValue(const type& value) const
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] type* find(Pred pred) noexcept
         {
-            auto iter = getIterByValue(value);
-            return iter.isValid() ? &*iter : nullptr;
+            const auto iter = findIter(pred);
+            return iter != end() ? &*iter : nullptr;
+        }
+        [[nodiscard]] const type* find(const type& value) const noexcept
+        {
+            const auto iter = findIter(value);
+            return iter != end() ? &*iter : nullptr;
+        }
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] const type* find(Pred pred) const noexcept
+        {
+            const auto iter = findIter(pred);
+            return iter != end() ? &*iter : nullptr;
         }
 
-        index_type indexOf(const type& value) const;
-        bool contains(const type& value) const { return getIterByValue(value).isValid(); }
-        
-        void reserve(const index_type size) { _reserveNodes(size); }
+        void resize(const index_type size, const type& defaultValue = type()) { _internalData.resize(size, defaultValue); }
+
         template<typename... Args>
-        void resize(const index_type size, Args&&... args)
-        {
-            while (nodeCount < size)
-            {
-                _putBack(std::forward<Args>(args)...);
-            }
-
-            const_iterator iter;
-            while (nodeCount > size)
-            {
-                iter = lastNode;
-                _removeAt(iter);
-            }
-        }
-
+        type& put(Args&&... args) { return _internalData.emplace_back(std::forward<Args>(args)...); }
         template<typename... Args>
-        type& put(Args&&... args)
+        type& putAt(const const_iterator place, Args&&... args)
         {
-            _putBack(std::forward<Args>(args)...);
-            return getLast();
+            return _internalData.emplace(place, std::forward<Args>(args)...);
         }
         template<typename... Args>
-        type& putAt(const const_iterator& iter, Args&&... args)
+        type& putAt(const index_type index, Args&&... args)
         {
-            if (!iter.isValid())
-            {
-                throw std::out_of_range("Invalid jlist<T> iterator!");
-            }
-            _putAt(iter, std::forward<Args>(args)...);
-            return iter.listNodePtr->prevNode->object;
+            return putAt(std::next(begin(), jutils::math::min(index, getSize())), std::forward<Args>(args)...);
         }
-        template<typename... Args>
-        type& putAt(const index_type index, Args&&... args) { return putAt(getIterByIndex(index), std::forward<Args>(args)...); }
 
         type& add(const type& value) { return put(value); }
         type& add(type&& value) { return put(std::move(value)); }
         type& addDefault() { return put(); }
         type& addUnique(const type& value)
         {
-            auto iter = getIterByValue(value);
-            return !iter.isValid() ? add(value) : *iter;
+            const auto iter = findIter(value);
+            return iter == end() ? add(value) : *iter;
         }
         type& addUnique(type&& value)
         {
-            auto iter = getIterByValue(value);
-            return !iter.isValid() ? add(std::move(value)) : *iter;
+            const auto iter = findIter(value);
+            return iter == end() ? add(std::move(value)) : *iter;
         }
 
-        type& addAt(const const_iterator& iter, const type& value) { return putAt(iter, value); }
-        type& addAt(const const_iterator& iter, type&& value) { return putAt(iter, std::move(value)); }
-        type& addDefaultAt(const const_iterator& iter) { return putAt(iter); }
+        type& addAt(const const_iterator place, const type& value) { return putAt(place, value); }
+        type& addAt(const const_iterator place, type&& value) { return putAt(place, std::move(value)); }
+        type& addDefaultAt(const const_iterator place) { return putAt(place); }
 
         type& addAt(const index_type index, const type& value) { return putAt(index, value); }
         type& addAt(const index_type index, type&& value) { return putAt(index, std::move(value)); }
         type& addDefaultAt(const index_type index) { return putAt(index); }
 
-        void append(std::initializer_list<type> list)
+        jlist& append(const std::initializer_list<type> values)
         {
-            reserve(getSize() + static_cast<index_type>(list.size()));
-            for (const auto& value : list)
-            {
-                _putBack(value);
-            }
+            _internalData.insert(end(), values);
+            return *this;
         }
-        void append(const jlist& list)
+        jlist& append(const base_type& value)
         {
-            if (&list != this)
+            if (this != &value)
             {
-                _appendList(list);
+                _internalData.insert(end(), value.begin(), value.end());
             }
+            return *this;
         }
-
-        const_iterator removeAt(const const_iterator& iter) { return _removeAt(iter); }
-        void removeAt(const index_type index)
-        {
-            if (isValidIndex(index))
-            {
-                _removeAt(_getIteratorByIndex(index));
-            }
-        }
-        void removeFirst() { _removeAt(begin()); }
-        void removeLast() { _removeAt(_getLastIterator()); }
-        index_type remove(const type& value);
-        index_type removeByPredicate(const std::function<bool(const type&)>& predicate);
-
-        void clear();
+        jlist& append(const jlist& value) { return append(value.toBase()); }
 
         jlist& operator+=(const type& value)
         {
-            _putBack(value);
+            add(value);
             return *this;
         }
         jlist& operator+=(type&& value)
         {
-            _putBack(std::move(value));
+            add(std::move(value));
             return *this;
         }
-        jlist& operator+=(std::initializer_list<type> list)
+        jlist& operator+=(const std::initializer_list<type> values) { return append(values); }
+        jlist& operator+=(const base_type& value) { return append(value); }
+        jlist& operator+=(const jlist& value) { return append(value); }
+
+        void removeAt(const_iterator placeStart, const_iterator placeEnd) noexcept { _internalData.erase(placeStart, placeEnd); }
+        void removeAt(const_iterator place, index_type count = 1) noexcept;
+        void removeAt(index_type index, index_type count = 1) noexcept;
+        void removeFirst() noexcept
         {
-            append(list);
-            return *this;
+            if (!isEmpty())
+            {
+                _internalData.erase(begin());
+            }
         }
-        jlist& operator+=(const jlist& value)
+        void removeLast() noexcept
         {
-            append(value);
-            return *this;
+            if (!isEmpty())
+            {
+                _internalData.erase(--end());
+            }
         }
+        index_type remove(const type& value) noexcept;
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        index_type remove(Pred pred) noexcept;
+
+        void clear() noexcept { _internalData.clear(); }
 
     private:
 
-        using allocator_type = jlist_allocator<list_node>;
-
-        allocator_type allocator = allocator_type();
-
-        list_node* firstNode = nullptr;
-        list_node* lastNode = nullptr;
-        index_type nodeCount = 0;
-
-        list_node* firstUnusedNode = nullptr;
-
-
-        template<typename... Args>
-        static void _constructObject(list_node* node, Args&&... args) { jutils::memory::construct(&node->object, std::forward<Args>(args)...); }
-        static void _destroyObject(list_node* node) { jutils::memory::destruct(&node->object); }
-
-        iterator _getIteratorByIndex(const index_type index) { return begin() += index; }
-        const_iterator _getIteratorByIndex(const index_type index) const { return begin() += index; }
-
-        iterator _getLastIterator() { return iterator(lastNode); }
-        const_iterator _getLastIterator() const { return const_iterator(lastNode); }
-
-        void _allocateMoreNodes();
-        void _reserveNodes(index_type count);
-        list_node* _getNewNode();
-        void _returnNode(list_node* node);
-
-        template<typename... Args>
-        void _putBack(Args&&... args);
-        template<typename... Args>
-        void _putAt(const const_iterator& iter, Args&&... args);
-
-        void _appendList(const jlist& list)
-        {
-            reserve(getSize() + list.getSize());
-
-            list_node* node = list.firstNode;
-            while (node != nullptr)
-            {
-                _putBack(node->object);
-                node = node->nextNode;
-            }
-        }
-
-        const_iterator _removeAt(const const_iterator& iterator);
-
-        void _clearAllData();
+        base_type _internalData;
     };
 
     template<typename T>
-    void jlist<T>::const_iterator::_offsetIterator(index_type offset)
+    [[nodiscard]] jlist<T> operator+(const jlist<T>& container, const T& value) { return container.copy() += value; }
+    template<typename T>
+    [[nodiscard]] jlist<T> operator+(const jlist<T>& container, T&& value) { return container.copy() += std::forward(value); }
+    template<typename T>
+    [[nodiscard]] jlist<T> operator+(jlist<T>&& container, const T& value) { return container += value; }
+    template<typename T>
+    [[nodiscard]] jlist<T> operator+(jlist<T>&& container, T&& value) { return container += std::forward(value); }
+
+    template<typename T>
+    [[nodiscard]] jlist<T> operator+(const T& value, const jlist<T>& container) { return jlist<T>(1, value) += container; }
+
+    template<typename T>
+    [[nodiscard]] jlist<T> operator+(const jlist<T>& container1, const std::initializer_list<T> list) { return container1.copy() += list; }
+    template<typename T>
+    [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, const std::initializer_list<T> list) { return container1 += list; }
+    template<typename T>
+    [[nodiscard]] jlist<T> operator+(const jlist<T>& container1, const jlist<T>& container2) { return container1.copy() += container2; }
+    template<typename T>
+    [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, const jlist<T>& container2) { return container1 += container2; }
+
+    template<typename T>
+    index_type jlist<T>::indexOf(const type& value) const noexcept
     {
-        if (offset > 0)
+        index_type index = 0;
+        for (const auto& _value : _internalData)
         {
-            while ((offset > 0) && isValid())
+            if (_value == value)
             {
-                listNodePtr = listNodePtr->nextNode;
-                offset--;
+                return index;
             }
+            index++;
         }
-        else
+        return index_invalid;
+    }
+    template<typename T>
+    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
+    index_type jlist<T>::indexOf(Pred pred) const noexcept
+    {
+        index_type index = 0;
+        for (const auto& _value : _internalData)
         {
-            while ((offset < 0) && isValid())
+            if (pred(_value))
             {
-                listNodePtr = listNodePtr->prevNode;
-                offset++;
+                return index;
             }
+            index++;
         }
-    }
-    template<typename T>
-    void jlist<T>::const_iterator::_incrementIterator()
-    {
-        if (isValid())
-        {
-            listNodePtr = listNodePtr->nextNode;
-        }
-    }
-    template<typename T>
-    void jlist<T>::const_iterator::_decrementIterator()
-    {
-        if (isValid())
-        {
-            listNodePtr = listNodePtr->prevNode;
-        }
+        return index_invalid;
     }
 
     template<typename T>
-    typename jlist<T>::iterator jlist<T>::getIterByValue(const type& value)
+    void jlist<T>::removeAt(jlist::const_iterator place, index_type count) noexcept
     {
-        if (!isEmpty())
+        const auto endIter = end();
+        auto placeEnd = place;
+        while ((count > 0) || (placeEnd != endIter))
         {
-            for (auto iter = begin(); iter != end(); ++iter)
-            {
-                if (*iter == value)
-                {
-                    return iter;
-                }
-            }
+            ++placeEnd;
+            count--;
         }
-        return end();
+        removeAt(place, placeEnd);
     }
     template<typename T>
-    typename jlist<T>::const_iterator jlist<T>::getIterByValue(const type& value) const
+    void jlist<T>::removeAt(const index_type index, const index_type count) noexcept
     {
-        if (!isEmpty())
+        if (isValidIndex(index))
         {
-            for (auto iter = begin(); iter != end(); ++iter)
-            {
-                if (*iter == value)
-                {
-                    return iter;
-                }
-            }
-        }
-        return end();
-    }
-
-    template<typename T>
-    typename jlist<T>::index_type jlist<T>::indexOf(const type& value) const
-    {
-        if (!isEmpty())
-        {
-            index_type index = 0;
-            for (const auto& element : *this)
-            {
-                if (element == value)
-                {
-                    return index;
-                }
-                index++;
-            }
-        }
-        return -1;
-    }
-
-    template<typename T>
-    void jlist<T>::_allocateMoreNodes()
-    {
-        list_node* segmentData = nullptr;
-        index_type segmentSize = 0;
-        allocator.allocateSegment(segmentData, segmentSize);
-
-        for (index_type index = 0; index < segmentSize - 1; index++)
-        {
-            segmentData[index].markUnused();
-            segmentData[index].nextNode = segmentData + index + 1;
-        }
-        segmentData[segmentSize - 1].markUnused();
-        segmentData[segmentSize - 1].nextNode = firstUnusedNode;
-        firstUnusedNode = segmentData;
-    }
-    template<typename T>
-    void jlist<T>::_reserveNodes(const index_type count)
-    {
-        while (allocator.getSize() < count)
-        {
-            _allocateMoreNodes();
+            removeAt(std::next(begin(), index), count);
         }
     }
     template<typename T>
-    typename jlist<T>::list_node* jlist<T>::_getNewNode()
+    index_type jlist<T>::remove(const type& value) noexcept
     {
-        if (firstUnusedNode == nullptr)
-        {
-            _allocateMoreNodes();
-        }
-
-        list_node* result = firstUnusedNode;
-        firstUnusedNode = firstUnusedNode->nextNode;
-        return result;
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+        return std::erase(_internalData, value);
+#else
+        const auto iter = std::remove(begin(), end(), value);
+        const index_type deletedElementsCount = end() - iter;
+        _internalData.erase(iter, end());
+        return deletedElementsCount;
+#endif
     }
     template<typename T>
-    void jlist<T>::_returnNode(list_node* node)
+    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
+    index_type jlist<T>::remove(Pred pred) noexcept
     {
-        node->markUnused();
-        node->nextNode = firstUnusedNode;
-        firstUnusedNode = node;
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+        return std::erase_if(_internalData, pred);
+#else
+        const auto iter = std::remove_if(begin(), end(), pred);
+        const index_type deletedElementsCount = end() - iter;
+        _internalData.erase(iter, end());
+        return deletedElementsCount;
+#endif
     }
-
-    template<typename T>
-    template<typename ... Args>
-    void jlist<T>::_putBack(Args&&... args)
-    {
-        list_node* newNode = _getNewNode();
-        newNode->prevNode = lastNode;
-        newNode->nextNode = nullptr;
-        if (lastNode != nullptr)
-        {
-            lastNode->nextNode = newNode;
-        }
-        lastNode = newNode;
-        if (firstNode == nullptr)
-        {
-            firstNode = newNode;
-        }
-        nodeCount++;
-
-        _constructObject(newNode, std::forward<Args>(args)...);
-    }
-    template<typename T>
-    template<typename ... Args>
-    void jlist<T>::_putAt(const const_iterator& iter, Args&&... args)
-    {
-        if (iter.listNodePtr == lastNode)
-        {
-            _putBack(std::forward<Args>(args)...);
-        }
-        else
-        {
-            list_node* newNode = _getNewNode();
-            if (firstNode == iter.listNodePtr)
-            {
-                newNode->prevNode = nullptr;
-                newNode->nextNode = firstNode;
-                firstNode->prevNode = newNode;
-                firstNode = newNode;
-            }
-            else
-            {
-                newNode->prevNode = iter.listNodePtr->prevNode;
-                newNode->nextNode = iter.listNodePtr;
-                iter.listNodePtr->prevNode = newNode;
-            }
-            nodeCount++;
-
-            _constructObject(newNode, std::forward<Args>(args)...);
-        }
-    }
-
-    template<typename T>
-    typename jlist<T>::const_iterator jlist<T>::_removeAt(const const_iterator& iterator)
-    {
-        if (!iterator.isValid())
-        {
-            return iterator;
-        }
-
-        list_node* node = iterator.listNodePtr;
-        list_node* next_node = node->nextNode;
-        if (node != firstNode)
-        {
-            node->prevNode->nextNode = node->nextNode;
-        }
-        else
-        {
-            firstNode = node->nextNode;
-        }
-        if (node != lastNode)
-        {
-            node->nextNode->prevNode = node->prevNode;
-        }
-        else
-        {
-            lastNode = node->prevNode;
-        }
-        nodeCount--;
-
-        _destroyObject(node);
-        _returnNode(node);
-        return const_iterator(next_node);
-    }
-    template<typename T>
-    typename jlist<T>::index_type jlist<T>::remove(const type& value)
-    {
-        index_type count = 0;
-        if (!isEmpty())
-        {
-            const_iterator iter = begin();
-            while (iter.isValid())
-            {
-                if (*iter == value)
-                {
-                    iter = _removeAt(iter);
-                    count++;
-                }
-                else
-                {
-                    ++iter;
-                }
-            }
-        }
-        return count;
-    }
-    template<typename T>
-    typename jlist<T>::index_type jlist<T>::removeByPredicate(const std::function<bool(const type&)>& predicate)
-    {
-        index_type count = 0;
-        if ((predicate == nullptr) || !isEmpty())
-        {
-            const_iterator iter = begin();
-            while (iter.isValid())
-            {
-                if (predicate(*iter))
-                {
-                    iter = _removeAt(iter);
-                    count++;
-                }
-                else
-                {
-                    ++iter;
-                }
-            }
-        }
-        return count;
-    }
-
-    template<typename T>
-    void jlist<T>::clear()
-    {
-        if (nodeCount > 0)
-        {
-            list_node* node = firstNode;
-            while (node != nullptr)
-            {
-                list_node* nextNode = node->nextNode;
-                _destroyObject(node);
-                _returnNode(node);
-                node = nextNode;
-            }
-            firstNode = nullptr;
-            lastNode = nullptr;
-            nodeCount = 0;
-        }
-    }
-    template<typename T>
-    void jlist<T>::_clearAllData()
-    {
-        list_node* node = firstNode;
-        while (node != nullptr)
-        {
-            _destroyObject(node);
-            node = node->nextNode;
-        }
-
-        allocator.clear();
-
-        firstNode = nullptr;
-        lastNode = nullptr;
-        nodeCount = 0;
-        firstUnusedNode = nullptr;
-    }
-
-    template<typename T>
-    jlist<T> operator+(const jlist<T>& container, const T& value) { return jlist<T>(container) += value; }
-    template<typename T>
-    jlist<T> operator+(const T& value, const jlist<T>& container) { return jlist<T>(1, value) += container; }
-    template<typename T>
-    jlist<T> operator+(const jlist<T>& container1, const jlist<T>& container2) { return jlist<T>(container1) += container2; }
 }

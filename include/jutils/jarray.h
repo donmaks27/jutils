@@ -2,10 +2,8 @@
 
 #pragma once
 
-#include "type_traits.h"
 #include "math/math.h"
 
-#include <stdexcept>
 #include <vector>
 
 namespace jutils
@@ -86,6 +84,13 @@ namespace jutils
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const type& getFirst() const noexcept { return _internalData.front(); }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const type& getLast() const noexcept { return _internalData.back(); }
 
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR iterator findIter(const type& value) noexcept { return std::find(begin(), end(), value); }
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR iterator findIter(Pred pred) noexcept { return std::find_if(begin(), end(), pred); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const_iterator findIter(const type& value) const noexcept { return std::find(begin(), end(), value); }
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const_iterator findIter(Pred pred) const noexcept { return std::find_if(begin(), end(), pred); }
+
         [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type indexOf(const type& value) const noexcept;
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type indexOf(Pred pred) const noexcept;
@@ -96,25 +101,25 @@ namespace jutils
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR type* find(const type& value) noexcept
         {
-            const index_type index = indexOf(value);
-            return index != index_invalid ? get(index) : nullptr;
+            const auto iter = findIter(value);
+            return iter != end() ? &*iter : nullptr;
         }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         [[nodiscard]] JUTILS_STD20_CONSTEXPR type* find(Pred pred) noexcept
         {
-            const index_type index = indexOf(pred);
-            return index != index_invalid ? get(index) : nullptr;
+            const auto iter = findIter(pred);
+            return iter != end() ? &*iter : nullptr;
         }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const type* find(const type& value) const noexcept
         {
-            const index_type index = indexOf(value);
-            return index != index_invalid ? get(index) : nullptr;
+            const auto iter = findIter(value);
+            return iter != end() ? &*iter : nullptr;
         }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const type* find(Pred pred) const noexcept
         {
-            const index_type index = indexOf(pred);
-            return index != index_invalid ? get(index) : nullptr;
+            const auto iter = findIter(pred);
+            return iter != end() ? &*iter : nullptr;
         }
 
         JUTILS_STD20_CONSTEXPR void reserve(const index_type capacity) { _internalData.reserve(capacity); }
@@ -123,9 +128,14 @@ namespace jutils
         template<typename... Args>
         JUTILS_STD20_CONSTEXPR type& put(Args&&... args) { return _internalData.emplace_back(std::forward<Args>(args)...); }
         template<typename... Args>
+        JUTILS_STD20_CONSTEXPR type& putAt(const const_iterator place, Args&&... args)
+        {
+            return _internalData.emplace(place, std::forward<Args>(args)...);
+        }
+        template<typename... Args>
         JUTILS_STD20_CONSTEXPR type& putAt(const index_type index, Args&&... args)
         {
-            return _internalData.emplace(std::next(begin(), jutils::math::min(index, getSize())), std::forward<Args>(args)...);
+            return putAt(std::next(begin(), jutils::math::min(index, getSize())), std::forward<Args>(args)...);
         }
 
         JUTILS_STD20_CONSTEXPR type& add(const type& value) { return put(value); }
@@ -141,6 +151,10 @@ namespace jutils
             const index_type index = indexOf(value);
             return index == index_invalid ? add(std::move(value)) : get(index);
         }
+
+        JUTILS_STD20_CONSTEXPR type& addAt(const const_iterator place, const type& value) { return putAt(place, value); }
+        JUTILS_STD20_CONSTEXPR type& addAt(const const_iterator place, type&& value) { return putAt(place, std::move(value)); }
+        JUTILS_STD20_CONSTEXPR type& addDefaultAt(const const_iterator place) { return putAt(place); }
 
         JUTILS_STD20_CONSTEXPR type& addAt(const index_type index, const type& value) { return putAt(index, value); }
         JUTILS_STD20_CONSTEXPR type& addAt(const index_type index, type&& value) { return putAt(index, std::move(value)); }
@@ -175,6 +189,8 @@ namespace jutils
         JUTILS_STD20_CONSTEXPR jarray& operator+=(const base_type& value) { return append(value); }
         JUTILS_STD20_CONSTEXPR jarray& operator+=(const jarray& value) { return append(value); }
 
+        JUTILS_STD20_CONSTEXPR void removeAt(const_iterator placeStart, const_iterator placeEnd) noexcept { _internalData.erase(placeStart, placeEnd); }
+        JUTILS_STD20_CONSTEXPR void removeAt(const_iterator place, index_type count = 1) noexcept;
         JUTILS_STD20_CONSTEXPR void removeAt(index_type index, index_type count = 1) noexcept;
         JUTILS_STD20_CONSTEXPR void removeFirst() noexcept
         {
@@ -187,7 +203,7 @@ namespace jutils
         {
             if (!isEmpty())
             {
-                _internalData.erase(end() - 1);
+                _internalData.erase(--end());
             }
         }
         JUTILS_STD20_CONSTEXPR index_type remove(const type& value) noexcept;
@@ -250,6 +266,18 @@ namespace jutils
         return index_invalid;
     }
 
+    template<typename T>
+    JUTILS_STD20_CONSTEXPR void jarray<T>::removeAt(const_iterator place, index_type count) noexcept
+    {
+        const auto endIter = end();
+        auto placeEnd = place;
+        while ((count > 0) || (placeEnd != endIter))
+        {
+            ++placeEnd;
+            count--;
+        }
+        removeAt(place, placeEnd);
+    }
     template<typename T>
     JUTILS_STD20_CONSTEXPR void jarray<T>::removeAt(const index_type index, const index_type count) noexcept
     {
