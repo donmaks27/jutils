@@ -25,7 +25,7 @@ namespace jutils
         JUTILS_STD20_CONSTEXPR jarray(const index_type count, const type& defaultValue)
             : _internalData(count, defaultValue)
         {}
-        JUTILS_STD20_CONSTEXPR jarray(const std::initializer_list<type> values)
+        JUTILS_STD20_CONSTEXPR jarray(std::initializer_list<type> values)
             : _internalData(values)
         {}
         JUTILS_STD20_CONSTEXPR jarray(const base_type& value)
@@ -38,7 +38,7 @@ namespace jutils
         JUTILS_STD20_CONSTEXPR jarray(jarray&&) noexcept = default;
         JUTILS_STD20_CONSTEXPR ~jarray() noexcept = default;
 
-        JUTILS_STD20_CONSTEXPR jarray& operator=(const std::initializer_list<type> values)
+        JUTILS_STD20_CONSTEXPR jarray& operator=(std::initializer_list<type> values)
         {
             _internalData = values;
             return *this;
@@ -72,7 +72,7 @@ namespace jutils
         [[nodiscard]] JUTILS_STD20_CONSTEXPR type* operator*() noexcept { return getData(); }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const type* operator*() const noexcept { return getData(); }
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray copy() const { return *this; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray copy() const noexcept { return *this; }
         
         [[nodiscard]] JUTILS_STD20_CONSTEXPR type& get(const index_type index) noexcept { return _internalData[index]; }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const type& get(const index_type index) const noexcept { return _internalData[index]; }
@@ -160,7 +160,7 @@ namespace jutils
         JUTILS_STD20_CONSTEXPR type& addAt(const index_type index, type&& value) { return putAt(index, std::move(value)); }
         JUTILS_STD20_CONSTEXPR type& addDefaultAt(const index_type index) { return putAt(index); }
 
-        JUTILS_STD20_CONSTEXPR jarray& append(const std::initializer_list<type> values)
+        JUTILS_STD20_CONSTEXPR jarray& append(std::initializer_list<type> values)
         {
             _internalData.insert(end(), values);
             return *this;
@@ -185,7 +185,7 @@ namespace jutils
             add(std::move(value));
             return *this;
         }
-        JUTILS_STD20_CONSTEXPR jarray& operator+=(const std::initializer_list<type> values) { return append(values); }
+        JUTILS_STD20_CONSTEXPR jarray& operator+=(std::initializer_list<type> values) { return append(values); }
         JUTILS_STD20_CONSTEXPR jarray& operator+=(const base_type& value) { return append(value); }
         JUTILS_STD20_CONSTEXPR jarray& operator+=(const jarray& value) { return append(value); }
 
@@ -227,12 +227,26 @@ namespace jutils
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container, T&& value) { return container += std::forward(value); }
 
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const T& value, const jarray<T>& container) { return jarray<T>(1, value) += container; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const T& value, const jarray<T>& container)
+    {
+        jarray<T> result;
+        result.resize(container.getSize() + 1);
+        result.add(value);
+        return result += container;
+    }
+    template<typename T>
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(T&& value, const jarray<T>& container)
+    {
+        jarray<T> result;
+        result.resize(container.getSize() + 1);
+        result.add(std::forward(value));
+        return result += container;
+    }
     
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container1, const std::initializer_list<T> list) { return container1.copy() += list; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container1, std::initializer_list<T> list) { return container1.copy() += list; }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container1, const std::initializer_list<T> list) { return container1 += list; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container1, std::initializer_list<T> list) { return container1 += list; }
     template<typename T>
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container1, const jarray<T>& container2) { return container1.copy() += container2; }
     template<typename T>

@@ -26,7 +26,7 @@ namespace jutils
         jlist(const index_type count, const type& defaultValue)
             : _internalData(count, defaultValue)
         {}
-        jlist(const std::initializer_list<type> values)
+        jlist(std::initializer_list<type> values)
             : _internalData(values)
         {}
         jlist(const base_type& value)
@@ -39,7 +39,7 @@ namespace jutils
         jlist(jlist&&) noexcept = default;
         ~jlist() noexcept = default;
 
-        jlist& operator=(const std::initializer_list<type> values)
+        jlist& operator=(std::initializer_list<type> values)
         {
             _internalData = values;
             return *this;
@@ -68,12 +68,7 @@ namespace jutils
         [[nodiscard]] const_iterator begin() const noexcept { return _internalData.begin(); }
         [[nodiscard]] const_iterator end() const noexcept { return _internalData.end(); }
 
-        [[nodiscard]] type* getData() noexcept { return _internalData.data(); }
-        [[nodiscard]] const type* getData() const noexcept { return _internalData.data(); }
-        [[nodiscard]] type* operator*() noexcept { return getData(); }
-        [[nodiscard]] const type* operator*() const noexcept { return getData(); }
-
-        [[nodiscard]] jlist copy() const { return *this; }
+        [[nodiscard]] jlist copy() const noexcept { return *this; }
 
         [[nodiscard]] type& get(const index_type index) noexcept { return *std::next(begin(), index); }
         [[nodiscard]] const type& get(const index_type index) const noexcept { return *std::next(begin(), index); }
@@ -130,11 +125,19 @@ namespace jutils
         template<typename... Args>
         type& putAt(const const_iterator place, Args&&... args)
         {
+            if (place == begin())
+            {
+                return _internalData.emplace_front(std::forward<Args>(args)...);
+            }
             return _internalData.emplace(place, std::forward<Args>(args)...);
         }
         template<typename... Args>
         type& putAt(const index_type index, Args&&... args)
         {
+            if (index == 0)
+            {
+                return _internalData.emplace_front(std::forward<Args>(args)...);
+            }
             return putAt(std::next(begin(), jutils::math::min(index, getSize())), std::forward<Args>(args)...);
         }
 
@@ -160,7 +163,7 @@ namespace jutils
         type& addAt(const index_type index, type&& value) { return putAt(index, std::move(value)); }
         type& addDefaultAt(const index_type index) { return putAt(index); }
 
-        jlist& append(const std::initializer_list<type> values)
+        jlist& append(std::initializer_list<type> values)
         {
             _internalData.insert(end(), values);
             return *this;
@@ -173,7 +176,13 @@ namespace jutils
             }
             return *this;
         }
+        jlist& append(base_type&& value)
+        {
+            _internalData.merge(std::move(value));
+            return *this;
+        }
         jlist& append(const jlist& value) { return append(value.toBase()); }
+        jlist& append(jlist&& value) { return append(std::move(value._internalData)); }
 
         jlist& operator+=(const type& value)
         {
@@ -185,9 +194,11 @@ namespace jutils
             add(std::move(value));
             return *this;
         }
-        jlist& operator+=(const std::initializer_list<type> values) { return append(values); }
+        jlist& operator+=(std::initializer_list<type> values) { return append(values); }
         jlist& operator+=(const base_type& value) { return append(value); }
+        jlist& operator+=(base_type&& value) { return append(std::move(value)); }
         jlist& operator+=(const jlist& value) { return append(value); }
+        jlist& operator+=(jlist&& value) { return append(std::move(value)); }
 
         void removeAt(const_iterator placeStart, const_iterator placeEnd) noexcept { _internalData.erase(placeStart, placeEnd); }
         void removeAt(const_iterator place, index_type count = 1) noexcept;
@@ -227,16 +238,42 @@ namespace jutils
     [[nodiscard]] jlist<T> operator+(jlist<T>&& container, T&& value) { return container += std::forward(value); }
 
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(const T& value, const jlist<T>& container) { return jlist<T>(1, value) += container; }
+    [[nodiscard]] jlist<T> operator+(const T& value, const jlist<T>& container)
+    {
+        jlist<T> result = container.copy();
+        result.addAt(0, value);
+        return result;
+    }
+    template<typename T>
+    [[nodiscard]] jlist<T> operator+(const T& value, jlist<T>&& container)
+    {
+        container.addAt(0, value);
+        return container;
+    }
+    template<typename T>
+    [[nodiscard]] jlist<T> operator+(T&& value, const jlist<T>& container)
+    {
+        jlist<T> result = container.copy();
+        result.addAt(0, std::forward(value));
+        return result;
+    }
+    template<typename T>
+    [[nodiscard]] jlist<T> operator+(T&& value, jlist<T>&& container)
+    {
+        container.addAt(0, std::forward(value));
+        return container;
+    }
 
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(const jlist<T>& container1, const std::initializer_list<T> list) { return container1.copy() += list; }
+    [[nodiscard]] jlist<T> operator+(const jlist<T>& container1, std::initializer_list<T> list) { return container1.copy() += list; }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, const std::initializer_list<T> list) { return container1 += list; }
+    [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, std::initializer_list<T> list) { return container1 += list; }
     template<typename T>
     [[nodiscard]] jlist<T> operator+(const jlist<T>& container1, const jlist<T>& container2) { return container1.copy() += container2; }
     template<typename T>
     [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, const jlist<T>& container2) { return container1 += container2; }
+
+
 
     template<typename T>
     index_type jlist<T>::indexOf(const type& value) const noexcept
