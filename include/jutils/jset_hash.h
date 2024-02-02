@@ -9,38 +9,33 @@
 
 namespace jutils
 {
-    JUTILS_TEMPLATE_CONDITION(
-        (jutils::math::hash::hash_info<T>::has_hash && jutils::is_predicate_v<EqualPred, T, T>),
-        typename T, typename EqualPred = std::equal_to<T>
-    )
+    template<typename T, typename KeyHash = jutils::hash<T>, typename KeyEqual = std::equal_to<T>>
     class jset_hash
     {
     public:
 
         using type = T;
-        using key_hasher_predicator_type = jutils::math::hash::hasher<T>;
-        using key_equal_predicator_type = EqualPred;
-        using base_type = std::unordered_set<type, key_hasher_predicator_type, key_equal_predicator_type>;
-        using size_type = typename base_type::size_type;
-        
+        using key_hash_type = KeyHash;
+        using key_equal_type = KeyEqual;
+        using base_type = std::unordered_set<type, key_hash_type, key_equal_type>;
         using const_iterator = typename base_type::const_iterator;
         using iterator = typename base_type::iterator;
 
         jset_hash() noexcept = default;
-        jset_hash(const std::initializer_list<type> values)
+        jset_hash(std::initializer_list<type> values)
             : _internalData(values)
         {}
         jset_hash(const base_type& value)
             : _internalData(value)
         {}
         jset_hash(base_type&& value) noexcept
-            : _internalData(std::move(value))
+        : _internalData(std::move(value))
         {}
         jset_hash(const jset_hash&) = default;
         jset_hash(jset_hash&&) noexcept =default;
         ~jset_hash() noexcept = default;
 
-        jset_hash& operator=(const std::initializer_list<type> values)
+        jset_hash& operator=(std::initializer_list<type> values)
         {
             _internalData = values;
             return *this;
@@ -58,92 +53,80 @@ namespace jutils
         jset_hash& operator=(const jset_hash&) = default;
         jset_hash& operator=(jset_hash&&) noexcept = default;
 
-        const base_type& toBase() const noexcept { return _internalData; }
+        [[nodiscard]] const base_type& toBase() const noexcept { return _internalData; }
 
-        size_type getSize() const noexcept { return _internalData.size(); }
-        bool isEmpty() const noexcept { return _internalData.empty(); }
+        [[nodiscard]] index_type getSize() const noexcept { return _internalData.size(); }
+        [[nodiscard]] bool isEmpty() const noexcept { return _internalData.empty(); }
 
-        iterator begin() noexcept { return _internalData.begin(); }
-        iterator end() noexcept { return _internalData.end(); }
-        const_iterator begin() const noexcept { return _internalData.begin(); }
-        const_iterator end() const noexcept { return _internalData.end(); }
-        
-        jset_hash copy() const { return *this; }
-        jarray<T> getValues() const
+        [[nodiscard]] iterator begin() noexcept { return _internalData.begin(); }
+        [[nodiscard]] iterator end() noexcept { return _internalData.end(); }
+        [[nodiscard]] const_iterator begin() const noexcept { return _internalData.begin(); }
+        [[nodiscard]] const_iterator end() const noexcept { return _internalData.end(); }
+
+        [[nodiscard]] jset_hash copy() const noexcept { return *this; }
+
+        [[nodiscard]] iterator findIter(const type& key) noexcept { return _internalData.find(key); }
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] iterator findIter(Pred pred) noexcept;
+        [[nodiscard]] const_iterator findIter(const type& key) const noexcept { return _internalData.find(key); }
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] const_iterator findIter(Pred pred) const noexcept;
+
+        [[nodiscard]] type* find(const type& key) noexcept
         {
-            jarray<T> values;
-            for (const auto& value : _internalData)
-            {
-                values.add(value);
-            }
-            return values;
+            const auto iter = findIter(key);
+            return iter != end() ? &*iter : nullptr;
         }
-        
-        const type* find(const type& value) const noexcept
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] type* find(Pred pred) noexcept
         {
-            const const_iterator iter = _internalData.find(value);
-            return iter != end() ? iter.operator->() : nullptr;
+            const auto iter = findIter(pred);
+            return iter != end() ? &*iter : nullptr;
         }
-        template<typename Pred> requires std::predicate<Pred, type>
-        const type* find(Pred pred) const noexcept
+        [[nodiscard]] const type* find(const type& key) const noexcept
         {
-            for (auto& value : _internalData)
-            {
-                if (pred(value))
-                {
-                    return &value;
-                }
-            }
-            return nullptr;
+            const auto iter = findIter(key);
+            return iter != end() ? &*iter : nullptr;
+        }
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] const type* find(Pred pred) const noexcept
+        {
+            const auto iter = findIter(pred);
+            return iter != end() ? &*iter : nullptr;
         }
 
-        bool contains(const type& value) const noexcept { return find(value) != nullptr; }
-        template<typename Pred> requires std::predicate<Pred, type>
-        bool contains(Pred pred) const noexcept { return find<Pred>(pred) != nullptr; }
+        [[nodiscard]] bool contains(const type& key) const noexcept;
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        [[nodiscard]] bool contains(Pred pred) const noexcept { return findIter(pred) != end(); }
 
-        const type& add(const type& value) { return *_internalData.insert(value).first; }
-        const type& add(type&& value) { return *_internalData.emplace(std::move(value)).first; }
+        [[nodiscard]] jarray<type> getKeys() const noexcept;
 
-        jset_hash& append(const std::initializer_list<type> values)
+        template<typename... Args>
+        type& put(Args&&... args);
+
+        type& add(const type& key);
+        type& add(type&& key);
+
+        jset_hash& append(std::initializer_list<type> values)
         {
-            for (const auto& value : values)
+            _internalData.insert(values);
+            return *this;
+        }
+        jset_hash& append(const base_type& value)
+        {
+            if (this != &value)
             {
-                add(value);
+                _internalData.insert(value.begin(), value.end());
             }
             return *this;
         }
-        jset_hash& append(const base_type& values)
+        jset_hash& append(base_type&& value)
         {
-            for (const auto& value : values)
-            {
-                add(value);
-            }
-            return *this;
-        }
-        jset_hash& append(base_type&& values)
-        {
-            _internalData.merge(std::move(values));
+            _internalData.merge(std::move(value));
             return *this;
         }
         jset_hash& append(const jset_hash& value) { return append(value.toBase()); }
         jset_hash& append(jset_hash&& value) { return append(std::move(value._internalData)); }
-
-        bool remove(const type& value) noexcept { return _internalData.erase(value) > 0; }
-        template<typename Pred> requires std::predicate<Pred, type>
-        size_type remove(Pred pred) noexcept
-        {
-            size_type count = 0;
-            for (iterator iter = _internalData.begin(); iter != _internalData.end(); ++iter)
-            {
-                if (pred(*iter))
-                {
-                    iter = _internalData.rase(iter);
-                    ++count;
-                }
-            }
-            return count;
-        }
-        void clear() noexcept { _internalData.clear(); }
 
         jset_hash& operator+=(const type& value)
         {
@@ -152,44 +135,141 @@ namespace jutils
         }
         jset_hash& operator+=(type&& value)
         {
-            add(std::move(value));
+            add(std::move(value.first));
             return *this;
         }
-        jset_hash& operator+=(const std::initializer_list<type> values) { return append(values); }
+        jset_hash& operator+=(std::initializer_list<type> values) { return append(values); }
         jset_hash& operator+=(const base_type& value) { return append(value); }
         jset_hash& operator+=(base_type&& value) { return append(std::move(value)); }
         jset_hash& operator+=(const jset_hash& value) { return append(value); }
         jset_hash& operator+=(jset_hash&& value) { return append(std::move(value)); }
 
+        index_type remove(const type& key) noexcept { return _internalData.erase(key); }
+        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
+        index_type remove(Pred pred) noexcept;
+        void clear() noexcept { _internalData.clear(); }
+
     private:
 
         base_type _internalData;
     };
-    
-    template<typename T, typename Pred>
-    jset_hash<T, Pred> operator+(const jset_hash<T, Pred>& value1, const T& value2) { return value1.copy() += value2; }
-    template<typename T, typename Pred>
-    jset_hash<T, Pred> operator+(const jset_hash<T, Pred>& value1, T&& value2) { return value1.copy() += std::forward(value2); }
-    template<typename T, typename Pred>
-    jset_hash<T, Pred> operator+(jset_hash<T, Pred>&& value1, const T& value2) { return value1 += value2; }
-    template<typename T, typename Pred>
-    jset_hash<T, Pred> operator+(jset_hash<T, Pred>&& value1, T&& value2) { return value1 += std::forward(value2); }
 
-    template<typename T, typename Pred>
-    jset_hash<T, Pred> operator+(const T& value1, const jset_hash<T, Pred>& value2) { return value2.copy() += value1; }
-    template<typename T, typename Pred>
-    jset_hash<T, Pred> operator+(const T& value1, jset_hash<T, Pred>&& value2) { return value2 += value1; }
-    template<typename T, typename Pred>
-    jset_hash<T, Pred> operator+(T&& value1, const jset_hash<T, Pred>& value2) { return value2.copy() += std::forward(value1); }
-    template<typename T, typename Pred>
-    jset_hash<T, Pred> operator+(T&& value1, jset_hash<T, Pred>&& value2) { return value2 += std::forward(value1); }
+    template<typename T, typename KeyHash, typename KeyEqual>
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(const jset_hash<T, KeyHash, KeyEqual>& container, const typename jset_hash<T, KeyHash, KeyEqual>::pair_type& value) { return container.copy() += value; }
+    template<typename T, typename KeyHash, typename KeyEqual>
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(const jset_hash<T, KeyHash, KeyEqual>& container, typename jset_hash<T, KeyHash, KeyEqual>::pair_type&& value) { return container.copy() += std::forward(value); }
+    template<typename T, typename KeyHash, typename KeyEqual>
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container, const typename jset_hash<T, KeyHash, KeyEqual>::pair_type& value) { return container += value; }
+    template<typename T, typename KeyHash, typename KeyEqual>
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container, typename jset_hash<T, KeyHash, KeyEqual>::pair_type&& value) { return container += std::forward(value); }
 
-    template<typename T, typename Pred>
-    jset_hash<T, Pred> operator+(const jset_hash<T, Pred>& value1, const jset_hash<T, Pred>& value2) { return value1.copy() += value2; }
-    template<typename T, typename Pred>
-    jset_hash<T, Pred> operator+(const jset_hash<T, Pred>& value1, jset_hash<T, Pred>&& value2) { return value2 += value1; }
-    template<typename T, typename Pred>
-    jset_hash<T, Pred> operator+(jset_hash<T, Pred>&& value1, const jset_hash<T, Pred>& value2) { return value1 += value2; }
-    template<typename T, typename Pred>
-    jset_hash<T, Pred> operator+(jset_hash<T, Pred>&& value1, jset_hash<T, Pred>&& value2) { return value1 += std::forward(value2); }
+    template<typename T, typename KeyHash, typename KeyEqual>
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(const jset_hash<T, KeyHash, KeyEqual>& container1, std::initializer_list<typename jset_hash<T, KeyHash, KeyEqual>::pair_type> list) { return container1.copy() += list; }
+    template<typename T, typename KeyHash, typename KeyEqual>
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container1, std::initializer_list<typename jset_hash<T, KeyHash, KeyEqual>::pair_type> list) { return container1 += list; }
+    template<typename T, typename KeyHash, typename KeyEqual>
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(const jset_hash<T, KeyHash, KeyEqual>& container1, const jset_hash<T, KeyHash, KeyEqual>& container2) { return container1.copy() += container2; }
+    template<typename T, typename KeyHash, typename KeyEqual>
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container1, const jset_hash<T, KeyHash, KeyEqual>& container2) { return container1 += container2; }
+    template<typename T, typename KeyHash, typename KeyEqual>
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(const jset_hash<T, KeyHash, KeyEqual>& container1, jset_hash<T, KeyHash, KeyEqual>&& container2) { return container1.copy() += std::move(container2); }
+    template<typename T, typename KeyHash, typename KeyEqual>
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container1, jset_hash<T, KeyHash, KeyEqual>&& container2) { return container1 += std::move(container2); }
+
+    template<typename T, typename KeyHash, typename KeyEqual>
+    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
+    jset_hash<T, KeyHash, KeyEqual>::iterator jset_hash<T, KeyHash, KeyEqual>::findIter(Pred pred) noexcept
+    {
+        for (auto iter = begin(); iter != end(); ++iter)
+        {
+            if (pred(*iter))
+            {
+                return iter;
+            }
+        }
+        return end();
+    }
+    template<typename T, typename KeyHash, typename KeyEqual>
+    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
+    jset_hash<T, KeyHash, KeyEqual>::const_iterator jset_hash<T, KeyHash, KeyEqual>::findIter(Pred pred) const noexcept
+    {
+        for (auto iter = begin(); iter != end(); ++iter)
+        {
+            if (pred(*iter))
+            {
+                return iter;
+            }
+        }
+        return end();
+    }
+
+    template<typename T, typename KeyHash, typename KeyEqual>
+    bool jset_hash<T, KeyHash, KeyEqual>::contains(const type& key) const noexcept
+    {
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+        return _internalData.contains(key);
+#else
+        return findIter(key) != end();
+#endif
+    }
+
+    template<typename T, typename KeyHash, typename KeyEqual>
+    jarray<T> jset_hash<T, KeyHash, KeyEqual>::getKeys() const noexcept
+    {
+        jarray<type> keys;
+        for (const auto& key : _internalData)
+        {
+            keys.add(key);
+        }
+        return keys;
+    }
+
+    template<typename T, typename KeyHash, typename KeyEqual>
+    template<typename... Args>
+    T& jset_hash<T, KeyHash, KeyEqual>::put(Args&& ... args)
+    {
+        auto result = _internalData.emplace(std::forward<Args>(args)...);
+        if (!result.second)
+        {
+            *result.first = type(std::forward<Args>(args)...);
+        }
+        return *result.first;
+    }
+
+    template<typename T, typename KeyHash, typename KeyEqual>
+    T& jset_hash<T, KeyHash, KeyEqual>::add(const type& key)
+    {
+        auto result = _internalData.insert(key);
+        if (!result.second)
+        {
+            *result.first = key;
+        }
+        return *result.first;
+    }
+    template<typename T, typename KeyHash, typename KeyEqual>
+    T& jset_hash<T, KeyHash, KeyEqual>::add(type&& key)
+    {
+        auto result = _internalData.insert(std::move(key));
+        if (!result.second)
+        {
+            *result.first = std::move(key);
+        }
+        return *result.first;
+    }
+
+    template<typename T, typename KeyHash, typename KeyEqual>
+    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
+    index_type jset_hash<T, KeyHash, KeyEqual>::remove(Pred pred) noexcept
+    {
+        index_type count = 0;
+        for (auto iter = begin(); iter != end(); ++iter)
+        {
+            if (pred(*iter))
+            {
+                iter = _internalData.erase(iter);
+                ++count;
+            }
+        }
+        return count;
+    }
 }

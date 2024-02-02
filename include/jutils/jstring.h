@@ -260,8 +260,6 @@ namespace jutils
         }
         JUTILS_STD20_CONSTEXPR void clear() noexcept { _internalString.clear(); }
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR uint64 hash() const noexcept { return jutils::math::hash::crc64(getData(), getSize()); }
-        
     private:
 
         std::string _internalString;
@@ -285,6 +283,19 @@ namespace jutils
             _internalString = std::regex_replace(_internalString, searchRegex, newValue);
             return *this;
         }
+    };
+
+    template<>
+    struct hash<jstring>
+    {
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR jutils::hash_type operator()(const jstring& str) const noexcept
+            { return jutils::hash<const char*>{}(*str); }
+    };
+    template<>
+    struct hash<std::string>
+    {
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR jutils::hash_type operator()(const std::string& str) const noexcept
+            { return jutils::hash<const char*>{}(str.c_str()); }
     };
 
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring& str1, const jstring::char_type character) { return str1.toBase() + character; }

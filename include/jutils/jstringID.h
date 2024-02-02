@@ -39,7 +39,7 @@ namespace jutils
         {
             if (str.isEmpty())
             {
-                return jarrayInvalidIndex;
+                return index_invalid;
             }
 
             index_type strIndex;
@@ -101,16 +101,19 @@ namespace jutils
             jstring string;
             index_type pointerIndex = index_invalid;
 
-            [[nodiscard]] uint64 hash() const noexcept { return math::hash::getHash(string); }
-
             [[nodiscard]] bool operator==(const jstring& str) const noexcept { return string == str; }
             [[nodiscard]] bool operator==(const strings_table_entry& entry) const noexcept { return operator==(entry.string); }
 
             [[nodiscard]] bool operator!=(const jstring& str) const noexcept { return !operator==(str); }
             [[nodiscard]] bool operator!=(const strings_table_entry& entry) const noexcept { return operator!=(entry.string); }
         };
+        struct strings_table_entry_hash
+        {
+            [[nodiscard]] std::size_t operator()(const strings_table_entry& entry) const noexcept
+                { return jutils::hash<jstring>{}(entry.string); }
+        };
         
-        jset_hash<strings_table_entry> stringsTable;
+        jset_hash<strings_table_entry, strings_table_entry_hash> stringsTable;
         jarray<const strings_table_entry*> stringPointers;
         mutable std::shared_mutex rwMutex;
     };

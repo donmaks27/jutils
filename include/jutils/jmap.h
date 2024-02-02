@@ -13,15 +13,14 @@
 
 namespace jutils
 {
-    JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<KeyComparePred, KeyType, KeyType>),
-        typename KeyType, typename ValueType, typename KeyComparePred = std::less<KeyType>)
+    template<typename KeyType, typename ValueType, typename KeyCompare = std::less<KeyType>>
     class jmap
     {
     public:
 
         using key_type = KeyType;
         using value_type = ValueType;
-        using key_compare_type = KeyComparePred;
+        using key_compare_type = KeyCompare;
         using base_type = std::map<key_type, value_type, key_compare_type>;
         using pair_type = typename base_type::value_type;
         using const_iterator = typename base_type::const_iterator;
@@ -81,52 +80,12 @@ namespace jutils
 
         [[nodiscard]] iterator findIter(const key_type& key) noexcept { return _internalData.find(key); }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, key_type, value_type>), typename Pred)
-        [[nodiscard]] iterator findIter(Pred pred) noexcept
-        {
-            for (auto iter = begin(); iter != end(); ++iter)
-            {
-                if (pred(iter->first, iter->second))
-                {
-                    return iter;
-                }
-            }
-            return end();
-        }
-        [[nodiscard]] iterator findValueIter(const value_type& value) noexcept
-        {
-            for (auto iter = begin(); iter != end(); ++iter)
-            {
-                if (value == iter->second)
-                {
-                    return iter;
-                }
-            }
-            return end();
-        }
+        [[nodiscard]] iterator findIter(Pred pred) noexcept;
+        [[nodiscard]] iterator findValueIter(const value_type& value) noexcept;
         [[nodiscard]] const_iterator findIter(const key_type& key) const noexcept { return _internalData.find(key); }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, key_type, value_type>), typename Pred)
-        [[nodiscard]] const_iterator findIter(Pred pred) const noexcept
-        {
-            for (auto iter = begin(); iter != end(); ++iter)
-            {
-                if (pred(iter->first, iter->second))
-                {
-                    return iter;
-                }
-            }
-            return end();
-        }
-        [[nodiscard]] const_iterator findValueIter(const value_type& value) const noexcept
-        {
-            for (auto iter = begin(); iter != end(); ++iter)
-            {
-                if (value == iter->second)
-                {
-                    return iter;
-                }
-            }
-            return end();
-        }
+        [[nodiscard]] const_iterator findIter(Pred pred) const noexcept;
+        [[nodiscard]] const_iterator findValueIter(const value_type& value) const noexcept;
 
         [[nodiscard]] value_type* find(const key_type& key) noexcept
         {
@@ -139,26 +98,19 @@ namespace jutils
             const auto iter = findIter(pred);
             return iter != end() ? &iter->second : nullptr;
         }
-        [[nodiscard]] const_iterator find(const key_type& key) const noexcept
+        [[nodiscard]] const value_type* find(const key_type& key) const noexcept
         {
             const auto iter = findIter(key);
             return iter != end() ? &iter->second : nullptr;
         }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, key_type, value_type>), typename Pred)
-        [[nodiscard]] const_iterator find(Pred pred) const noexcept
+        [[nodiscard]] const value_type* find(Pred pred) const noexcept
         {
             const auto iter = findIter(pred);
             return iter != end() ? &iter->second : nullptr;
         }
 
-        [[nodiscard]] bool contains(const key_type& key) const noexcept
-        {
-#if JUTILS_STD_VERSION >= JUTILS_STD20
-            return _internalData.contains(key);
-#else
-            return findIter(key) != end();
-#endif
-        }
+        [[nodiscard]] bool contains(const key_type& key) const noexcept;
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, key_type, value_type>), typename Pred)
         [[nodiscard]] bool contains(Pred pred) const noexcept { return findIter(pred) != end(); }
 
@@ -168,45 +120,13 @@ namespace jutils
         [[nodiscard]] constexpr auto values() { return std::views::values(_internalData); }
         [[nodiscard]] constexpr auto values() const { return std::views::values(_internalData); }
 #endif
-        [[nodiscard]] jarray<key_type> getKeys() const noexcept
-        {
-            jarray<key_type> keys;
-            for (const auto& pair : _internalData)
-            {
-                keys.add(pair.first);
-            }
-            return keys;
-        }
-        [[nodiscard]] jarray<value_type> getValues() const noexcept
-        {
-            jarray<value_type> values;
-            for (const auto& pair : _internalData)
-            {
-                values.add(pair.second);
-            }
-            return values;
-        }
+        [[nodiscard]] jarray<key_type> getKeys() const noexcept;
+        [[nodiscard]] jarray<value_type> getValues() const noexcept;
 
         template<typename... Args>
-        value_type& put(const key_type& key, Args&&... args)
-        {
-            auto result = _internalData.try_emplace(key, std::forward<Args>(args)...);
-            if (!result.second)
-            {
-                result.first->second = value_type(std::forward<Args>(args)...);
-            }
-            return result.first->second;
-        }
+        value_type& put(const key_type& key, Args&&... args);
         template<typename... Args>
-        value_type& put(key_type&& key, Args&&... args)
-        {
-            auto result = _internalData.try_emplace(std::move(key), std::forward<Args>(args)...);
-            if (!result.second)
-            {
-                result.first->second = value_type(std::forward<Args>(args)...);
-            }
-            return result.first->second;
-        }
+        value_type& put(key_type&& key, Args&&... args);
 
         value_type& add(const key_type& key, const value_type& value) { return _internalData.insert_or_assign(key, value).first->second; }
         value_type& add(const key_type& key, value_type&& value) { return _internalData.insert_or_assign(key, std::move(value)).first->second; }
@@ -254,19 +174,7 @@ namespace jutils
 
         index_type remove(const key_type& key) noexcept { return _internalData.erase(key); }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, key_type, value_type>), typename Pred)
-        index_type remove(Pred pred) noexcept
-        {
-            index_type count = 0;
-            for (auto iter = begin(); iter != end(); ++iter)
-            {
-                if (pred(iter->first, iter->second))
-                {
-                    iter = _internalData.erase(iter);
-                    ++count;
-                }
-            }
-            return count;
-        }
+        index_type remove(Pred pred) noexcept;
         void clear() noexcept { _internalData.clear(); }
 
     private:
@@ -274,25 +182,147 @@ namespace jutils
         base_type _internalData;
     };
 
-    template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap<Key, Value, Pred> operator+(const jmap<Key, Value, Pred>& container, const typename jmap<Key, Value, Pred>::pair_type& value) { return container.copy() += value; }
-    template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap<Key, Value, Pred> operator+(const jmap<Key, Value, Pred>& container, typename jmap<Key, Value, Pred>::pair_type&& value) { return container.copy() += std::forward(value); }
-    template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap<Key, Value, Pred> operator+(jmap<Key, Value, Pred>&& container, const typename jmap<Key, Value, Pred>::pair_type& value) { return container += value; }
-    template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap<Key, Value, Pred> operator+(jmap<Key, Value, Pred>&& container, typename jmap<Key, Value, Pred>::pair_type&& value) { return container += std::forward(value); }
+    template<typename Key, typename Value, typename KeyCompare>
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(const jmap<Key, Value, KeyCompare>& container, const typename jmap<Key, Value, KeyCompare>::pair_type& value) { return container.copy() += value; }
+    template<typename Key, typename Value, typename KeyCompare>
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(const jmap<Key, Value, KeyCompare>& container, typename jmap<Key, Value, KeyCompare>::pair_type&& value) { return container.copy() += std::forward(value); }
+    template<typename Key, typename Value, typename KeyCompare>
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container, const typename jmap<Key, Value, KeyCompare>::pair_type& value) { return container += value; }
+    template<typename Key, typename Value, typename KeyCompare>
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container, typename jmap<Key, Value, KeyCompare>::pair_type&& value) { return container += std::forward(value); }
 
-    template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap<Key, Value, Pred> operator+(const jmap<Key, Value, Pred>& container1, std::initializer_list<typename jmap<Key, Value, Pred>::pair_type> list) { return container1.copy() += list; }
-    template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap<Key, Value, Pred> operator+(jmap<Key, Value, Pred>&& container1, std::initializer_list<typename jmap<Key, Value, Pred>::pair_type> list) { return container1 += list; }
-    template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap<Key, Value, Pred> operator+(const jmap<Key, Value, Pred>& container1, const jmap<Key, Value, Pred>& container2) { return container1.copy() += container2; }
-    template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap<Key, Value, Pred> operator+(jmap<Key, Value, Pred>&& container1, const jmap<Key, Value, Pred>& container2) { return container1 += container2; }
-    template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap<Key, Value, Pred> operator+(const jmap<Key, Value, Pred>& container1, jmap<Key, Value, Pred>&& container2) { return container1.copy() += std::move(container2); }
-    template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap<Key, Value, Pred> operator+(jmap<Key, Value, Pred>&& container1, jmap<Key, Value, Pred>&& container2) { return container1 += std::move(container2); }
+    template<typename Key, typename Value, typename KeyCompare>
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(const jmap<Key, Value, KeyCompare>& container1, std::initializer_list<typename jmap<Key, Value, KeyCompare>::pair_type> list) { return container1.copy() += list; }
+    template<typename Key, typename Value, typename KeyCompare>
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container1, std::initializer_list<typename jmap<Key, Value, KeyCompare>::pair_type> list) { return container1 += list; }
+    template<typename Key, typename Value, typename KeyCompare>
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(const jmap<Key, Value, KeyCompare>& container1, const jmap<Key, Value, KeyCompare>& container2) { return container1.copy() += container2; }
+    template<typename Key, typename Value, typename KeyCompare>
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container1, const jmap<Key, Value, KeyCompare>& container2) { return container1 += container2; }
+    template<typename Key, typename Value, typename KeyCompare>
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(const jmap<Key, Value, KeyCompare>& container1, jmap<Key, Value, KeyCompare>&& container2) { return container1.copy() += std::move(container2); }
+    template<typename Key, typename Value, typename KeyCompare>
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container1, jmap<Key, Value, KeyCompare>&& container2) { return container1 += std::move(container2); }
+
+    template<typename KeyType, typename ValueType, typename KeyCompare>
+    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, KeyType, ValueType>), typename Pred)
+    jmap<KeyType, ValueType, KeyCompare>::iterator jmap<KeyType, ValueType, KeyCompare>::findIter(Pred pred) noexcept
+    {
+        for (auto iter = begin(); iter != end(); ++iter)
+        {
+            if (pred(iter->first, iter->second))
+            {
+                return iter;
+            }
+        }
+        return end();
+    }
+    template<typename KeyType, typename ValueType, typename KeyCompare>
+    jmap<KeyType, ValueType, KeyCompare>::iterator jmap<KeyType, ValueType, KeyCompare>::findValueIter(const value_type& value) noexcept
+    {
+        for (auto iter = begin(); iter != end(); ++iter)
+        {
+            if (value == iter->second)
+            {
+                return iter;
+            }
+        }
+        return end();
+    }
+
+    template<typename KeyType, typename ValueType, typename KeyCompare>
+    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, KeyType, ValueType>), typename Pred)
+    jmap<KeyType, ValueType, KeyCompare>::const_iterator jmap<KeyType, ValueType, KeyCompare>::findIter(Pred pred) const noexcept
+    {
+        for (auto iter = begin(); iter != end(); ++iter)
+        {
+            if (pred(iter->first, iter->second))
+            {
+                return iter;
+            }
+        }
+        return end();
+    }
+    template<typename KeyType, typename ValueType, typename KeyCompare>
+    jmap<KeyType, ValueType, KeyCompare>::const_iterator jmap<KeyType, ValueType, KeyCompare>::findValueIter(const value_type& value) const noexcept
+    {
+        for (auto iter = begin(); iter != end(); ++iter)
+        {
+            if (value == iter->second)
+            {
+                return iter;
+            }
+        }
+        return end();
+    }
+
+    template<typename KeyType, typename ValueType, typename KeyCompare>
+    bool jmap<KeyType, ValueType, KeyCompare>::contains(const key_type& key) const noexcept
+    {
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+        return _internalData.contains(key);
+#else
+        return findIter(key) != end();
+#endif
+    }
+
+    template<typename KeyType, typename ValueType, typename KeyCompare>
+    jarray<KeyType> jmap<KeyType, ValueType, KeyCompare>::getKeys() const noexcept
+    {
+        jarray<key_type> keys;
+        for (const auto& pair : _internalData)
+        {
+            keys.add(pair.first);
+        }
+        return keys;
+    }
+    template<typename KeyType, typename ValueType, typename KeyCompare>
+    jarray<ValueType> jmap<KeyType, ValueType, KeyCompare>::getValues() const noexcept
+    {
+        jarray<value_type> values;
+        for (const auto& pair : _internalData)
+        {
+            values.add(pair.second);
+        }
+        return values;
+    }
+
+    template<typename KeyType, typename ValueType, typename KeyCompare>
+    template<typename... Args>
+    ValueType& jmap<KeyType, ValueType, KeyCompare>::put(const key_type& key, Args&& ... args)
+    {
+        auto result = _internalData.try_emplace(key, std::forward<Args>(args)...);
+        if (!result.second)
+        {
+            result.first->second = value_type(std::forward<Args>(args)...);
+        }
+        return result.first->second;
+    }
+    template<typename KeyType, typename ValueType, typename KeyCompare>
+    template<typename... Args>
+    ValueType& jmap<KeyType, ValueType, KeyCompare>::put(key_type&& key, Args&& ... args)
+    {
+        auto result = _internalData.try_emplace(std::move(key), std::forward<Args>(args)...);
+        if (!result.second)
+        {
+            result.first->second = value_type(std::forward<Args>(args)...);
+        }
+        return result.first->second;
+    }
+
+    template<typename KeyType, typename ValueType, typename KeyCompare>
+    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, KeyType, ValueType>), typename Pred)
+    index_type jmap<KeyType, ValueType, KeyCompare>::remove(Pred pred) noexcept
+    {
+        index_type count = 0;
+        for (auto iter = begin(); iter != end(); ++iter)
+        {
+            if (pred(iter->first, iter->second))
+            {
+                iter = _internalData.erase(iter);
+                ++count;
+            }
+        }
+        return count;
+    }
 }
