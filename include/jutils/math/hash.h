@@ -122,11 +122,21 @@ namespace jutils
     }
 }
 
-JUTILS_TEMPLATE_CONDITION(std::is_integral_v<T>, typename T)
-struct jutils::hash<T>
-{
-    [[nodiscard]] constexpr jutils::hash_type operator()(const T& v) const noexcept { return jutils::math::hash::crc64(v); }
-};
+#define JUTILS_TYPE_HASH_CONSTEXPR(type, funcName)                                                                  \
+    template<> struct jutils::hash<type>                                                                            \
+    {                                                                                                               \
+        [[nodiscard]] constexpr jutils::hash_type operator()(const type& v) const noexcept { return funcName(v); }  \
+    }
+
+JUTILS_TYPE_HASH_CONSTEXPR( jutils::uint8, jutils::math::hash::crc64);
+JUTILS_TYPE_HASH_CONSTEXPR(  jutils::int8, jutils::math::hash::crc64);
+JUTILS_TYPE_HASH_CONSTEXPR(jutils::uint16, jutils::math::hash::crc64);
+JUTILS_TYPE_HASH_CONSTEXPR( jutils::int16, jutils::math::hash::crc64);
+JUTILS_TYPE_HASH_CONSTEXPR(jutils::uint32, jutils::math::hash::crc64);
+JUTILS_TYPE_HASH_CONSTEXPR( jutils::int32, jutils::math::hash::crc64);
+JUTILS_TYPE_HASH_CONSTEXPR(jutils::uint64, jutils::math::hash::crc64);
+JUTILS_TYPE_HASH_CONSTEXPR( jutils::int64, jutils::math::hash::crc64);
+
 template<>
 struct jutils::hash<const char*>
 {

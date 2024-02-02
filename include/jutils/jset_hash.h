@@ -178,7 +178,7 @@ namespace jutils
 
     template<typename T, typename KeyHash, typename KeyEqual>
     JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
-    jset_hash<T, KeyHash, KeyEqual>::iterator jset_hash<T, KeyHash, KeyEqual>::findIter(Pred pred) noexcept
+    typename jset_hash<T, KeyHash, KeyEqual>::iterator jset_hash<T, KeyHash, KeyEqual>::findIter(Pred pred) noexcept
     {
         for (auto iter = begin(); iter != end(); ++iter)
         {
@@ -191,7 +191,7 @@ namespace jutils
     }
     template<typename T, typename KeyHash, typename KeyEqual>
     JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
-    jset_hash<T, KeyHash, KeyEqual>::const_iterator jset_hash<T, KeyHash, KeyEqual>::findIter(Pred pred) const noexcept
+    typename jset_hash<T, KeyHash, KeyEqual>::const_iterator jset_hash<T, KeyHash, KeyEqual>::findIter(Pred pred) const noexcept
     {
         for (auto iter = begin(); iter != end(); ++iter)
         {

@@ -206,7 +206,7 @@ namespace jutils
 
     template<typename KeyType, typename ValueType, typename KeyCompare>
     JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, KeyType, ValueType>), typename Pred)
-    jmap<KeyType, ValueType, KeyCompare>::iterator jmap<KeyType, ValueType, KeyCompare>::findIter(Pred pred) noexcept
+    typename jmap<KeyType, ValueType, KeyCompare>::iterator jmap<KeyType, ValueType, KeyCompare>::findIter(Pred pred) noexcept
     {
         for (auto iter = begin(); iter != end(); ++iter)
         {
@@ -218,7 +218,7 @@ namespace jutils
         return end();
     }
     template<typename KeyType, typename ValueType, typename KeyCompare>
-    jmap<KeyType, ValueType, KeyCompare>::iterator jmap<KeyType, ValueType, KeyCompare>::findValueIter(const value_type& value) noexcept
+    typename jmap<KeyType, ValueType, KeyCompare>::iterator jmap<KeyType, ValueType, KeyCompare>::findValueIter(const value_type& value) noexcept
     {
         for (auto iter = begin(); iter != end(); ++iter)
         {
@@ -232,7 +232,7 @@ namespace jutils
 
     template<typename KeyType, typename ValueType, typename KeyCompare>
     JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, KeyType, ValueType>), typename Pred)
-    jmap<KeyType, ValueType, KeyCompare>::const_iterator jmap<KeyType, ValueType, KeyCompare>::findIter(Pred pred) const noexcept
+    typename jmap<KeyType, ValueType, KeyCompare>::const_iterator jmap<KeyType, ValueType, KeyCompare>::findIter(Pred pred) const noexcept
     {
         for (auto iter = begin(); iter != end(); ++iter)
         {
@@ -244,7 +244,7 @@ namespace jutils
         return end();
     }
     template<typename KeyType, typename ValueType, typename KeyCompare>
-    jmap<KeyType, ValueType, KeyCompare>::const_iterator jmap<KeyType, ValueType, KeyCompare>::findValueIter(const value_type& value) const noexcept
+    typename jmap<KeyType, ValueType, KeyCompare>::const_iterator jmap<KeyType, ValueType, KeyCompare>::findValueIter(const value_type& value) const noexcept
     {
         for (auto iter = begin(); iter != end(); ++iter)
         {

@@ -285,19 +285,6 @@ namespace jutils
         }
     };
 
-    template<>
-    struct hash<jstring>
-    {
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR jutils::hash_type operator()(const jstring& str) const noexcept
-            { return jutils::hash<const char*>{}(*str); }
-    };
-    template<>
-    struct hash<std::string>
-    {
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR jutils::hash_type operator()(const std::string& str) const noexcept
-            { return jutils::hash<const char*>{}(str.c_str()); }
-    };
-
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring& str1, const jstring::char_type character) { return str1.toBase() + character; }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(jstring&& str1, const jstring::char_type character) { return std::move(str1 += character); }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring::char_type character, const jstring& str1) { return character + str1.toBase(); }
@@ -463,3 +450,16 @@ namespace jutils
         return *this;
     }
 }
+
+template<>
+struct jutils::hash<jutils::jstring>
+{
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jutils::hash_type operator()(const jutils::jstring& str) const noexcept
+        { return jutils::hash<const char*>{}(*str); }
+};
+template<>
+struct jutils::hash<std::string>
+{
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jutils::hash_type operator()(const std::string& str) const noexcept
+        { return jutils::hash<const char*>{}(str.c_str()); }
+};

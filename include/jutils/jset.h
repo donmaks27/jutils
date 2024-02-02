@@ -176,7 +176,7 @@ namespace jutils
 
     template<typename T, typename KeyCompare>
     JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
-    jset<T, KeyCompare>::iterator jset<T, KeyCompare>::findIter(Pred pred) noexcept
+    typename jset<T, KeyCompare>::iterator jset<T, KeyCompare>::findIter(Pred pred) noexcept
     {
         for (auto iter = begin(); iter != end(); ++iter)
         {
@@ -189,7 +189,7 @@ namespace jutils
     }
     template<typename T, typename KeyCompare>
     JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
-    jset<T, KeyCompare>::const_iterator jset<T, KeyCompare>::findIter(Pred pred) const noexcept
+    typename jset<T, KeyCompare>::const_iterator jset<T, KeyCompare>::findIter(Pred pred) const noexcept
     {
         for (auto iter = begin(); iter != end(); ++iter)
         {
