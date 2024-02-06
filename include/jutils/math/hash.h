@@ -4,6 +4,8 @@
 
 #include "../type_traits.h"
 
+#include <string>
+
 namespace jutils
 {
     using hash_type = std::size_t;

@@ -58,31 +58,15 @@ namespace jutils
         [[nodiscard]] index_type getSize() const noexcept { return _internalData.size(); }
         [[nodiscard]] bool isEmpty() const noexcept { return _internalData.empty(); }
 
-        [[nodiscard]] iterator begin() noexcept { return _internalData.begin(); }
-        [[nodiscard]] iterator end() noexcept { return _internalData.end(); }
         [[nodiscard]] const_iterator begin() const noexcept { return _internalData.begin(); }
         [[nodiscard]] const_iterator end() const noexcept { return _internalData.end(); }
 
         [[nodiscard]] jset_hash copy() const noexcept { return *this; }
 
-        [[nodiscard]] iterator findIter(const type& key) noexcept { return _internalData.find(key); }
-        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
-        [[nodiscard]] iterator findIter(Pred pred) noexcept;
         [[nodiscard]] const_iterator findIter(const type& key) const noexcept { return _internalData.find(key); }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         [[nodiscard]] const_iterator findIter(Pred pred) const noexcept;
 
-        [[nodiscard]] type* find(const type& key) noexcept
-        {
-            const auto iter = findIter(key);
-            return iter != end() ? &*iter : nullptr;
-        }
-        JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
-        [[nodiscard]] type* find(Pred pred) noexcept
-        {
-            const auto iter = findIter(pred);
-            return iter != end() ? &*iter : nullptr;
-        }
         [[nodiscard]] const type* find(const type& key) const noexcept
         {
             const auto iter = findIter(key);
@@ -102,10 +86,10 @@ namespace jutils
         [[nodiscard]] jarray<type> getKeys() const noexcept;
 
         template<typename... Args>
-        type& put(Args&&... args);
+        const type& put(Args&&... args) { return *_internalData.emplace(std::forward<Args>(args)...).first; }
 
-        type& add(const type& key);
-        type& add(type&& key);
+        const type& add(const type& key) { return *_internalData.insert(key).first; }
+        const type& add(type&& key) { return *_internalData.insert(std::move(key)).first; }
 
         jset_hash& append(std::initializer_list<type> values)
         {
@@ -178,19 +162,6 @@ namespace jutils
 
     template<typename T, typename KeyHash, typename KeyEqual>
     JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
-    typename jset_hash<T, KeyHash, KeyEqual>::iterator jset_hash<T, KeyHash, KeyEqual>::findIter(Pred pred) noexcept
-    {
-        for (auto iter = begin(); iter != end(); ++iter)
-        {
-            if (pred(*iter))
-            {
-                return iter;
-            }
-        }
-        return end();
-    }
-    template<typename T, typename KeyHash, typename KeyEqual>
-    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
     typename jset_hash<T, KeyHash, KeyEqual>::const_iterator jset_hash<T, KeyHash, KeyEqual>::findIter(Pred pred) const noexcept
     {
         for (auto iter = begin(); iter != end(); ++iter)
@@ -222,39 +193,6 @@ namespace jutils
             keys.add(key);
         }
         return keys;
-    }
-
-    template<typename T, typename KeyHash, typename KeyEqual>
-    template<typename... Args>
-    T& jset_hash<T, KeyHash, KeyEqual>::put(Args&& ... args)
-    {
-        auto result = _internalData.emplace(std::forward<Args>(args)...);
-        if (!result.second)
-        {
-            *result.first = type(std::forward<Args>(args)...);
-        }
-        return *result.first;
-    }
-
-    template<typename T, typename KeyHash, typename KeyEqual>
-    T& jset_hash<T, KeyHash, KeyEqual>::add(const type& key)
-    {
-        auto result = _internalData.insert(key);
-        if (!result.second)
-        {
-            *result.first = key;
-        }
-        return *result.first;
-    }
-    template<typename T, typename KeyHash, typename KeyEqual>
-    T& jset_hash<T, KeyHash, KeyEqual>::add(type&& key)
-    {
-        auto result = _internalData.insert(std::move(key));
-        if (!result.second)
-        {
-            *result.first = std::move(key);
-        }
-        return *result.first;
     }
 
     template<typename T, typename KeyHash, typename KeyEqual>
