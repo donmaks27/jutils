@@ -27,6 +27,7 @@ list(APPEND JUTILS_HEADER_FILES
     include/jutils/jdelegate_multicast.h
     include/jutils/jdescriptor_table.h
     include/jutils/format.h
+    include/jutils/jdefer.h
     include/jutils/jlist.h
     include/jutils/jmap.h
     include/jutils/jmap_hash.h

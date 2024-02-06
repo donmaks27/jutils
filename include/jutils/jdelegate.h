@@ -1,14 +1,17 @@
-﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021-2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
+#include "base_types.h"
+
+#include <utility>
+
 namespace jutils
 {
-    template<typename... ArgTypes>
+    template<typename... Args>
     class jdelegate
     {
     public:
-
         jdelegate() = default;
         jdelegate(const jdelegate& otherDelegate)
         {
@@ -45,21 +48,29 @@ namespace jutils
         }
 
         template<typename T>
-        void bind(T* object, void (T::*function)(ArgTypes...))
+        void bind(T* object, void (T::*function)(Args...))
         {
             clear();
-            if (object != nullptr)
+            if ((object != nullptr) && (function != nullptr))
             {
-                delegate_container = new jdelegate_container_implementation<T>(object, function);
+                delegate_container = new container_class<T>(object, function);
+            }
+        }
+        void bind(void (*function)(Args...))
+        {
+            clear();
+            if (function != nullptr)
+            {
+                delegate_container = new container_function(function);
             }
         }
 
         template<typename T>
-        bool isBinded(T* object, void (T::*function)(ArgTypes...)) const
+        [[nodiscard]] bool isBinded(T* object, void (T::*function)(Args...)) const
         {
-            if ((object != nullptr) && (delegate_container != nullptr))
+            if ((object != nullptr) && (function != nullptr) && (delegate_container != nullptr))
             {
-                const auto* container = dynamic_cast<const jdelegate_container_implementation<T>*>(delegate_container);
+                const auto* container = dynamic_cast<const container_class<T>*>(delegate_container);
                 if (container != nullptr)
                 {
                     return container->isBinded(object, function);
@@ -67,15 +78,14 @@ namespace jutils
             }
             return false;
         }
-        template<typename T>
-        bool isBinded(T* object) const
+        [[nodiscard]] bool isBinded(void (*function)(Args...)) const
         {
-            if ((object != nullptr) && (delegate_container != nullptr))
+            if ((function != nullptr) && (delegate_container != nullptr))
             {
-                const auto* container = dynamic_cast<const jdelegate_container_implementation<T>*>(delegate_container);
+                const auto* container = dynamic_cast<const container_function*>(delegate_container);
                 if (container != nullptr)
                 {
-                    return container->isBinded(object);
+                    return container->isBinded(function);
                 }
             }
             return false;
@@ -90,60 +100,85 @@ namespace jutils
             }
         }
 
-        void call(ArgTypes... args) const
+        void call(Args... args) const
         {
             if (delegate_container != nullptr)
             {
-                delegate_container->call(std::forward<ArgTypes>(args)...);
+                delegate_container->call(std::forward<Args>(args)...);
             }
         }
 
     private:
 
-        class jdelegate_container_interface
+        class container_interface
         {
         public:
+            virtual ~container_interface() = default;
 
-            virtual ~jdelegate_container_interface() = default;
+            [[nodiscard]] virtual container_interface* copy() = 0;
 
-            virtual jdelegate_container_interface* copy() = 0;
-
-            virtual void call(ArgTypes...) = 0;
+            virtual void call(Args...) = 0;
         };
         template<typename T>
-        class jdelegate_container_implementation : public jdelegate_container_interface
+        class container_class : public container_interface
         {
         public:
 
             using class_type = T;
-            using function_type = void (class_type::*)(ArgTypes...);
+            using function_type = void (class_type::*)(Args...);
 
-            jdelegate_container_implementation(class_type* object, function_type function)
-                : object(object)
-                , function(function)
+            container_class(class_type* object, function_type func)
+                : _object(object)
+                , _function(func)
             {}
-            virtual ~jdelegate_container_implementation() override = default;
+            virtual ~container_class() override = default;
 
-            virtual jdelegate_container_interface* copy() override { return new jdelegate_container_implementation(object, function); }
+            [[nodiscard]] virtual container_interface* copy() override { return new container_class(_object, _function); }
 
-            bool isBinded(class_type* checking_object, function_type checking_function) const { return isBinded(checking_object) && (function == checking_function); }
-            bool isBinded(class_type* checking_object) const { return object == checking_object; }
+            [[nodiscard]] bool isBinded(class_type* checking_object, function_type checking_function) const { return (_object == checking_object) && (_function == checking_function); }
 
-            virtual void call(ArgTypes... args) override
+            virtual void call(Args... args) override
             {
-                if (object != nullptr)
+                if (_object != nullptr)
                 {
-                    (object->*function)(std::forward<ArgTypes>(args)...);
+                    (_object->*_function)(std::forward<Args>(args)...);
                 }
             }
 
         private:
 
-            T* object;
-            function_type function;
+            T* _object = nullptr;
+            function_type _function = nullptr;
+        };
+        class container_function : public container_interface
+        {
+        public:
+
+            using function_type = void (*)(Args...);
+
+            explicit container_function(function_type func)
+                : _function(func)
+            {}
+            virtual ~container_function() override = default;
+
+            [[nodiscard]] virtual container_interface* copy() override { return new container_function(_function); }
+
+            [[nodiscard]] bool isBinded(function_type checking_function) const { return _function == checking_function; }
+
+            virtual void call(Args... args) override
+            {
+                if (_function != nullptr)
+                {
+                    _function(std::forward<Args>(args)...);
+                }
+            }
+
+        private:
+
+            function_type _function = nullptr;
         };
 
-        mutable jdelegate_container_interface* delegate_container = nullptr;
+        mutable container_interface* delegate_container = nullptr;
     };
 }
 

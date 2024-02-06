@@ -1,4 +1,4 @@
-﻿// Copyright © 2022-2023 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022-2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -7,45 +7,42 @@
 #include <utility>
 #include <new>
 
-namespace jutils
+namespace jutils::memory
 {
-    namespace memory
+    template<typename Type>
+    [[nodiscard]] inline Type* allocate(const int32 size)
     {
-        template<typename Type>
-        inline Type* allocate(const int32 size)
+        if (size > 0)
         {
-            if (size > 0)
-            {
-                return static_cast<Type*>(::operator new(sizeof(Type) * size, static_cast<std::align_val_t>(alignof(Type))));
-            }
-            return nullptr;
+            return static_cast<Type*>(::operator new(sizeof(Type) * size, static_cast<std::align_val_t>(alignof(Type))));
         }
+        return nullptr;
+    }
 
-        template<typename Type>
-        inline void deallocate(Type* data, const int32 size)
+    template<typename Type>
+    inline void deallocate(Type* data, const int32 size)
+    {
+        if ((data != nullptr) && (size > 0))
         {
-            if ((data != nullptr) && (size > 0))
-            {
-                ::operator delete(data, static_cast<std::align_val_t>(alignof(Type)));
-            }
+            ::operator delete(data, static_cast<std::align_val_t>(alignof(Type)));
         }
+    }
 
-        template<typename Type, typename... Args>
-        inline void construct(Type* object, Args&&... args)
+    template<typename Type, typename... Args>
+    inline void construct(Type* object, Args&&... args)
+    {
+        if (object != nullptr)
         {
-            if (object != nullptr)
-            {
-                ::new (object) Type(std::forward<Args>(args)...);
-            }
+            ::new (object) Type(std::forward<Args>(args)...);
         }
+    }
 
-        template<typename Type>
-        inline void destruct(Type* object)
+    template<typename Type>
+    inline void destruct(Type* object)
+    {
+        if (object != nullptr)
         {
-            if (object != nullptr)
-            {
-                object->~Type();
-            }
+            object->~Type();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2023 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2023-2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -45,8 +45,8 @@ namespace jutils
         jpool_simple& operator=(const jpool_simple&) = delete;
         jpool_simple& operator=(jpool_simple&& pool) noexcept = delete;
 
-        type* getPoolObject();
-        void returnPoolObject(type* object);
+        [[nodiscard]] type* getObject();
+        void returnObject(type* object);
         void clear();
         
     private:
@@ -62,11 +62,11 @@ namespace jutils
             void startSync() { mutex.lock(); }
             void stopSync() { mutex.unlock(); }
         };
-        using sync_handler_type = std::conditional_t<shouldSyncAccess, sync_handler, empty_handler>;
+        using handler_type = std::conditional_t<shouldSyncAccess, sync_handler, empty_handler>;
 
         jlist<type> objectsPool;
         jarray<type*> unusedObjects;
-        sync_handler_type handler;
+        handler_type handler;
 
         
         static void _clearDefaultPoolObject(jpool_simple_object* object) { object->clearPoolObject(); }
@@ -82,7 +82,7 @@ namespace jutils
     };
     
     template<typename T, bool SyncAccess>
-    typename jpool_simple<T, SyncAccess>::type* jpool_simple<T, SyncAccess>::getPoolObject()
+    typename jpool_simple<T, SyncAccess>::type* jpool_simple<T, SyncAccess>::getObject()
     {
         type* object;
         handler.startSync();
@@ -101,7 +101,7 @@ namespace jutils
         return object;
     }
     template<typename T, bool SyncAccess>
-    void jpool_simple<T, SyncAccess>::returnPoolObject(type* object)
+    void jpool_simple<T, SyncAccess>::returnObject(type* object)
     {
         if (object != nullptr)
         {

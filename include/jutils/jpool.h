@@ -1,4 +1,4 @@
-﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021-2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -26,23 +26,36 @@ namespace jutils
         constexpr jpool_pointer(std::nullptr_t) : jpool_pointer() {}
         constexpr jpool_pointer(const jpool_pointer&) = default;
     private:
-        constexpr jpool_pointer(const int32 segment, const uint32 node, const uid_type uid)
+        constexpr jpool_pointer(const index_type segment, const uint32 node, const uid_type uid)
             : segmentIndex(segment), nodeIndex(node), UID(uid)
         {}
     public:
 
-        constexpr jpool_pointer& operator=(std::nullptr_t);
+        constexpr jpool_pointer& operator=(std::nullptr_t)
+        {
+            segmentIndex = -1;
+            nodeIndex = 0;
+            UID = juid<uid_type>::invalidUID;
+            return *this;
+        }
         constexpr jpool_pointer& operator=(const jpool_pointer&) = default;
 
-        constexpr bool operator==(std::nullptr_t) const { return (UID == juid<uid_type>::invalidUID) || (segmentIndex < 0); }
-        constexpr bool operator!=(std::nullptr_t) const { return !operator==(nullptr); }
+        [[nodiscard]] constexpr bool operator==(std::nullptr_t) const { return (UID == juid<uid_type>::invalidUID) || (segmentIndex == index_invalid); }
+        [[nodiscard]] constexpr bool operator!=(std::nullptr_t) const { return !operator==(nullptr); }
 
-        constexpr bool operator==(const jpool_pointer& pointer) const;
-        constexpr bool operator!=(const jpool_pointer& pointer) const { return !operator==(pointer); }
+        [[nodiscard]] constexpr bool operator==(const jpool_pointer& pointer) const
+        {
+            if (*this == nullptr)
+            {
+                return pointer == nullptr;
+            }
+            return (segmentIndex == pointer.segmentIndex) && (nodeIndex == pointer.nodeIndex) && (UID == pointer.UID);
+        }
+        [[nodiscard]] constexpr bool operator!=(const jpool_pointer& pointer) const { return !operator==(pointer); }
 
     private:
 
-        int32 segmentIndex = -1;
+        index_type segmentIndex = index_invalid;
 	    uint32 nodeIndex = 0;
 	    uid_type UID = juid<uid_type>::invalidUID;
     };
@@ -61,11 +74,11 @@ namespace jutils
 				std::conditional_t<sizeof(type) >= 4, uint32, std::conditional_t<sizeof(type) >= 2, uint16, uint8>>
     		>::max()) - static_cast<uint32>(1);
 
-        constexpr jpool() : jpool(1024) {}
-        constexpr explicit jpool(const uint32 segmentSize)
+        jpool() : jpool(128) {}
+        explicit jpool(const uint32 segmentSize)
             : segmentSize(jutils::math::clamp(segmentSize, 1, maxSegmentSize))
         {}
-        explicit jpool(uint32 segmentSize, int32 defaultSegmentsCount = 0);
+        explicit jpool(uint32 segmentSize, index_type defaultSegmentsCount = 0);
         jpool(const jpool&) = delete;
         jpool(jpool&& otherPool) noexcept
             : segments(std::move(otherPool.segments)), segmentSize(otherPool.segmentSize)
@@ -83,13 +96,21 @@ namespace jutils
             segments = std::move(otherPool.segments);
             return *this;
         }
-        
-        bool isValid(const pointer_type& pointer) const;
-        type* get(const pointer_type& pointer) const;
+
+        [[nodiscard]] bool isValid(const pointer_type& pointer) const noexcept
+        {
+            return segments.isValidIndex(pointer.segmentIndex) && (pointer.nodeIndex < segmentSize) &&
+                   segments[pointer.segmentIndex].nodeFlags[pointer.nodeIndex] &&
+                   (pointer.UID == segments[pointer.segmentIndex].nodeUIDs[pointer.nodeIndex].getUID());
+        }
+        [[nodiscard]] type* get(const pointer_type& pointer) const noexcept
+        {
+            return isValid(pointer) ? _getNode(pointer) : nullptr;
+        }
 
         template<typename... Args>
-        pointer_type create(Args&&... args);
-        void destroy(const pointer_type& pointer);
+        [[nodiscard]] pointer_type create(Args&&... args) noexcept;
+        void destroy(const pointer_type& pointer) noexcept;
         void clear();
 
     private:
@@ -121,17 +142,17 @@ namespace jutils
         template<typename IndexType>
         class empty_nodes_list_index
         {
-            using index_type = IndexType;
+            using node_index_type = IndexType;
         public:
             static void init(segment_type& segment, uint32 size);
             static type* pull(segment_type& segment);
             static void push(segment_type& segment, type* node);
         private:
-            static void _setNextNode(type* node, const index_type index) { std::memcpy(node, &index, sizeof(index_type)); }
-            static index_type _getNextNode(const type* node)
+            static void _setNextNode(type* node, const node_index_type index) { std::memcpy(node, &index, sizeof(node_index_type)); }
+            static node_index_type _getNextNode(const type* node)
             {
-                index_type index = 0;
-                std::memcpy(&index, node, sizeof(index_type));
+                node_index_type index = 0;
+                std::memcpy(&index, node, sizeof(node_index_type));
                 return index;
             }
         };
@@ -147,38 +168,22 @@ namespace jutils
         uint32 segmentSize = 0;
 
 
-        int32 _createSegment();
-        void _clearSegment(int32 segmentIndex);
+        index_type _createSegment();
+        void _clearSegment(index_type segmentIndex);
 
         pointer_type _pullNode();
         type* _getNode(const pointer_type& pointer) const;
         void _pushNode(const pointer_type& pointer);
     };
 
-    constexpr jpool_pointer& jpool_pointer::operator=(std::nullptr_t)
-    {
-        segmentIndex = -1;
-        nodeIndex = 0;
-        UID = juid<uid_type>::invalidUID;
-        return *this;
-    }
-    constexpr bool jpool_pointer::operator==(const jpool_pointer& pointer) const
-    {
-        if (*this == nullptr)
-        {
-            return pointer == nullptr;
-        }
-        return (segmentIndex == pointer.segmentIndex) && (nodeIndex == pointer.nodeIndex) && (UID == pointer.UID);
-    }
-
     template<typename T>
-    jpool<T>::jpool(const uint32 segmentSize, const int32 defaultSegmentsCount)
+    jpool<T>::jpool(const uint32 segmentSize, const index_type defaultSegmentsCount)
         : jpool(segmentSize)
     {
-        if (defaultSegmentsCount > 0)
+        if (defaultSegmentsCount != index_invalid)
         {
             segments.reserve(defaultSegmentsCount);
-            for (int32 index = 0; index < defaultSegmentsCount; index++)
+            for (index_type index = 0; index < defaultSegmentsCount; index++)
             {
                 _createSegment();
             }
@@ -238,7 +243,7 @@ namespace jutils
 	        return nullptr;
         }
         type* result = segment.firstEmptyNode;
-        const index_type nextNodeIndex = empty_nodes_list_index::_getNextNode(segment.firstEmptyNode);
+        const node_index_type nextNodeIndex = empty_nodes_list_index::_getNextNode(segment.firstEmptyNode);
         segment.firstEmptyNode = nextNodeIndex > 0 ? segment.nodes + nextNodeIndex - 1 : nullptr;
         return result;
     }
@@ -246,13 +251,13 @@ namespace jutils
     template<typename IndexType>
     void jpool<T>::empty_nodes_list_index<IndexType>::push(segment_type& segment, type* node)
     {
-        const index_type nextNodeIndex = segment.firstEmptyNode != nullptr ? segment.firstEmptyNode - segment.nodes + 1 : 0;
+        const node_index_type nextNodeIndex = segment.firstEmptyNode != nullptr ? segment.firstEmptyNode - segment.nodes + 1 : 0;
         empty_nodes_list_index::_setNextNode(node, nextNodeIndex);
         segment.firstEmptyNode = node;
     }
 
     template<typename T>
-    int32 jpool<T>::_createSegment()
+    index_type jpool<T>::_createSegment()
     {
         segment_type& segment = segments.addDefault();
         segment.nodes = jutils::memory::allocate<type>(segmentSize);
@@ -262,7 +267,7 @@ namespace jutils
         return segments.getSize() - 1;
     }
     template<typename T>
-    void jpool<T>::_clearSegment(const int32 segmentIndex)
+    void jpool<T>::_clearSegment(const index_type segmentIndex)
     {
         if (!segments.isValidIndex(segmentIndex))
         {
@@ -270,7 +275,7 @@ namespace jutils
         }
 
         segment_type& segment = segments[segmentIndex];
-        for (int32 index = 0; index < segmentSize; index++)
+        for (uint32 index = 0; index < segmentSize; index++)
         {
 	        if (segment.nodeFlags[index])
 	        {
@@ -285,8 +290,8 @@ namespace jutils
     template<typename T>
     typename jpool<T>::pointer_type jpool<T>::_pullNode()
     {
-        int32 segmentIndex = -1;
-        for (int32 index = 0; index < segments.getSize(); index++)
+        index_type segmentIndex = -1;
+        for (index_type index = 0; index < segments.getSize(); index++)
         {
 	        if (segments[index].firstEmptyNode != nullptr)
 	        {
@@ -301,7 +306,7 @@ namespace jutils
 
         segment_type& segment = segments[segmentIndex];
         type* node = empty_nodes_list::pull(segment);
-        const uint32 nodeIndex = static_cast<uint32>(node - segment.nodes);
+        const auto nodeIndex = static_cast<uint32>(node - segment.nodes);
         const uid_type UID = segment.nodeUIDs[nodeIndex].getUID();
         segment.nodeFlags[nodeIndex] = true;
         return { segmentIndex, nodeIndex, UID };
@@ -323,21 +328,8 @@ namespace jutils
     }
 
     template<typename T>
-    bool jpool<T>::isValid(const pointer_type& pointer) const
-    {
-        return segments.isValidIndex(pointer.segmentIndex) && (pointer.nodeIndex < segmentSize) &&
-            segments[pointer.segmentIndex].nodeFlags[pointer.nodeIndex] &&
-            (pointer.UID == segments[pointer.segmentIndex].nodeUIDs[pointer.nodeIndex].getUID());
-    }
-    template<typename T>
-    typename jpool<T>::type* jpool<T>::get(const pointer_type& pointer) const
-    {
-        return isValid(pointer) ? _getNode(pointer) : nullptr;
-    }
-
-    template<typename T>
     template<typename ... Args>
-    typename jpool<T>::pointer_type jpool<T>::create(Args&&... args)
+    typename jpool<T>::pointer_type jpool<T>::create(Args&&... args) noexcept
     {
         const pointer_type pointer = _pullNode();
         if (pointer != nullptr)
@@ -347,7 +339,7 @@ namespace jutils
         return pointer;
     }
     template<typename T>
-    void jpool<T>::destroy(const pointer_type& pointer)
+    void jpool<T>::destroy(const pointer_type& pointer) noexcept
     {
         if (isValid(pointer))
         {

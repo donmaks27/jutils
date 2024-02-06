@@ -1,13 +1,16 @@
-﻿// Copyright © 2023 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2023-2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
 #include "jarray.h"
 #include "jlist.h"
+#include "jmemory.h"
 
+#include <atomic>
 #include <condition_variable>
 #include <functional>
 #include <mutex>
+#include <thread>
 
 namespace jutils
 {
@@ -19,7 +22,7 @@ namespace jutils
         virtual ~jasync_task() = default;
 
         virtual void run() = 0;
-        virtual bool shouldDeleteAfterExecution() const { return true; }
+        [[nodiscard]] virtual bool shouldDeleteAfterExecution() const { return true; }
     };
     class jasync_task_default : public jasync_task
     {
@@ -48,10 +51,11 @@ namespace jutils
         jasync_task_queue_base() = default;
     public:
 
-        bool isValid() const { return asyncWorkerCount != 0; }
+        [[nodiscard]] bool isValid() const { return asyncWorkerCount != 0; }
 
         inline bool addTask(jasync_task* task);
-        inline void addTasks(const jarray<jasync_task*>& tasks);
+        inline void addTasks(const jarray<jasync_task*>& tasks) { addTasks(*tasks, tasks.getSize()); }
+        inline void addTasks(std::initializer_list<jasync_task*> tasks) { addTasks(std::data(tasks), tasks.size()); }
         inline void clearTasks();
 
     protected:
@@ -74,6 +78,9 @@ namespace jutils
         jlist<task_description> tasksQueue;
 
         int32 asyncWorkerCount = 0;
+
+
+        inline void addTasks(jasync_task* const* tasks, index_type tasksCount);
     };
 
     class jasync_worker;
@@ -93,7 +100,7 @@ namespace jutils
         void onStop_WorkerThread() const {}
         void onStop_MainThread() const {}
 
-        int32 getWorkerIndex() const { return workerIndex; }
+        [[nodiscard]] int32 getWorkerIndex() const { return workerIndex; }
 
     private:
 
@@ -143,17 +150,17 @@ namespace jutils
         taskAvailableCondition.notify_one();
         return true;
     }
-    inline void jasync_task_queue_base::addTasks(const jarray<jasync_task*>& tasks)
+    inline void jasync_task_queue_base::addTasks(jasync_task* const* const tasks, const index_type tasksCount)
     {
-        if ((asyncWorkerCount == 0) || tasks.isEmpty())
+        if ((asyncWorkerCount == 0) || (tasksCount == 0))
         {
             return;
         }
 
         tasksQueueMutex.lock();
-        for (const auto& task : tasks)
+        for (index_type index = 0; index < tasksCount; index++)
         {
-            tasksQueue.add({ task });
+            tasksQueue.add({ tasks[index] });
         }
         tasksQueueMutex.unlock();
 

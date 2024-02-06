@@ -1,4 +1,4 @@
-﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021-2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -7,122 +7,191 @@
 
 namespace jutils
 {
-    template<typename... ArgTypes>
+    template<typename... Args>
     class jdelegate_multicast
     {
     public:
-
         jdelegate_multicast() = default;
         jdelegate_multicast(const jdelegate_multicast& value)
-            : delegates_container(value.delegates_container)
-        {}
+            : _delegates(value._delegates)
+        {
+            _clearPendingDeleteEntries();
+        }
         jdelegate_multicast(jdelegate_multicast&& value) noexcept
-            : delegates_container(std::move(value.delegates_container))
-        {}
+            : _delegates(std::move(value._delegates))
+            , _callCounter(value._callCounter)
+        {
+            value._callCounter = 0;
+        }
 
         jdelegate_multicast& operator=(const jdelegate_multicast& value)
         {
             if (this != &value)
             {
-                delegates_container = value.delegates_container;
+                _delegates = value._delegates;
+                _clearPendingDeleteEntries();
             }
             return *this;
         }
         jdelegate_multicast& operator=(jdelegate_multicast&& value) noexcept
         {
-            delegates_container = std::move(value.delegates_container);
+            _delegates = std::move(value._delegates);
+            _callCounter = value._callCounter;
+            value._callCounter = 0;
             return *this;
         }
 
         template<typename T>
-        void bind(T* object, void (T::*function)(ArgTypes...))
+        void bind(T* object, void (T::*function)(Args...))
         {
-            if ((object != nullptr) && !isBinded(object, function))
+            if ((object != nullptr) && (function != nullptr))
             {
-                delegates_container.addDefault().bind(object, function);
+                auto* entry = _findDelegateEntry(object, function);
+                if (entry == nullptr)
+                {
+                    _delegates.addDefault().delegate.bind(object, function);
+                }
+                else if (entry->pendingDelete)
+                {
+                    entry->pendingDelete = false;
+                }
+            }
+        }
+        void bind(void (*function)(Args...))
+        {
+            if (function != nullptr)
+            {
+                auto* entry = _findDelegateEntry(function);
+                if (entry == nullptr)
+                {
+                    _delegates.addDefault().delegate.bind(function);
+                }
+                else if (entry->pendingDelete)
+                {
+                    entry->pendingDelete = false;
+                }
             }
         }
 
         template<typename T>
-        bool isBinded(T* object, void (T::*function)(ArgTypes...)) const
+        [[nodiscard]] bool isBinded(T* object, void (T::*function)(Args...)) const
         {
-            if (object != nullptr)
+            if ((object == nullptr) || (function == nullptr))
             {
-                for (const auto& delegate_entry : delegates_container)
-                {
-                    if (delegate_entry.isBinded(object, function))
-                    {
-                        return true;
-                    }
-                }
+                return false;
             }
-            return false;
+            const auto* entry = _findDelegateEntry(object, function);
+            return (entry != nullptr) && !entry->pendingDelete;
         }
-        template<typename T>
-        bool isBinded(T* object) const
+        [[nodiscard]] bool isBinded(void (*function)(Args...)) const
         {
-            if (object != nullptr)
+            if (function == nullptr)
             {
-                for (const auto& delegate : delegates_container)
-                {
-                    if (delegate.isBinded(object))
-                    {
-                        return true;
-                    }
-                }
+                return false;
             }
-            return false;
+            const auto* entry = _findDelegateEntry(function);
+            return (entry != nullptr) && !entry->pendingDelete;
         }
 
         template<typename T>
-        void unbind(T* object)
+        void unbind(T* object, void (T::*callback)(Args...))
         {
             if (object != nullptr)
             {
-                int32 index = 0;
-                while (index < delegates_container.getSize())
+                for (index_type index = 0; index < _delegates.getSize(); index++)
                 {
-                    if (delegates_container[index].isBinded(object))
+                    if (_delegates[index].delegate.isBinded(object, callback))
                     {
-                        delegates_container.removeAt(index);
-                    }
-                    else
-                    {
-                        index++;
+                        if (_callCounter == 0)
+                        {
+                            _delegates.removeAt(index);
+                        }
+                        else
+                        {
+                            _delegates[index].pendingDelete = true;
+                        }
+                        break;
                     }
                 }
             }
         }
-        template<typename T>
-        void unbind(T* object, void (T::*callback)(ArgTypes...))
+        bool unbind(void (*function)(Args...))
         {
-            if (object != nullptr)
+            if (function != nullptr)
             {
-                for (int32 index = 0; index < delegates_container.getSize(); index++)
+                for (index_type index = 0; index < _delegates.getSize(); index++)
                 {
-                    if (delegates_container[index].isBinded(object, callback))
+                    if (_delegates[index].delegate.isBinded(function))
                     {
-                        delegates_container.removeAt(index);
+                        if (_callCounter == 0)
+                        {
+                            _delegates.removeAt(index);
+                        }
+                        else
+                        {
+                            _delegates[index].pendingDelete = true;
+                        }
                         break;
                     }
                 }
             }
         }
 
-        void clear() { delegates_container.clear(); }
+        void clear() { _delegates.clear(); }
 
-        void call(ArgTypes... args) const
+        void call(Args... args) const
         {
-            auto delegatesCopy = delegates_container;
-            for (auto& delegate : delegatesCopy)
+            _callCounter++;
+            for (const auto& entry : _delegates)
             {
-                delegate.call(std::forward<ArgTypes>(args)...);
+                if (!entry.pendingDelete)
+                {
+                    entry.delegate.call(std::forward<Args>(args)...);
+                }
+            }
+            _callCounter--;
+            if (_callCounter == 0)
+            {
+                _clearPendingDeleteEntries();
             }
         }
 
     private:
 
-        mutable jarray<jdelegate<ArgTypes...>> delegates_container;
+        struct delegate_entry
+        {
+            jdelegate<Args...> delegate;
+            bool pendingDelete = false;
+        };
+
+        mutable jarray<delegate_entry> _delegates;
+        mutable uint32 _callCounter = 0;
+
+
+        template<typename T>
+        [[nodiscard]] delegate_entry* _findDelegateEntry(T* object, void (T::*function)(Args...)) const
+        {
+            for (delegate_entry& entry : _delegates)
+            {
+                if (entry.delegate.isBinded(object, function))
+                {
+                    return &entry;
+                }
+            }
+            return nullptr;
+        }
+        [[nodiscard]] delegate_entry* _findDelegateEntry(void (*function)(Args...)) const
+        {
+            for (delegate_entry& entry : _delegates)
+            {
+                if (entry.delegate.isBinded(function))
+                {
+                    return &entry;
+                }
+            }
+            return nullptr;
+        }
+        void _clearPendingDeleteEntries() const { _delegates.remove([](const delegate_entry& entry){ return entry.pendingDelete; }); }
     };
 }
 
