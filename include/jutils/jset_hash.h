@@ -98,7 +98,7 @@ namespace jutils
         }
         jset_hash& append(const base_type& value)
         {
-            if (this != &value)
+            if (&_internalData != &value)
             {
                 _internalData.insert(value.begin(), value.end());
             }
@@ -119,7 +119,7 @@ namespace jutils
         }
         jset_hash& operator+=(type&& value)
         {
-            add(std::move(value.first));
+            add(std::move(value));
             return *this;
         }
         jset_hash& operator+=(std::initializer_list<type> values) { return append(values); }
@@ -139,26 +139,26 @@ namespace jutils
     };
 
     template<typename T, typename KeyHash, typename KeyEqual>
-    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(const jset_hash<T, KeyHash, KeyEqual>& container, const typename jset_hash<T, KeyHash, KeyEqual>::pair_type& value) { return container.copy() += value; }
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(const jset_hash<T, KeyHash, KeyEqual>& container, const T& value) { return container.copy() += value; }
     template<typename T, typename KeyHash, typename KeyEqual>
-    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(const jset_hash<T, KeyHash, KeyEqual>& container, typename jset_hash<T, KeyHash, KeyEqual>::pair_type&& value) { return container.copy() += std::forward(value); }
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(const jset_hash<T, KeyHash, KeyEqual>& container, T&& value) { return container.copy() += std::forward<T>(value); }
     template<typename T, typename KeyHash, typename KeyEqual>
-    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container, const typename jset_hash<T, KeyHash, KeyEqual>::pair_type& value) { return container += value; }
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container, const T& value) { return jset_hash<T, KeyHash, KeyEqual>(std::move(container)) += value; }
     template<typename T, typename KeyHash, typename KeyEqual>
-    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container, typename jset_hash<T, KeyHash, KeyEqual>::pair_type&& value) { return container += std::forward(value); }
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container, T&& value) { return jset_hash<T, KeyHash, KeyEqual>(std::move(container)) += std::forward<T>(value); }
 
     template<typename T, typename KeyHash, typename KeyEqual>
-    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(const jset_hash<T, KeyHash, KeyEqual>& container1, std::initializer_list<typename jset_hash<T, KeyHash, KeyEqual>::pair_type> list) { return container1.copy() += list; }
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(const jset_hash<T, KeyHash, KeyEqual>& container1, std::initializer_list<T> list) { return container1.copy() += list; }
     template<typename T, typename KeyHash, typename KeyEqual>
-    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container1, std::initializer_list<typename jset_hash<T, KeyHash, KeyEqual>::pair_type> list) { return container1 += list; }
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container1, std::initializer_list<T> list) { return jset_hash<T, KeyHash, KeyEqual>(std::move(container1)) += list; }
     template<typename T, typename KeyHash, typename KeyEqual>
     [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(const jset_hash<T, KeyHash, KeyEqual>& container1, const jset_hash<T, KeyHash, KeyEqual>& container2) { return container1.copy() += container2; }
     template<typename T, typename KeyHash, typename KeyEqual>
-    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container1, const jset_hash<T, KeyHash, KeyEqual>& container2) { return container1 += container2; }
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container1, const jset_hash<T, KeyHash, KeyEqual>& container2) { return jset_hash<T, KeyHash, KeyEqual>(std::move(container1)) += container2; }
     template<typename T, typename KeyHash, typename KeyEqual>
     [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(const jset_hash<T, KeyHash, KeyEqual>& container1, jset_hash<T, KeyHash, KeyEqual>&& container2) { return container1.copy() += std::move(container2); }
     template<typename T, typename KeyHash, typename KeyEqual>
-    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container1, jset_hash<T, KeyHash, KeyEqual>&& container2) { return container1 += std::move(container2); }
+    [[nodiscard]] jset_hash<T, KeyHash, KeyEqual> operator+(jset_hash<T, KeyHash, KeyEqual>&& container1, jset_hash<T, KeyHash, KeyEqual>&& container2) { return jset_hash<T, KeyHash, KeyEqual>(std::move(container1)) += std::move(container2); }
 
     template<typename T, typename KeyHash, typename KeyEqual>
     JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)

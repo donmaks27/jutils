@@ -95,7 +95,7 @@ namespace jutils
         }
         jset& append(const base_type& value)
         {
-            if (this != &value)
+            if (&_internalData != &value)
             {
                 _internalData.insert(value.begin(), value.end());
             }
@@ -116,7 +116,7 @@ namespace jutils
         }
         jset& operator+=(type&& value)
         {
-            add(std::move(value.first));
+            add(std::move(value));
             return *this;
         }
         jset& operator+=(std::initializer_list<type> values) { return append(values); }
@@ -125,7 +125,7 @@ namespace jutils
         jset& operator+=(const jset& value) { return append(value); }
         jset& operator+=(jset&& value) { return append(std::move(value)); }
 
-        index_type remove(const type& key) noexcept { return _internalData.erase(key); }
+        bool remove(const type& key) noexcept { return _internalData.erase(key) != 0; }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         index_type remove(Pred pred) noexcept;
         void clear() noexcept { _internalData.clear(); }
@@ -136,26 +136,26 @@ namespace jutils
     };
 
     template<typename T, typename KeyCompare>
-    [[nodiscard]] jset<T, KeyCompare> operator+(const jset<T, KeyCompare>& container, const typename jset<T, KeyCompare>::pair_type& value) { return container.copy() += value; }
+    [[nodiscard]] jset<T, KeyCompare> operator+(const jset<T, KeyCompare>& container, const T& value) { return container.copy() += value; }
     template<typename T, typename KeyCompare>
-    [[nodiscard]] jset<T, KeyCompare> operator+(const jset<T, KeyCompare>& container, typename jset<T, KeyCompare>::pair_type&& value) { return container.copy() += std::forward(value); }
+    [[nodiscard]] jset<T, KeyCompare> operator+(const jset<T, KeyCompare>& container, T&& value) { return container.copy() += std::forward<T>(value); }
     template<typename T, typename KeyCompare>
-    [[nodiscard]] jset<T, KeyCompare> operator+(jset<T, KeyCompare>&& container, const typename jset<T, KeyCompare>::pair_type& value) { return container += value; }
+    [[nodiscard]] jset<T, KeyCompare> operator+(jset<T, KeyCompare>&& container, const T& value) { return jset<T, KeyCompare>(std::move(container)) += value; }
     template<typename T, typename KeyCompare>
-    [[nodiscard]] jset<T, KeyCompare> operator+(jset<T, KeyCompare>&& container, typename jset<T, KeyCompare>::pair_type&& value) { return container += std::forward(value); }
+    [[nodiscard]] jset<T, KeyCompare> operator+(jset<T, KeyCompare>&& container, T&& value) { return jset<T, KeyCompare>(std::move(container)) += std::forward<T>(value); }
 
     template<typename T, typename KeyCompare>
-    [[nodiscard]] jset<T, KeyCompare> operator+(const jset<T, KeyCompare>& container1, std::initializer_list<typename jset<T, KeyCompare>::pair_type> list) { return container1.copy() += list; }
+    [[nodiscard]] jset<T, KeyCompare> operator+(const jset<T, KeyCompare>& container1, std::initializer_list<T> list) { return container1.copy() += list; }
     template<typename T, typename KeyCompare>
-    [[nodiscard]] jset<T, KeyCompare> operator+(jset<T, KeyCompare>&& container1, std::initializer_list<typename jset<T, KeyCompare>::pair_type> list) { return container1 += list; }
+    [[nodiscard]] jset<T, KeyCompare> operator+(jset<T, KeyCompare>&& container1, std::initializer_list<T> list) { return jset<T, KeyCompare>(std::move(container1)) += list; }
     template<typename T, typename KeyCompare>
     [[nodiscard]] jset<T, KeyCompare> operator+(const jset<T, KeyCompare>& container1, const jset<T, KeyCompare>& container2) { return container1.copy() += container2; }
     template<typename T, typename KeyCompare>
-    [[nodiscard]] jset<T, KeyCompare> operator+(jset<T, KeyCompare>&& container1, const jset<T, KeyCompare>& container2) { return container1 += container2; }
+    [[nodiscard]] jset<T, KeyCompare> operator+(jset<T, KeyCompare>&& container1, const jset<T, KeyCompare>& container2) { return jset<T, KeyCompare>(std::move(container1)) += container2; }
     template<typename T, typename KeyCompare>
     [[nodiscard]] jset<T, KeyCompare> operator+(const jset<T, KeyCompare>& container1, jset<T, KeyCompare>&& container2) { return container1.copy() += std::move(container2); }
     template<typename T, typename KeyCompare>
-    [[nodiscard]] jset<T, KeyCompare> operator+(jset<T, KeyCompare>&& container1, jset<T, KeyCompare>&& container2) { return container1 += std::move(container2); }
+    [[nodiscard]] jset<T, KeyCompare> operator+(jset<T, KeyCompare>&& container1, jset<T, KeyCompare>&& container2) { return jset<T, KeyCompare>(std::move(container1)) += std::move(container2); }
 
     template<typename T, typename KeyCompare>
     JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
