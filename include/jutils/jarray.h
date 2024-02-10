@@ -129,9 +129,9 @@ namespace jutils
         template<typename... Args>
         JUTILS_STD20_CONSTEXPR type& put(Args&&... args) { return _internalData.emplace_back(std::forward<Args>(args)...); }
         template<typename... Args>
-        JUTILS_STD20_CONSTEXPR type& putAt(const const_iterator place, Args&&... args)
+        JUTILS_STD20_CONSTEXPR type& putAt(const_iterator place, Args&&... args)
         {
-            return _internalData.emplace(place, std::forward<Args>(args)...);
+            return *_internalData.emplace(place, std::forward<Args>(args)...);
         }
         template<typename... Args>
         JUTILS_STD20_CONSTEXPR type& putAt(const index_type index, Args&&... args)
@@ -168,7 +168,7 @@ namespace jutils
         }
         JUTILS_STD20_CONSTEXPR jarray& append(const base_type& value)
         {
-            if (this != &value)
+            if (&_internalData != &value)
             {
                 _internalData.insert(end(), value.begin(), value.end());
             }
@@ -221,17 +221,17 @@ namespace jutils
     template<typename T>
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container, const T& value) { return container.copy() += value; }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container, T&& value) { return container.copy() += std::forward(value); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container, T&& value) { return container.copy() += std::forward<T>(value); }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container, const T& value) { return container += value; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container, const T& value) { return jarray<T>(std::move(container)) += value; }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container, T&& value) { return container += std::forward(value); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container, T&& value) { return jarray<T>(std::move(container)) += std::forward<T>(value); }
 
     template<typename T>
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const T& value, const jarray<T>& container)
     {
         jarray<T> result;
-        result.resize(container.getSize() + 1);
+        result.reserve(container.getSize() + 1);
         result.add(value);
         return result += container;
     }
@@ -239,19 +239,19 @@ namespace jutils
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(T&& value, const jarray<T>& container)
     {
         jarray<T> result;
-        result.resize(container.getSize() + 1);
-        result.add(std::forward(value));
+        result.reserve(container.getSize() + 1);
+        result.add(std::forward<T>(value));
         return result += container;
     }
     
     template<typename T>
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container1, std::initializer_list<T> list) { return container1.copy() += list; }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container1, std::initializer_list<T> list) { return container1 += list; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container1, std::initializer_list<T> list) { return jarray<T>(std::move(container1)) += list; }
     template<typename T>
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container1, const jarray<T>& container2) { return container1.copy() += container2; }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container1, const jarray<T>& container2) { return container1 += container2; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container1, const jarray<T>& container2) { return jarray<T>(std::move(container1)) += container2; }
 
     template<typename T>
     JUTILS_STD20_CONSTEXPR index_type jarray<T>::indexOf(const type& value) const noexcept
@@ -286,7 +286,7 @@ namespace jutils
     {
         const auto endIter = end();
         auto placeEnd = place;
-        while ((count > 0) || (placeEnd != endIter))
+        while ((count > 0) && (placeEnd != endIter))
         {
             ++placeEnd;
             count--;

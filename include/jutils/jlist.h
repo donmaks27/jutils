@@ -123,13 +123,13 @@ namespace jutils
         template<typename... Args>
         type& put(Args&&... args) { return _internalData.emplace_back(std::forward<Args>(args)...); }
         template<typename... Args>
-        type& putAt(const const_iterator place, Args&&... args)
+        type& putAt(const_iterator place, Args&&... args)
         {
             if (place == begin())
             {
                 return _internalData.emplace_front(std::forward<Args>(args)...);
             }
-            return _internalData.emplace(place, std::forward<Args>(args)...);
+            return *_internalData.emplace(place, std::forward<Args>(args)...);
         }
         template<typename... Args>
         type& putAt(const index_type index, Args&&... args)
@@ -155,9 +155,9 @@ namespace jutils
             return iter == end() ? add(std::move(value)) : *iter;
         }
 
-        type& addAt(const const_iterator place, const type& value) { return putAt(place, value); }
-        type& addAt(const const_iterator place, type&& value) { return putAt(place, std::move(value)); }
-        type& addDefaultAt(const const_iterator place) { return putAt(place); }
+        type& addAt(const_iterator place, const type& value) { return putAt(place, value); }
+        type& addAt(const_iterator place, type&& value) { return putAt(place, std::move(value)); }
+        type& addDefaultAt(const_iterator place) { return putAt(place); }
 
         type& addAt(const index_type index, const type& value) { return putAt(index, value); }
         type& addAt(const index_type index, type&& value) { return putAt(index, std::move(value)); }
@@ -170,7 +170,7 @@ namespace jutils
         }
         jlist& append(const base_type& value)
         {
-            if (this != &value)
+            if (&_internalData != &value)
             {
                 _internalData.insert(end(), value.begin(), value.end());
             }
@@ -231,47 +231,39 @@ namespace jutils
     template<typename T>
     [[nodiscard]] jlist<T> operator+(const jlist<T>& container, const T& value) { return container.copy() += value; }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(const jlist<T>& container, T&& value) { return container.copy() += std::forward(value); }
+    [[nodiscard]] jlist<T> operator+(const jlist<T>& container, T&& value) { return container.copy() += std::forward<T>(value); }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(jlist<T>&& container, const T& value) { return container += value; }
+    [[nodiscard]] jlist<T> operator+(jlist<T>&& container, const T& value) { return jlist<T>(std::move(container)) += value; }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(jlist<T>&& container, T&& value) { return container += std::forward(value); }
+    [[nodiscard]] jlist<T> operator+(jlist<T>&& container, T&& value) { return jlist<T>(std::move(container)) += std::forward<T>(value); }
 
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(const T& value, const jlist<T>& container)
-    {
-        jlist<T> result = container.copy();
-        result.addAt(0, value);
-        return result;
-    }
+    [[nodiscard]] jlist<T> operator+(const T& value, const jlist<T>& container) { return jlist<T>(1, value) += container; }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(const T& value, jlist<T>&& container)
-    {
-        container.addAt(0, value);
-        return container;
-    }
+    [[nodiscard]] jlist<T> operator+(const T& value, jlist<T>&& container) { return jlist<T>(1, value) += std::move(container); }
     template<typename T>
     [[nodiscard]] jlist<T> operator+(T&& value, const jlist<T>& container)
     {
-        jlist<T> result = container.copy();
-        result.addAt(0, std::forward(value));
-        return result;
+        jlist<T> result;
+        result.add(std::forward<T>(value));
+        return result += container;
     }
     template<typename T>
     [[nodiscard]] jlist<T> operator+(T&& value, jlist<T>&& container)
     {
-        container.addAt(0, std::forward(value));
-        return container;
+        jlist<T> result;
+        result.add(std::forward<T>(value));
+        return result += std::move(container);
     }
 
     template<typename T>
     [[nodiscard]] jlist<T> operator+(const jlist<T>& container1, std::initializer_list<T> list) { return container1.copy() += list; }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, std::initializer_list<T> list) { return container1 += list; }
+    [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, std::initializer_list<T> list) { return jlist<T>(std::move(container1)) += list; }
     template<typename T>
     [[nodiscard]] jlist<T> operator+(const jlist<T>& container1, const jlist<T>& container2) { return container1.copy() += container2; }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, const jlist<T>& container2) { return container1 += container2; }
+    [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, const jlist<T>& container2) { return jlist<T>(std::move(container1)) += container2; }
 
 
 
@@ -310,7 +302,7 @@ namespace jutils
     {
         const auto endIter = end();
         auto placeEnd = place;
-        while ((count > 0) || (placeEnd != endIter))
+        while ((count > 0) && (placeEnd != endIter))
         {
             ++placeEnd;
             count--;
