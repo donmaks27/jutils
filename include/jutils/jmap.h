@@ -142,7 +142,7 @@ namespace jutils
         }
         jmap& append(const base_type& value)
         {
-            if (this != &value)
+            if (&_internalData != &value)
             {
                 _internalData.insert(value.begin(), value.end());
             }
@@ -185,24 +185,24 @@ namespace jutils
     template<typename Key, typename Value, typename KeyCompare>
     [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(const jmap<Key, Value, KeyCompare>& container, const typename jmap<Key, Value, KeyCompare>::pair_type& value) { return container.copy() += value; }
     template<typename Key, typename Value, typename KeyCompare>
-    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(const jmap<Key, Value, KeyCompare>& container, typename jmap<Key, Value, KeyCompare>::pair_type&& value) { return container.copy() += std::forward(value); }
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(const jmap<Key, Value, KeyCompare>& container, typename jmap<Key, Value, KeyCompare>::pair_type&& value) { return container.copy() += std::forward<typename jmap<Key, Value, KeyCompare>::pair_type>(value); }
     template<typename Key, typename Value, typename KeyCompare>
-    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container, const typename jmap<Key, Value, KeyCompare>::pair_type& value) { return container += value; }
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container, const typename jmap<Key, Value, KeyCompare>::pair_type& value) { return jmap<Key, Value, KeyCompare>(std::move(container)) += value; }
     template<typename Key, typename Value, typename KeyCompare>
-    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container, typename jmap<Key, Value, KeyCompare>::pair_type&& value) { return container += std::forward(value); }
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container, typename jmap<Key, Value, KeyCompare>::pair_type&& value) { return jmap<Key, Value, KeyCompare>(std::move(container)) += std::forward<typename jmap<Key, Value, KeyCompare>::pair_type>(value); }
 
     template<typename Key, typename Value, typename KeyCompare>
     [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(const jmap<Key, Value, KeyCompare>& container1, std::initializer_list<typename jmap<Key, Value, KeyCompare>::pair_type> list) { return container1.copy() += list; }
     template<typename Key, typename Value, typename KeyCompare>
-    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container1, std::initializer_list<typename jmap<Key, Value, KeyCompare>::pair_type> list) { return container1 += list; }
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container1, std::initializer_list<typename jmap<Key, Value, KeyCompare>::pair_type> list) { return jmap<Key, Value, KeyCompare>(std::move(container1)) += list; }
     template<typename Key, typename Value, typename KeyCompare>
     [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(const jmap<Key, Value, KeyCompare>& container1, const jmap<Key, Value, KeyCompare>& container2) { return container1.copy() += container2; }
     template<typename Key, typename Value, typename KeyCompare>
-    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container1, const jmap<Key, Value, KeyCompare>& container2) { return container1 += container2; }
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container1, const jmap<Key, Value, KeyCompare>& container2) { return jmap<Key, Value, KeyCompare>(std::move(container1)) += container2; }
     template<typename Key, typename Value, typename KeyCompare>
     [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(const jmap<Key, Value, KeyCompare>& container1, jmap<Key, Value, KeyCompare>&& container2) { return container1.copy() += std::move(container2); }
     template<typename Key, typename Value, typename KeyCompare>
-    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container1, jmap<Key, Value, KeyCompare>&& container2) { return container1 += std::move(container2); }
+    [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container1, jmap<Key, Value, KeyCompare>&& container2) { return jmap<Key, Value, KeyCompare>(std::move(container1)) += std::move(container2); }
 
     template<typename KeyType, typename ValueType, typename KeyCompare>
     JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, KeyType, ValueType>), typename Pred)

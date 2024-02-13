@@ -143,7 +143,7 @@ namespace jutils
         }
         jmap_hash& append(const base_type& value)
         {
-            if (this != &value)
+            if (&_internalData != &value)
             {
                 _internalData.insert(value.begin(), value.end());
             }
@@ -186,24 +186,24 @@ namespace jutils
     template<typename Key, typename Value, typename Pred>
     [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(const jmap_hash<Key, Value, Pred>& container, const typename jmap_hash<Key, Value, Pred>::pair_type& value) { return container.copy() += value; }
     template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(const jmap_hash<Key, Value, Pred>& container, typename jmap_hash<Key, Value, Pred>::pair_type&& value) { return container.copy() += std::forward(value); }
+    [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(const jmap_hash<Key, Value, Pred>& container, typename jmap_hash<Key, Value, Pred>::pair_type&& value) { return container.copy() += std::forward<typename jmap_hash<Key, Value, Pred>::pair_type>(value); }
     template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(jmap_hash<Key, Value, Pred>&& container, const typename jmap_hash<Key, Value, Pred>::pair_type& value) { return container += value; }
+    [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(jmap_hash<Key, Value, Pred>&& container, const typename jmap_hash<Key, Value, Pred>::pair_type& value) { return jmap_hash<Key, Value, Pred>(std::move(container)) += value; }
     template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(jmap_hash<Key, Value, Pred>&& container, typename jmap_hash<Key, Value, Pred>::pair_type&& value) { return container += std::forward(value); }
+    [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(jmap_hash<Key, Value, Pred>&& container, typename jmap_hash<Key, Value, Pred>::pair_type&& value) { return jmap_hash<Key, Value, Pred>(std::move(container)) += std::forward<typename jmap_hash<Key, Value, Pred>::pair_type>(value); }
 
     template<typename Key, typename Value, typename Pred>
     [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(const jmap_hash<Key, Value, Pred>& container1, std::initializer_list<typename jmap_hash<Key, Value, Pred>::pair_type> list) { return container1.copy() += list; }
     template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(jmap_hash<Key, Value, Pred>&& container1, std::initializer_list<typename jmap_hash<Key, Value, Pred>::pair_type> list) { return container1 += list; }
+    [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(jmap_hash<Key, Value, Pred>&& container1, std::initializer_list<typename jmap_hash<Key, Value, Pred>::pair_type> list) { return jmap_hash<Key, Value, Pred>(std::move(container1)) += list; }
     template<typename Key, typename Value, typename Pred>
     [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(const jmap_hash<Key, Value, Pred>& container1, const jmap_hash<Key, Value, Pred>& container2) { return container1.copy() += container2; }
     template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(jmap_hash<Key, Value, Pred>&& container1, const jmap_hash<Key, Value, Pred>& container2) { return container1 += container2; }
+    [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(jmap_hash<Key, Value, Pred>&& container1, const jmap_hash<Key, Value, Pred>& container2) { return jmap_hash<Key, Value, Pred>(std::move(container1)) += container2; }
     template<typename Key, typename Value, typename Pred>
     [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(const jmap_hash<Key, Value, Pred>& container1, jmap_hash<Key, Value, Pred>&& container2) { return container1.copy() += std::move(container2); }
     template<typename Key, typename Value, typename Pred>
-    [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(jmap_hash<Key, Value, Pred>&& container1, jmap_hash<Key, Value, Pred>&& container2) { return container1 += std::move(container2); }
+    [[nodiscard]] jmap_hash<Key, Value, Pred> operator+(jmap_hash<Key, Value, Pred>&& container1, jmap_hash<Key, Value, Pred>&& container2) { return jmap_hash<Key, Value, Pred>(std::move(container1)) += std::move(container2); }
 
     template<typename KeyType, typename ValueType, typename KeyHash, typename KeyEqual>
     JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, KeyType, ValueType>), typename Pred)
