@@ -4,13 +4,10 @@
 
 #include "ini.h"
 
-namespace jutils
+namespace jutils::ini
 {
-	namespace ini
-	{
-		jstring serialize(const ini_value& configData);
+    jstring serialize(const ini_value& configData);
 
-		ini_value parse(const jstring& data);
-		ini_value parseFile(const jstring& filePath);
-	}
+    ini_value parse(const jstring& data);
+    ini_value parseFile(const jstring& filePath);
 }

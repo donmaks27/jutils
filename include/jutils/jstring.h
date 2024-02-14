@@ -286,16 +286,16 @@ namespace jutils
     };
 
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring& str1, const jstring::char_type character) { return str1.toBase() + character; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(jstring&& str1, const jstring::char_type character) { return std::move(str1 += character); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(jstring&& str1, const jstring::char_type character) { return jstring(std::move(str1)) += character; }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring::char_type character, const jstring& str1) { return character + str1.toBase(); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring::char_type character, jstring&& str1) { return std::move(str1.addAt(0, character)); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring::char_type character, jstring&& str1) { return jstring(std::move(str1)).addAt(0, character); }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring& str1, const jstring& str2) { return str1.toBase() + str2.toBase(); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring& str1, jstring&& str2) { return std::move(str2.addAt(0, str1)); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(jstring&& str1, const jstring& str2) { return std::move(str1 += str2); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring& str1, jstring&& str2) { return jstring(std::move(str2)).addAt(0, str1); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(jstring&& str1, const jstring& str2) { return jstring(std::move(str1)) += str2; }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring& str1, const jstring::char_type* str2) { return str1.toBase() + str2; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(jstring&& str1, const jstring::char_type* str2) { return std::move(str1 += str2); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(jstring&& str1, const jstring::char_type* str2) { return jstring(std::move(str1)) += str2; }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring::char_type* const str1, const jstring& str2) { return str1 + str2.toBase(); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring::char_type* const str1, jstring&& str2) { return std::move(str2.addAt(0, str1)); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring::char_type* const str1, jstring&& str2) { return jstring(std::move(str2)).addAt(0, str1); }
 
     [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator==(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) == 0; }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator==(const jstring& str1, const jstring::char_type* const str2) noexcept { return str1.compare(str2) == 0; }
