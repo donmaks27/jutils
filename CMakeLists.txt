@@ -44,6 +44,7 @@ list(APPEND JUTILS_HEADER_FILES
 
     include/jutils/math/math.h
     include/jutils/math/hash.h
+    include/jutils/math/math_vector.h
     include/jutils/math/vector2.h
     include/jutils/math/vector3.h
     include/jutils/math/vector4.h
@@ -61,7 +62,6 @@ list(APPEND JUTILS_HEADER_FILES
     include/jutils/math/matrix4x3.h
 
     include/jutils/math/base_types/vector_base.h
-    include/jutils/math/base_types/vector_operations.h
     include/jutils/math/base_types/vector2_base.h
     include/jutils/math/base_types/vector3_base.h
     include/jutils/math/base_types/vector4_base.h
