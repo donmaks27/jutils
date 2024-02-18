@@ -1,4 +1,4 @@
-﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021-2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -6,10 +6,16 @@
 
 namespace jutils::math
 {
-    template<typename T>
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+    template<typename T> requires std::is_arithmetic_v<T>
+    class vector<4, T>
+    {
+#else
+        template<typename T>
     class vector<4, T>
     {
         static_assert(std::is_arithmetic_v<T>);
+#endif
 
         using default_float_type = std::conditional_t<std::is_floating_point_v<T>, T, float>;
 
@@ -146,8 +152,8 @@ namespace jutils::math
         template<typename T1>
         [[nodiscard]] constexpr bool operator!=(const vector<size, T1>& value) const noexcept { return !isEqual(value); }
 
-        constexpr vector& operator++() noexcept { ++x; ++y; ++z; ++w return *this; }
-        constexpr vector& operator--() noexcept { --x; --y; --z; --w return *this; }
+        constexpr vector& operator++() noexcept { ++x; ++y; ++z; ++w; return *this; }
+        constexpr vector& operator--() noexcept { --x; --y; --z; --w; return *this; }
         [[nodiscard]] constexpr vector operator++(int) noexcept { vector temp = copy(); this->operator++(); return temp; }
         [[nodiscard]] constexpr vector operator--(int) noexcept { vector temp = copy(); this->operator--(); return temp; }
 

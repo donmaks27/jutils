@@ -1,113 +1,118 @@
-﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021-2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
 #include "vector_base.h"
 
-namespace jutils
+namespace jutils::math
 {
-    namespace math
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+    template<vector_size_type R, vector_size_type C, typename T> requires std::is_arithmetic_v<T>
+    class _matrix_base
     {
-        template<vector_size_type Rows, vector_size_type Columns, typename T> requires std::is_arithmetic_v<T>
-        class _matrix_base
+#else
+        template<vector_size_type R, vector_size_type C, typename T>
+    class _matrix_base
+    {
+        static_assert(std::is_arithmetic_v<T>);
+#endif
+    protected:
+        
+        using default_float_type = std::conditional_t<std::is_floating_point_v<T>, T, float>;
+
+        constexpr _matrix_base() noexcept = default;
+
+    public:
+
+        static constexpr vector_size_type rowCount = R;
+        static constexpr vector_size_type columnCount = C;
+        using type = T;
+        using row_type = vector<columnCount, type>;
+
+        row_type rows[rowCount];
+
+        [[nodiscard]] constexpr row_type& get(const vector_size_type rowIndex) noexcept
         {
-        protected:
-
-            constexpr _matrix_base() noexcept = default;
-
-        public:
-
-            static constexpr vector_size_type rowCount = Rows;
-            static constexpr vector_size_type columnCount = Columns;
-            using type = T;
-            using row_type = vector<columnCount, type>;
-            
-            row_type rows[rowCount];
-
-            constexpr row_type& get(const vector_size_type rowIndex) JUTILS_VECTOR_THROW_FUNCTION
-            {
-#ifndef JUTILS_VECTOR_DISABLE_THROW_ERRORS
-                _checkRowIndexValid(rowIndex);
-#endif
-                return rows[jutils::math::clamp(rowIndex, 0, rowCount - 1)];
-            }
-            constexpr const row_type& get(const vector_size_type rowIndex) const JUTILS_VECTOR_THROW_FUNCTION
-            {
-#ifndef JUTILS_VECTOR_DISABLE_THROW_ERRORS
-                _checkRowIndexValid(rowIndex);
-#endif
-                return rows[jutils::math::clamp(rowIndex, 0, rowCount - 1)];
-            }
-            constexpr row_type& operator[](const vector_size_type rowIndex) JUTILS_VECTOR_THROW_FUNCTION { return get(rowIndex); }
-            constexpr const row_type& operator[](const vector_size_type rowIndex) const JUTILS_VECTOR_THROW_FUNCTION { return get(rowIndex); }
-            
-            constexpr type* getData() noexcept { return rows[0].getData(); }
-            constexpr const type* getData() const noexcept { return rows[0].getData(); }
-
-#ifndef JUTILS_VECTOR_DISABLE_THROW_ERRORS
-        private:
-            static constexpr void _checkRowIndexValid(const vector_size_type rowIndex)
-            {
-                if ((rowIndex < 0) || (rowIndex >= rowCount))
-                {
-                    throw std::out_of_range("Invalid row index");
-                }
-            }
-#endif
-        };
-
-        template<vector_size_type Rows, vector_size_type Columns, typename T>
-        class matrix;
-
-        template<typename T>
-        struct is_valid_matrix_type
+            _checkRowIndexValid(rowIndex);
+            return rows[rowIndex];
+        }
+        [[nodiscard]] constexpr const row_type& get(const vector_size_type rowIndex) const noexcept
         {
-        private:
-            template<typename T1> requires std::is_same_v<std::remove_cv_t<decltype(T1::rowCount)>, vector_size_type>
-                                        && std::is_same_v<std::remove_cv_t<decltype(T1::columnCount)>, vector_size_type>
-                                        && std::is_same_v<T1, matrix<T1::rowCount, T1::columnCount, typename T1::type>>
-            static constexpr bool _is_valid_matrix_type(int32) noexcept { return true; }
-            template<typename T1>
-            static constexpr bool _is_valid_matrix_type(int8) noexcept { return false; }
-        public:
-            static constexpr bool value = _is_valid_matrix_type<std::remove_cvref_t<T>>(0);
-        };
-        template<typename T>
-        constexpr bool is_valid_matrix_type_v = is_valid_matrix_type<T>::value;
-        template<vector_size_type Rows, vector_size_type Columns, typename T>
-        constexpr bool is_valid_matrix_v = is_valid_matrix_type_v<matrix<Rows, Columns, T>>;
+            _checkRowIndexValid(rowIndex);
+            return rows[rowIndex];
+        }
+        [[nodiscard]] constexpr row_type& operator[](const vector_size_type rowIndex) noexcept { return get(rowIndex); }
+        [[nodiscard]] constexpr const row_type& operator[](const vector_size_type rowIndex) const noexcept { return get(rowIndex); }
 
-        template<vector_size_type Rows, vector_size_type Columns, typename T> requires is_valid_matrix_v<Rows, Columns, T>
-        jstring matrixToString(const matrix<Rows, Columns, T>& value) noexcept { return value.toString(); }
-    }
+        [[nodiscard]] constexpr type* getData() noexcept { return rows[0].getData(); }
+        [[nodiscard]] constexpr const type* getData() const noexcept { return rows[0].getData(); }
+
+    private:
+
+        static constexpr void _checkRowIndexValid(const vector_size_type rowIndex)
+        {
+            if ((rowIndex < 0) || (rowIndex >= rowCount))
+            {
+                throw std::out_of_range("Invalid row index");
+            }
+        }
+    };
+
+    template<vector_size_type R, vector_size_type C, typename T>
+    class matrix;
+
+    template<vector_size_type R, vector_size_type C, typename T>
+    struct is_valid_matrix
+    {
+    private:
+        template<typename T1 = void>
+        static constexpr vector_size_type _helper_size_rows(int32) noexcept { return matrix<R, C, T>::rowCount; }
+        template<typename T1 = void>
+        static constexpr vector_size_type _helper_size_rows(int8) noexcept { return 0; }
+        template<typename T1 = void>
+        static constexpr vector_size_type _helper_size_columns(int32) noexcept { return matrix<R, C, T>::columnCount; }
+        template<typename T1 = void>
+        static constexpr vector_size_type _helper_size_columns(int8) noexcept { return 0; }
+        template<typename T1 = void>
+        static constexpr auto _helper_type(int32) -> decltype(matrix<R, C, T>::type);
+        template<typename T1 = void>
+        static constexpr void _helper_type(int8);
+    public:
+        static constexpr bool value = (_helper_size_rows(0) == R)
+                                   && (_helper_size_columns(0) == C)
+                                   && std::is_same_v<decltype(_helper_type(0)), T>;
+    };
+    template<vector_size_type R, vector_size_type C, typename T>
+    constexpr bool is_valid_matrix_v = is_valid_matrix<R, C, T>::value;
+
+    JUTILS_TEMPLATE_CONDITION((is_valid_matrix_v<R, C, T>), vector_size_type R, vector_size_type C, typename T)
+    [[nodiscard]] jstring matrixToString(const matrix<R, C, T>& value) noexcept { return value.toString(); }
 }
 
-template<jutils::math::vector_size_type R, jutils::math::vector_size_type C, typename T> requires jutils::math::is_valid_matrix_v<R, C, T>
-struct jutils::string::formatter<jutils::math::matrix<R, C, T>> : std::true_type
+template<jutils::math::vector_size_type R, jutils::math::vector_size_type C, typename T>
+struct jutils::formatter<jutils::math::matrix<R, C, T>> : std::true_type
 {
-    static jstring format(const jutils::math::matrix<R, C, T>& value) noexcept { return jutils::math::matrixToString(value); }
+    [[nodiscard]] static jstring format(const jutils::math::matrix<R, C, T>& value) noexcept { return jutils::math::matrixToString(value); }
 };
 
 #if defined(JUTILS_USE_FMT)
-template<typename CharT, jutils::math::vector_size_type R, jutils::math::vector_size_type C, typename T>
-    requires jutils::math::is_valid_matrix_v<R, C, T>
-struct fmt::formatter<jutils::math::matrix<R, C, T>, CharT> : fmt::formatter<const char*, CharT>
-{
-    template<typename FormatContext>
-    auto format(const jutils::math::matrix<R, C, T>& value, FormatContext& ctx)
+    template<typename CharT, jutils::math::vector_size_type R, jutils::math::vector_size_type C, typename T>
+    struct fmt::formatter<jutils::math::matrix<R, C, T>, CharT> : fmt::formatter<const char*, CharT>
     {
-        return fmt::formatter<const char*, CharT>::format(*jutils::math::matrixToString(value), ctx);
-    }
-};
+        template<typename FormatContext>
+        auto format(const jutils::math::matrix<R, C, T>& value, FormatContext& ctx)
+        {
+            return fmt::formatter<const char*, CharT>::format(*jutils::math::matrixToString(value), ctx);
+        }
+    };
 #else
-template<typename CharT, jutils::math::vector_size_type R, jutils::math::vector_size_type C, typename T>
-    requires jutils::math::is_valid_matrix_v<R, C, T>
-struct std::formatter<jutils::math::matrix<R, C, T>, CharT> : std::formatter<const char*, CharT>
-{
-    template<typename FormatContext>
-    auto format(const jutils::math::matrix<R, C, T>& value, FormatContext& ctx)
+    template<typename CharT, jutils::math::vector_size_type R, jutils::math::vector_size_type C, typename T>
+    struct std::formatter<jutils::math::matrix<R, C, T>, CharT> : std::formatter<const char*, CharT>
     {
-        return std::formatter<const char*, CharT>::format(*jutils::math::matrixToString(value), ctx);
-    }
-};
+        template<typename FormatContext>
+        auto format(const jutils::math::matrix<R, C, T>& value, FormatContext& ctx)
+        {
+            return std::formatter<const char*, CharT>::format(*jutils::math::matrixToString(value), ctx);
+        }
+    };
 #endif

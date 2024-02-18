@@ -1,4 +1,4 @@
-﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021-2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -9,5 +9,7 @@ namespace jutils
     namespace math
     {
         using matrix2x3 = matrix<2, 3, float>;
+        using imatrix2x3 = matrix<2, 3, int32>;
+        using umatrix2x3 = matrix<2, 3, uint32>;
     }
 }

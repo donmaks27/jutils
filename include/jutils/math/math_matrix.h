@@ -1,77 +1,627 @@
-﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
+// Copyright © 2021-2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
-#include "base_types/matrix4x4_base.h"
+#include "base_types/matrix_base.h"
 
-namespace jutils
+namespace jutils::math
 {
-    namespace math
+    template<vector_size_type R, vector_size_type C, typename T, typename T1>
+    [[nodiscard]] constexpr matrix<R, C, T> operator+(const matrix<R, C, T>& value1, const matrix<R, C, T1>& value2) noexcept { return value1.copy() += value2; }
+    template<vector_size_type R, vector_size_type C, typename T, typename T1>
+    [[nodiscard]] constexpr matrix<R, C, T> operator+(matrix<R, C, T>&& value1, const matrix<R, C, T1>& value2) noexcept { return value1 += value2; }
+
+    template<vector_size_type R, vector_size_type C, typename T, typename T1>
+    [[nodiscard]] constexpr matrix<R, C, T> operator-(const matrix<R, C, T>& value1, const matrix<R, C, T1>& value2) noexcept { return value1.copy() -= value2; }
+    template<vector_size_type R, vector_size_type C, typename T, typename T1>
+    [[nodiscard]] constexpr matrix<R, C, T> operator-(matrix<R, C, T>&& value1, const matrix<R, C, T1>& value2) noexcept { return value1 -= value2; }
+
+    JUTILS_TEMPLATE_CONDITION(std::is_arithmetic_v<T1>, vector_size_type R, vector_size_type C, typename T, typename T1)
+    [[nodiscard]] constexpr matrix<R, C, T> operator*(const matrix<R, C, T>& value1, const T1 value2) noexcept { return value1.copy() *= value2; }
+    JUTILS_TEMPLATE_CONDITION(std::is_arithmetic_v<T1>, vector_size_type R, vector_size_type C, typename T, typename T1)
+    [[nodiscard]] constexpr matrix<R, C, T> operator*(matrix<R, C, T>&& value1, const T1 value2) noexcept { return value1 *= value2; }
+    JUTILS_TEMPLATE_CONDITION(std::is_arithmetic_v<T1>, vector_size_type R, vector_size_type C, typename T, typename T1)
+    [[nodiscard]] constexpr matrix<R, C, T> operator*(const T value1, const matrix<R, C, T1>& value2) noexcept { return matrix<R, C, T>(value2) *= value1; }
+
+
+
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<2, 2, T> operator*(const matrix<2, 2, T>& value1, const matrix<2, 2, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<2, 3, T> operator*(const matrix<2, 2, T>& value1, const matrix<2, 3, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<2, 4, T> operator*(const matrix<2, 2, T>& value1, const matrix<2, 4, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<2, 2, T> operator*(const matrix<2, 3, T>& value1, const matrix<3, 2, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<2, 3, T> operator*(const matrix<2, 3, T>& value1, const matrix<3, 3, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<2, 4, T> operator*(const matrix<2, 3, T>& value1, const matrix<3, 4, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<2, 2, T> operator*(const matrix<2, 4, T>& value1, const matrix<4, 2, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<2, 3, T> operator*(const matrix<2, 4, T>& value1, const matrix<4, 3, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<2, 4, T> operator*(const matrix<2, 4, T>& value1, const matrix<4, 4, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<3, 2, T> operator*(const matrix<3, 2, T>& value1, const matrix<2, 2, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<3, 3, T> operator*(const matrix<3, 2, T>& value1, const matrix<2, 3, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<3, 4, T> operator*(const matrix<3, 2, T>& value1, const matrix<2, 4, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<3, 2, T> operator*(const matrix<3, 3, T>& value1, const matrix<3, 2, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<3, 3, T> operator*(const matrix<3, 3, T>& value1, const matrix<3, 3, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<3, 4, T> operator*(const matrix<3, 3, T>& value1, const matrix<3, 4, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<3, 2, T> operator*(const matrix<3, 4, T>& value1, const matrix<4, 2, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<3, 3, T> operator*(const matrix<3, 4, T>& value1, const matrix<4, 3, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<3, 4, T> operator*(const matrix<3, 4, T>& value1, const matrix<4, 4, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<4, 2, T> operator*(const matrix<4, 2, T>& value1, const matrix<2, 2, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<4, 3, T> operator*(const matrix<4, 2, T>& value1, const matrix<2, 3, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<4, 4, T> operator*(const matrix<4, 2, T>& value1, const matrix<2, 4, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<4, 2, T> operator*(const matrix<4, 3, T>& value1, const matrix<3, 2, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<4, 3, T> operator*(const matrix<4, 3, T>& value1, const matrix<3, 3, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<4, 4, T> operator*(const matrix<4, 3, T>& value1, const matrix<3, 4, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<4, 2, T> operator*(const matrix<4, 4, T>& value1, const matrix<4, 2, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<4, 3, T> operator*(const matrix<4, 4, T>& value1, const matrix<4, 3, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr matrix<4, 4, T> operator*(const matrix<4, 4, T>& value1, const matrix<4, 4, T1>& value2) noexcept;
+
+    template<vector_size_type C, typename T, typename T1> [[nodiscard]] constexpr vector<2, T> operator*(const matrix<2, C, T>& value1, const vector<C, T1>& value2) noexcept;
+    template<vector_size_type C, typename T, typename T1> [[nodiscard]] constexpr vector<3, T> operator*(const matrix<3, C, T>& value1, const vector<C, T1>& value2) noexcept;
+    template<vector_size_type C, typename T, typename T1> [[nodiscard]] constexpr vector<4, T> operator*(const matrix<4, C, T>& value1, const vector<C, T1>& value2) noexcept;
+
+    template<typename T, typename T1> [[nodiscard]] constexpr vector<2, T> operator*(const vector<2, T>& value1, const matrix<2, 2, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr vector<2, T> operator*(const vector<3, T>& value1, const matrix<3, 2, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr vector<2, T> operator*(const vector<4, T>& value1, const matrix<4, 2, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr vector<3, T> operator*(const vector<2, T>& value1, const matrix<2, 3, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr vector<3, T> operator*(const vector<3, T>& value1, const matrix<3, 3, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr vector<3, T> operator*(const vector<4, T>& value1, const matrix<4, 3, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr vector<4, T> operator*(const vector<2, T>& value1, const matrix<2, 4, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr vector<4, T> operator*(const vector<3, T>& value1, const matrix<3, 4, T1>& value2) noexcept;
+    template<typename T, typename T1> [[nodiscard]] constexpr vector<4, T> operator*(const vector<4, T>& value1, const matrix<4, 4, T1>& value2) noexcept;
+
+    template<typename T, typename T1>
+    constexpr matrix<2, 2, T> operator*(const matrix<2, 2, T>& value1, const matrix<2, 2, T1>& value2) noexcept
     {
-        template<typename T = float>
-        auto viewMatrix_lookAt(const vector<3, T>& viewPosition, const vector<3, T>& targetPosition, const vector<3, T>& upDirection) noexcept
-        {
-            using R = std::conditional_t<std::is_floating_point_v<T>, T, float>;
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y),
 
-            const vector<3, R> forward = (targetPosition.template copy<R>() - viewPosition).normalize();
-            vector<3, R> right;
-            if constexpr (std::is_same_v<T, R>)
-            {
-                right = upDirection.cross(forward).normalize();
-            }
-            else
-            {
-                right = upDirection.template copy<R>().cross(forward).normalize();
-            }
-            const vector<3, R> up = forward.cross(right);
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<2, 3, T> operator*(const matrix<2, 2, T>& value1, const matrix<2, 3, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z),
 
-            matrix<4, 4, R> result(static_cast<R>(1));
-            result[0][0] = right.x; result[0][1] = up.x; result[0][2] = forward.x;
-            result[1][0] = right.y; result[1][1] = up.y; result[1][2] = forward.y;
-            result[2][0] = right.z; result[2][1] = up.z; result[2][2] = forward.z;
-            result[3][0] = -right.dot(viewPosition);
-            result[3][1] = -up.dot(viewPosition);
-            result[3][2] = -forward.dot(viewPosition);
-            return result;
-        }
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<2, 4, T> operator*(const matrix<2, 2, T>& value1, const matrix<2, 4, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].w) + value1.rows[0].y * static_cast<T>(value2.rows[1].w),
 
-        template<typename T = float> requires std::floating_point<T>
-        matrix<4, 4, T> projectionMatrix_perspective(const T angleFOV, const T aspect, const T zNear, const T zFar, const bool invertVertically = false) noexcept
-        {
-            if (jutils::math::isNearlyZero(aspect, 0.0f) || jutils::math::isEqual(zNear, zFar))
-            {
-                return matrix<4, 4, T>(static_cast<T>(1));
-            }
-            const T angleTan = math::tan(angleFOV / 2);
-            matrix<4, 4, T> matrix;
-            matrix[0][0] = static_cast<T>(1) / (aspect * angleTan);
-            matrix[1][1] = -static_cast<T>(1) / angleTan;
-            matrix[2][2] = zFar / (zFar - zNear);
-            matrix[2][3] = static_cast<T>(1);
-            matrix[3][2] = -zFar * zNear / (zFar - zNear);
-            if (invertVertically)
-            {
-                matrix[1][1] = -matrix[1][1];
-            }
-            return matrix;
-        }
-        template<typename T = float> requires std::floating_point<T>
-        constexpr matrix<4, 4, T> projectionMatrix_orthogonal(const vector<2, T>& viewSize, const T zNear, const T zFar, const bool invertVertically = false)
-        {
-            if (jutils::math::isNearlyZero(viewSize.x) || jutils::math::isNearlyZero(viewSize.y) || jutils::math::isEqual(zNear, zFar))
-            {
-                return matrix<4, 4, T>(static_cast<T>(1));
-            }
-            matrix<4, 4, T> result(static_cast<T>(1));
-            result[0][0] = static_cast<T>(2) / viewSize.x;
-            result[1][1] = -static_cast<T>(2) / viewSize.y;
-            result[2][2] = static_cast<T>(1) / (zFar - zNear);
-            result[3][0] = 0; result[3][1] = 0; result[3][2] = -zNear / (zFar - zNear);
-            if (invertVertically)
-            {
-                result[1][1] = -result[1][1];
-            }
-            return result;
-        }
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].w) + value1.rows[1].y * static_cast<T>(value2.rows[1].w)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<2, 2, T> operator*(const matrix<2, 3, T>& value1, const matrix<3, 2, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<2, 3, T> operator*(const matrix<2, 3, T>& value1, const matrix<3, 3, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z) + value1.rows[0].z * static_cast<T>(value2.rows[2].z),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z) + value1.rows[1].z * static_cast<T>(value2.rows[2].z)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<2, 4, T> operator*(const matrix<2, 3, T>& value1, const matrix<3, 4, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z) + value1.rows[0].z * static_cast<T>(value2.rows[2].z),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].w) + value1.rows[0].y * static_cast<T>(value2.rows[1].w) + value1.rows[0].z * static_cast<T>(value2.rows[2].w),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z) + value1.rows[1].z * static_cast<T>(value2.rows[2].z),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].w) + value1.rows[1].y * static_cast<T>(value2.rows[1].w) + value1.rows[1].z * static_cast<T>(value2.rows[2].w)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<2, 2, T> operator*(const matrix<2, 4, T>& value1, const matrix<4, 2, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x) + value1.rows[0].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y) + value1.rows[0].w * static_cast<T>(value2.rows[3].y),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x) + value1.rows[1].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y) + value1.rows[1].w * static_cast<T>(value2.rows[3].y)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<2, 3, T> operator*(const matrix<2, 4, T>& value1, const matrix<4, 3, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x) + value1.rows[0].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y) + value1.rows[0].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z) + value1.rows[0].z * static_cast<T>(value2.rows[2].z) + value1.rows[0].w * static_cast<T>(value2.rows[3].z),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x) + value1.rows[1].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y) + value1.rows[1].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z) + value1.rows[1].z * static_cast<T>(value2.rows[2].z) + value1.rows[1].w * static_cast<T>(value2.rows[3].z)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<2, 4, T> operator*(const matrix<2, 4, T>& value1, const matrix<4, 4, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x) + value1.rows[0].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y) + value1.rows[0].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z) + value1.rows[0].z * static_cast<T>(value2.rows[2].z) + value1.rows[0].w * static_cast<T>(value2.rows[3].z),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].w) + value1.rows[0].y * static_cast<T>(value2.rows[1].w) + value1.rows[0].z * static_cast<T>(value2.rows[2].w) + value1.rows[0].w * static_cast<T>(value2.rows[3].w),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x) + value1.rows[1].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y) + value1.rows[1].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z) + value1.rows[1].z * static_cast<T>(value2.rows[2].z) + value1.rows[1].w * static_cast<T>(value2.rows[3].z),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].w) + value1.rows[1].y * static_cast<T>(value2.rows[1].w) + value1.rows[1].z * static_cast<T>(value2.rows[2].w) + value1.rows[1].w * static_cast<T>(value2.rows[3].w)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<3, 2, T> operator*(const matrix<3, 2, T>& value1, const matrix<2, 2, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<3, 3, T> operator*(const matrix<3, 2, T>& value1, const matrix<2, 3, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].z) + value1.rows[2].y * static_cast<T>(value2.rows[1].z)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<3, 4, T> operator*(const matrix<3, 2, T>& value1, const matrix<2, 4, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].w) + value1.rows[0].y * static_cast<T>(value2.rows[1].w),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].w) + value1.rows[1].y * static_cast<T>(value2.rows[1].w),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].z) + value1.rows[2].y * static_cast<T>(value2.rows[1].z),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].w) + value1.rows[2].y * static_cast<T>(value2.rows[1].w)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<3, 2, T> operator*(const matrix<3, 3, T>& value1, const matrix<3, 2, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x) + value1.rows[2].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y) + value1.rows[2].z * static_cast<T>(value2.rows[2].y)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<3, 3, T> operator*(const matrix<3, 3, T>& value1, const matrix<3, 3, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z) + value1.rows[0].z * static_cast<T>(value2.rows[2].z),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z) + value1.rows[1].z * static_cast<T>(value2.rows[2].z),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x) + value1.rows[2].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y) + value1.rows[2].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].z) + value1.rows[2].y * static_cast<T>(value2.rows[1].z) + value1.rows[2].z * static_cast<T>(value2.rows[2].z)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<3, 4, T> operator*(const matrix<3, 3, T>& value1, const matrix<3, 4, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z) + value1.rows[0].z * static_cast<T>(value2.rows[2].z),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].w) + value1.rows[0].y * static_cast<T>(value2.rows[1].w) + value1.rows[0].z * static_cast<T>(value2.rows[2].w),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z) + value1.rows[1].z * static_cast<T>(value2.rows[2].z),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].w) + value1.rows[1].y * static_cast<T>(value2.rows[1].w) + value1.rows[1].z * static_cast<T>(value2.rows[2].w),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x) + value1.rows[2].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y) + value1.rows[2].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].z) + value1.rows[2].y * static_cast<T>(value2.rows[1].z) + value1.rows[2].z * static_cast<T>(value2.rows[2].z),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].w) + value1.rows[2].y * static_cast<T>(value2.rows[1].w) + value1.rows[2].z * static_cast<T>(value2.rows[2].w)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<3, 2, T> operator*(const matrix<3, 4, T>& value1, const matrix<4, 2, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x) + value1.rows[0].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y) + value1.rows[0].w * static_cast<T>(value2.rows[3].y),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x) + value1.rows[1].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y) + value1.rows[1].w * static_cast<T>(value2.rows[3].y),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x) + value1.rows[2].z * static_cast<T>(value2.rows[2].x) + value1.rows[2].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y) + value1.rows[2].z * static_cast<T>(value2.rows[2].y) + value1.rows[2].w * static_cast<T>(value2.rows[3].y)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<3, 3, T> operator*(const matrix<3, 4, T>& value1, const matrix<4, 3, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x) + value1.rows[0].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y) + value1.rows[0].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z) + value1.rows[0].z * static_cast<T>(value2.rows[2].z) + value1.rows[0].w * static_cast<T>(value2.rows[3].z),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x) + value1.rows[1].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y) + value1.rows[1].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z) + value1.rows[1].z * static_cast<T>(value2.rows[2].z) + value1.rows[1].w * static_cast<T>(value2.rows[3].z),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x) + value1.rows[2].z * static_cast<T>(value2.rows[2].x) + value1.rows[2].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y) + value1.rows[2].z * static_cast<T>(value2.rows[2].y) + value1.rows[2].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].z) + value1.rows[2].y * static_cast<T>(value2.rows[1].z) + value1.rows[2].z * static_cast<T>(value2.rows[2].z) + value1.rows[2].w * static_cast<T>(value2.rows[3].z)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<3, 4, T> operator*(const matrix<3, 4, T>& value1, const matrix<4, 4, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x) + value1.rows[0].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y) + value1.rows[0].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z) + value1.rows[0].z * static_cast<T>(value2.rows[2].z) + value1.rows[0].w * static_cast<T>(value2.rows[3].z),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].w) + value1.rows[0].y * static_cast<T>(value2.rows[1].w) + value1.rows[0].z * static_cast<T>(value2.rows[2].w) + value1.rows[0].w * static_cast<T>(value2.rows[3].w),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x) + value1.rows[1].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y) + value1.rows[1].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z) + value1.rows[1].z * static_cast<T>(value2.rows[2].z) + value1.rows[1].w * static_cast<T>(value2.rows[3].z),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].w) + value1.rows[1].y * static_cast<T>(value2.rows[1].w) + value1.rows[1].z * static_cast<T>(value2.rows[2].w) + value1.rows[1].w * static_cast<T>(value2.rows[3].w),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x) + value1.rows[2].z * static_cast<T>(value2.rows[2].x) + value1.rows[2].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y) + value1.rows[2].z * static_cast<T>(value2.rows[2].y) + value1.rows[2].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].z) + value1.rows[2].y * static_cast<T>(value2.rows[1].z) + value1.rows[2].z * static_cast<T>(value2.rows[2].z) + value1.rows[2].w * static_cast<T>(value2.rows[3].z),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].w) + value1.rows[2].y * static_cast<T>(value2.rows[1].w) + value1.rows[2].z * static_cast<T>(value2.rows[2].w) + value1.rows[2].w * static_cast<T>(value2.rows[3].w)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<4, 2, T> operator*(const matrix<4, 2, T>& value1, const matrix<2, 2, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y),
+
+            value1.rows[3].x * static_cast<T>(value2.rows[0].x) + value1.rows[3].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].y) + value1.rows[3].y * static_cast<T>(value2.rows[1].y)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<4, 3, T> operator*(const matrix<4, 2, T>& value1, const matrix<2, 3, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].z) + value1.rows[2].y * static_cast<T>(value2.rows[1].z),
+
+            value1.rows[3].x * static_cast<T>(value2.rows[0].x) + value1.rows[3].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].y) + value1.rows[3].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].z) + value1.rows[3].y * static_cast<T>(value2.rows[1].z)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<4, 4, T> operator*(const matrix<4, 2, T>& value1, const matrix<2, 4, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].w) + value1.rows[0].y * static_cast<T>(value2.rows[1].w),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].w) + value1.rows[1].y * static_cast<T>(value2.rows[1].w),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].z) + value1.rows[2].y * static_cast<T>(value2.rows[1].z),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].w) + value1.rows[2].y * static_cast<T>(value2.rows[1].w),
+
+            value1.rows[3].x * static_cast<T>(value2.rows[0].x) + value1.rows[3].y * static_cast<T>(value2.rows[1].x),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].y) + value1.rows[3].y * static_cast<T>(value2.rows[1].y),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].z) + value1.rows[3].y * static_cast<T>(value2.rows[1].z),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].w) + value1.rows[3].y * static_cast<T>(value2.rows[1].w)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<4, 2, T> operator*(const matrix<4, 3, T>& value1, const matrix<3, 2, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x) + value1.rows[2].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y) + value1.rows[2].z * static_cast<T>(value2.rows[2].y),
+
+            value1.rows[3].x * static_cast<T>(value2.rows[0].x) + value1.rows[3].y * static_cast<T>(value2.rows[1].x) + value1.rows[3].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].y) + value1.rows[3].y * static_cast<T>(value2.rows[1].y) + value1.rows[3].z * static_cast<T>(value2.rows[2].y)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<4, 3, T> operator*(const matrix<4, 3, T>& value1, const matrix<3, 3, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z) + value1.rows[0].z * static_cast<T>(value2.rows[2].z),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z) + value1.rows[1].z * static_cast<T>(value2.rows[2].z),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x) + value1.rows[2].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y) + value1.rows[2].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].z) + value1.rows[2].y * static_cast<T>(value2.rows[1].z) + value1.rows[2].z * static_cast<T>(value2.rows[2].z),
+
+            value1.rows[3].x * static_cast<T>(value2.rows[0].x) + value1.rows[3].y * static_cast<T>(value2.rows[1].x) + value1.rows[3].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].y) + value1.rows[3].y * static_cast<T>(value2.rows[1].y) + value1.rows[3].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].z) + value1.rows[3].y * static_cast<T>(value2.rows[1].z) + value1.rows[3].z * static_cast<T>(value2.rows[2].z)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<4, 4, T> operator*(const matrix<4, 3, T>& value1, const matrix<3, 4, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z) + value1.rows[0].z * static_cast<T>(value2.rows[2].z),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].w) + value1.rows[0].y * static_cast<T>(value2.rows[1].w) + value1.rows[0].z * static_cast<T>(value2.rows[2].w),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z) + value1.rows[1].z * static_cast<T>(value2.rows[2].z),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].w) + value1.rows[1].y * static_cast<T>(value2.rows[1].w) + value1.rows[1].z * static_cast<T>(value2.rows[2].w),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x) + value1.rows[2].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y) + value1.rows[2].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].z) + value1.rows[2].y * static_cast<T>(value2.rows[1].z) + value1.rows[2].z * static_cast<T>(value2.rows[2].z),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].w) + value1.rows[2].y * static_cast<T>(value2.rows[1].w) + value1.rows[2].z * static_cast<T>(value2.rows[2].w),
+
+            value1.rows[3].x * static_cast<T>(value2.rows[0].x) + value1.rows[3].y * static_cast<T>(value2.rows[1].x) + value1.rows[3].z * static_cast<T>(value2.rows[2].x),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].y) + value1.rows[3].y * static_cast<T>(value2.rows[1].y) + value1.rows[3].z * static_cast<T>(value2.rows[2].y),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].z) + value1.rows[3].y * static_cast<T>(value2.rows[1].z) + value1.rows[3].z * static_cast<T>(value2.rows[2].z),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].w) + value1.rows[3].y * static_cast<T>(value2.rows[1].w) + value1.rows[3].z * static_cast<T>(value2.rows[2].w)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<4, 2, T> operator*(const matrix<4, 4, T>& value1, const matrix<4, 2, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x) + value1.rows[0].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y) + value1.rows[0].w * static_cast<T>(value2.rows[3].y),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x) + value1.rows[1].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y) + value1.rows[1].w * static_cast<T>(value2.rows[3].y),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x) + value1.rows[2].z * static_cast<T>(value2.rows[2].x) + value1.rows[2].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y) + value1.rows[2].z * static_cast<T>(value2.rows[2].y) + value1.rows[2].w * static_cast<T>(value2.rows[3].y),
+
+            value1.rows[3].x * static_cast<T>(value2.rows[0].x) + value1.rows[3].y * static_cast<T>(value2.rows[1].x) + value1.rows[3].z * static_cast<T>(value2.rows[2].x) + value1.rows[3].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].y) + value1.rows[3].y * static_cast<T>(value2.rows[1].y) + value1.rows[3].z * static_cast<T>(value2.rows[2].y) + value1.rows[3].w * static_cast<T>(value2.rows[3].y)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<4, 3, T> operator*(const matrix<4, 4, T>& value1, const matrix<4, 3, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x) + value1.rows[0].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y) + value1.rows[0].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z) + value1.rows[0].z * static_cast<T>(value2.rows[2].z) + value1.rows[0].w * static_cast<T>(value2.rows[3].z),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x) + value1.rows[1].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y) + value1.rows[1].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z) + value1.rows[1].z * static_cast<T>(value2.rows[2].z) + value1.rows[1].w * static_cast<T>(value2.rows[3].z),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x) + value1.rows[2].z * static_cast<T>(value2.rows[2].x) + value1.rows[2].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y) + value1.rows[2].z * static_cast<T>(value2.rows[2].y) + value1.rows[2].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].z) + value1.rows[2].y * static_cast<T>(value2.rows[1].z) + value1.rows[2].z * static_cast<T>(value2.rows[2].z) + value1.rows[2].w * static_cast<T>(value2.rows[3].z),
+
+            value1.rows[3].x * static_cast<T>(value2.rows[0].x) + value1.rows[3].y * static_cast<T>(value2.rows[1].x) + value1.rows[3].z * static_cast<T>(value2.rows[2].x) + value1.rows[3].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].y) + value1.rows[3].y * static_cast<T>(value2.rows[1].y) + value1.rows[3].z * static_cast<T>(value2.rows[2].y) + value1.rows[3].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].z) + value1.rows[3].y * static_cast<T>(value2.rows[1].z) + value1.rows[3].z * static_cast<T>(value2.rows[2].z) + value1.rows[3].w * static_cast<T>(value2.rows[3].z)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr matrix<4, 4, T> operator*(const matrix<4, 4, T>& value1, const matrix<4, 4, T1>& value2) noexcept
+    {
+        return {
+            value1.rows[0].x * static_cast<T>(value2.rows[0].x) + value1.rows[0].y * static_cast<T>(value2.rows[1].x) + value1.rows[0].z * static_cast<T>(value2.rows[2].x) + value1.rows[0].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].y) + value1.rows[0].y * static_cast<T>(value2.rows[1].y) + value1.rows[0].z * static_cast<T>(value2.rows[2].y) + value1.rows[0].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].z) + value1.rows[0].y * static_cast<T>(value2.rows[1].z) + value1.rows[0].z * static_cast<T>(value2.rows[2].z) + value1.rows[0].w * static_cast<T>(value2.rows[3].z),
+            value1.rows[0].x * static_cast<T>(value2.rows[0].w) + value1.rows[0].y * static_cast<T>(value2.rows[1].w) + value1.rows[0].z * static_cast<T>(value2.rows[2].w) + value1.rows[0].w * static_cast<T>(value2.rows[3].w),
+
+            value1.rows[1].x * static_cast<T>(value2.rows[0].x) + value1.rows[1].y * static_cast<T>(value2.rows[1].x) + value1.rows[1].z * static_cast<T>(value2.rows[2].x) + value1.rows[1].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].y) + value1.rows[1].y * static_cast<T>(value2.rows[1].y) + value1.rows[1].z * static_cast<T>(value2.rows[2].y) + value1.rows[1].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].z) + value1.rows[1].y * static_cast<T>(value2.rows[1].z) + value1.rows[1].z * static_cast<T>(value2.rows[2].z) + value1.rows[1].w * static_cast<T>(value2.rows[3].z),
+            value1.rows[1].x * static_cast<T>(value2.rows[0].w) + value1.rows[1].y * static_cast<T>(value2.rows[1].w) + value1.rows[1].z * static_cast<T>(value2.rows[2].w) + value1.rows[1].w * static_cast<T>(value2.rows[3].w),
+
+            value1.rows[2].x * static_cast<T>(value2.rows[0].x) + value1.rows[2].y * static_cast<T>(value2.rows[1].x) + value1.rows[2].z * static_cast<T>(value2.rows[2].x) + value1.rows[2].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].y) + value1.rows[2].y * static_cast<T>(value2.rows[1].y) + value1.rows[2].z * static_cast<T>(value2.rows[2].y) + value1.rows[2].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].z) + value1.rows[2].y * static_cast<T>(value2.rows[1].z) + value1.rows[2].z * static_cast<T>(value2.rows[2].z) + value1.rows[2].w * static_cast<T>(value2.rows[3].z),
+            value1.rows[2].x * static_cast<T>(value2.rows[0].w) + value1.rows[2].y * static_cast<T>(value2.rows[1].w) + value1.rows[2].z * static_cast<T>(value2.rows[2].w) + value1.rows[2].w * static_cast<T>(value2.rows[3].w),
+
+            value1.rows[3].x * static_cast<T>(value2.rows[0].x) + value1.rows[3].y * static_cast<T>(value2.rows[1].x) + value1.rows[3].z * static_cast<T>(value2.rows[2].x) + value1.rows[3].w * static_cast<T>(value2.rows[3].x),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].y) + value1.rows[3].y * static_cast<T>(value2.rows[1].y) + value1.rows[3].z * static_cast<T>(value2.rows[2].y) + value1.rows[3].w * static_cast<T>(value2.rows[3].y),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].z) + value1.rows[3].y * static_cast<T>(value2.rows[1].z) + value1.rows[3].z * static_cast<T>(value2.rows[2].z) + value1.rows[3].w * static_cast<T>(value2.rows[3].z),
+            value1.rows[3].x * static_cast<T>(value2.rows[0].w) + value1.rows[3].y * static_cast<T>(value2.rows[1].w) + value1.rows[3].z * static_cast<T>(value2.rows[2].w) + value1.rows[3].w * static_cast<T>(value2.rows[3].w)
+        };
+    }
+
+    template<vector_size_type C, typename T, typename T1>
+    constexpr vector<2, T> operator*(const matrix<2, C, T>& value1, const vector<C, T1>& value2) noexcept
+    {
+        return { value1.rows[0].dot(value2), value1.rows[1].dot(value2) };
+    }
+    template<vector_size_type C, typename T, typename T1>
+    constexpr vector<3, T> operator*(const matrix<3, C, T>& value1, const vector<C, T1>& value2) noexcept
+    {
+        return { value1.rows[0].dot(value2), value1.rows[1].dot(value2), value1.rows[2].dot(value2) };
+    }
+    template<vector_size_type C, typename T, typename T1>
+    constexpr vector<4, T> operator*(const matrix<4, C, T>& value1, const vector<C, T1>& value2) noexcept
+    {
+        return { value1.rows[0].dot(value2), value1.rows[1].dot(value2), value1.rows[2].dot(value2), value1.rows[3].dot(value2) };
+    }
+
+    template<typename T, typename T1>
+    constexpr vector<2, T> operator*(const vector<2, T>& value1, const matrix<2, 2, T1>& value2) noexcept
+    {
+        return {
+            value1.x * static_cast<T>(value2.rows[0].x) + value1.y * static_cast<T>(value2.rows[1].x),
+            value1.x * static_cast<T>(value2.rows[0].y) + value1.y * static_cast<T>(value2.rows[1].y)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr vector<2, T> operator*(const vector<3, T>& value1, const matrix<3, 2, T1>& value2) noexcept
+    {
+        return {
+            value1.x * static_cast<T>(value2.rows[0].x) + value1.y * static_cast<T>(value2.rows[1].x) + value1.z * static_cast<T>(value2.rows[2].x),
+            value1.x * static_cast<T>(value2.rows[0].y) + value1.y * static_cast<T>(value2.rows[1].y) + value1.z * static_cast<T>(value2.rows[2].y)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr vector<2, T> operator*(const vector<4, T>& value1, const matrix<4, 2, T1>& value2) noexcept
+    {
+        return {
+            value1.x * static_cast<T>(value2.rows[0].x) + value1.y * static_cast<T>(value2.rows[1].x) + value1.z * static_cast<T>(value2.rows[2].x) + value1.w * static_cast<T>(value2.rows[3].x),
+            value1.x * static_cast<T>(value2.rows[0].y) + value1.y * static_cast<T>(value2.rows[1].y) + value1.z * static_cast<T>(value2.rows[2].y) + value1.w * static_cast<T>(value2.rows[3].y)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr vector<3, T> operator*(const vector<2, T>& value1, const matrix<2, 3, T1>& value2) noexcept
+    {
+        return {
+            value1.x * static_cast<T>(value2.rows[0].x) + value1.y * static_cast<T>(value2.rows[1].x),
+            value1.x * static_cast<T>(value2.rows[0].y) + value1.y * static_cast<T>(value2.rows[1].y),
+            value1.x * static_cast<T>(value2.rows[0].z) + value1.y * static_cast<T>(value2.rows[1].z)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr vector<3, T> operator*(const vector<3, T>& value1, const matrix<3, 3, T1>& value2) noexcept
+    {
+        return {
+            value1.x * static_cast<T>(value2.rows[0].x) + value1.y * static_cast<T>(value2.rows[1].x) + value1.z * static_cast<T>(value2.rows[2].x),
+            value1.x * static_cast<T>(value2.rows[0].y) + value1.y * static_cast<T>(value2.rows[1].y) + value1.z * static_cast<T>(value2.rows[2].y),
+            value1.x * static_cast<T>(value2.rows[0].z) + value1.y * static_cast<T>(value2.rows[1].z) + value1.z * static_cast<T>(value2.rows[2].z)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr vector<3, T> operator*(const vector<4, T>& value1, const matrix<4, 3, T1>& value2) noexcept
+    {
+        return {
+            value1.x * static_cast<T>(value2.rows[0].x) + value1.y * static_cast<T>(value2.rows[1].x) + value1.z * static_cast<T>(value2.rows[2].x) + value1.w * static_cast<T>(value2.rows[3].x),
+            value1.x * static_cast<T>(value2.rows[0].y) + value1.y * static_cast<T>(value2.rows[1].y) + value1.z * static_cast<T>(value2.rows[2].y) + value1.w * static_cast<T>(value2.rows[3].y),
+            value1.x * static_cast<T>(value2.rows[0].z) + value1.y * static_cast<T>(value2.rows[1].z) + value1.z * static_cast<T>(value2.rows[2].z) + value1.w * static_cast<T>(value2.rows[3].z)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr vector<4, T> operator*(const vector<2, T>& value1, const matrix<2, 4, T1>& value2) noexcept
+    {
+        return {
+            value1.x * static_cast<T>(value2.rows[0].x) + value1.y * static_cast<T>(value2.rows[1].x),
+            value1.x * static_cast<T>(value2.rows[0].y) + value1.y * static_cast<T>(value2.rows[1].y),
+            value1.x * static_cast<T>(value2.rows[0].z) + value1.y * static_cast<T>(value2.rows[1].z),
+            value1.x * static_cast<T>(value2.rows[0].w) + value1.y * static_cast<T>(value2.rows[1].w)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr vector<4, T> operator*(const vector<3, T>& value1, const matrix<3, 4, T1>& value2) noexcept
+    {
+        return {
+            value1.x * static_cast<T>(value2.rows[0].x) + value1.y * static_cast<T>(value2.rows[1].x) + value1.z * static_cast<T>(value2.rows[2].x),
+            value1.x * static_cast<T>(value2.rows[0].y) + value1.y * static_cast<T>(value2.rows[1].y) + value1.z * static_cast<T>(value2.rows[2].y),
+            value1.x * static_cast<T>(value2.rows[0].z) + value1.y * static_cast<T>(value2.rows[1].z) + value1.z * static_cast<T>(value2.rows[2].z),
+            value1.x * static_cast<T>(value2.rows[0].w) + value1.y * static_cast<T>(value2.rows[1].w) + value1.z * static_cast<T>(value2.rows[2].w)
+        };
+    }
+    template<typename T, typename T1>
+    constexpr vector<4, T> operator*(const vector<4, T>& value1, const matrix<4, 4, T1>& value2) noexcept
+    {
+        return {
+            value1.x * static_cast<T>(value2.rows[0].x) + value1.y * static_cast<T>(value2.rows[1].x) + value1.z * static_cast<T>(value2.rows[2].x) + value1.w * static_cast<T>(value2.rows[3].x),
+            value1.x * static_cast<T>(value2.rows[0].y) + value1.y * static_cast<T>(value2.rows[1].y) + value1.z * static_cast<T>(value2.rows[2].y) + value1.w * static_cast<T>(value2.rows[3].y),
+            value1.x * static_cast<T>(value2.rows[0].z) + value1.y * static_cast<T>(value2.rows[1].z) + value1.z * static_cast<T>(value2.rows[2].z) + value1.w * static_cast<T>(value2.rows[3].z),
+            value1.x * static_cast<T>(value2.rows[0].w) + value1.y * static_cast<T>(value2.rows[1].w) + value1.z * static_cast<T>(value2.rows[2].w) + value1.w * static_cast<T>(value2.rows[3].w)
+        };
     }
 }

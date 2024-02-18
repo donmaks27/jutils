@@ -1,4 +1,4 @@
-﻿// Copyright © 2021-2023 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021-2024 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -6,10 +6,16 @@
 
 namespace jutils::math
 {
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+    template<typename T> requires std::is_arithmetic_v<T>
+    class vector<2, T>
+    {
+#else
     template<typename T>
     class vector<2, T>
     {
         static_assert(std::is_arithmetic_v<T>);
+#endif
 
         using default_float_type = std::conditional_t<std::is_floating_point_v<T>, T, float>;
 

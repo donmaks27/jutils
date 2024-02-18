@@ -43,14 +43,13 @@ list(APPEND JUTILS_HEADER_FILES
     include/jutils/type_traits.h
 
     include/jutils/math/math.h
-    include/jutils/math/hash.h
     include/jutils/math/math_vector.h
+    include/jutils/math/math_matrix.h
+    include/jutils/math/math_matrixTransform.h
+    include/jutils/math/hash.h
     include/jutils/math/vector2.h
     include/jutils/math/vector3.h
     include/jutils/math/vector4.h
-    include/jutils/math/box2.h
-    include/jutils/math/box3.h
-    include/jutils/math/math_matrix.h
     include/jutils/math/matrix2.h
     include/jutils/math/matrix2x3.h
     include/jutils/math/matrix2x4.h
@@ -65,12 +64,7 @@ list(APPEND JUTILS_HEADER_FILES
     include/jutils/math/base_types/vector2_base.h
     include/jutils/math/base_types/vector3_base.h
     include/jutils/math/base_types/vector4_base.h
-    include/jutils/math/base_types/box_base.h
-    include/jutils/math/base_types/box_operations.h
-    include/jutils/math/base_types/box2_base.h
-    include/jutils/math/base_types/box3_base.h
     include/jutils/math/base_types/matrix_base.h
-    include/jutils/math/base_types/matrix_operations.h
     include/jutils/math/base_types/matrix2_base.h
     include/jutils/math/base_types/matrix2x2_base.h
     include/jutils/math/base_types/matrix2x3_base.h
