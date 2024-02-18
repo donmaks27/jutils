@@ -33,7 +33,7 @@ namespace jutils
     using has_formatter = std::is_constructible<std::format_context::formatter_type<T>>;
 #endif
     template<typename T>
-    constexpr bool has_formatter_v = has_formatter<T>::value;
+    constexpr bool has_formatter_v = has_formatter<jutils::remove_cvref_t<T>>::value;
 
     [[nodiscard]] inline jstring format(const char* str) { return str; }
 #if defined(JUTILS_USE_FMT)
@@ -119,28 +119,28 @@ namespace jutils
             [[nodiscard]] static JUTILS_STD20_CONSTEXPR jutils::jstring format(const type& value) noexcept { return funcName(value); }  \
         };                                                                                                                              \
         template<>                                                                                                                      \
-        struct fmt::formatter<type> : fmt::formatter<decltype(funcName(type()))>                                                        \
+        struct fmt::formatter<type> : fmt::formatter<decltype(funcName(std::declval<type>()))>                                          \
         {                                                                                                                               \
             template<typename FormatContext>                                                                                            \
             auto format(const type& value, FormatContext& ctx) const                                                                    \
             {                                                                                                                           \
                 return fmt::formatter<decltype(funcName(type()))>::format(funcName(value), ctx);                                        \
             }                                                                                                                           \
-        };
+        }
     #define JUTILS_STRING_FORMATTER(type, funcName)                                                             \
         template<> struct jutils::formatter<jutils::remove_cvref_t< type >> : std::true_type                    \
         {                                                                                                       \
             [[nodiscard]] static jutils::jstring format(const type& value) noexcept { return funcName(value); } \
         };                                                                                                      \
         template<>                                                                                              \
-        struct fmt::formatter<type> : fmt::formatter<decltype(funcName(type()))>                                \
+        struct fmt::formatter<type> : fmt::formatter<decltype(funcName(std::declval<type>()))>                  \
         {                                                                                                       \
             template<typename FormatContext>                                                                    \
             auto format(const type& value, FormatContext& ctx) const                                            \
             {                                                                                                   \
                 return fmt::formatter<decltype(funcName(type()))>::format(funcName(value), ctx);                \
             }                                                                                                   \
-        };
+        }
 #else
     template<>
     struct std::formatter<jutils::jstring> : std::formatter<const jutils::jstring::char_type*>
@@ -157,26 +157,26 @@ namespace jutils
             [[nodiscard]] static JUTILS_STD20_CONSTEXPR jutils::jstring format(const type& value) noexcept { return funcName(value); }  \
         };                                                                                                                              \
         template<>                                                                                                                      \
-        struct std::formatter<type> : std::formatter<decltype(funcName(type()))>                                                        \
+        struct std::formatter<type> : std::formatter<decltype(funcName(std::declval<type>()))>                                          \
         {                                                                                                                               \
             template<typename FormatContext>                                                                                            \
             auto format(const type& value, FormatContext& ctx) const                                                                    \
             {                                                                                                                           \
                 return std::formatter<decltype(funcName(type()))>::format(funcName(value), ctx);                                        \
             }                                                                                                                           \
-        };
+        }
     #define JUTILS_STRING_FORMATTER(type, funcName)                                                             \
         template<> struct jutils::formatter<jutils::remove_cvref_t< type >> : std::true_type                    \
         {                                                                                                       \
             [[nodiscard]] static jutils::jstring format(const type& value) noexcept { return funcName(value); } \
         };                                                                                                      \
         template<>                                                                                              \
-        struct std::formatter<type> : std::formatter<decltype(funcName(type()))>                                \
+        struct std::formatter<type> : std::formatter<decltype(funcName(std::declval<type>()))>                  \
         {                                                                                                       \
             template<typename FormatContext>                                                                    \
             auto format(const type& value, FormatContext& ctx) const                                            \
             {                                                                                                   \
                 return std::formatter<decltype(funcName(type()))>::format(funcName(value), ctx);                \
             }                                                                                                   \
-        };
+        }
 #endif

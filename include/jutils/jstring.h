@@ -67,6 +67,7 @@ namespace jutils
         JUTILS_STD20_CONSTEXPR jstring& operator=(jstring&&) noexcept = default;
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const base_type& toBase() const noexcept { return _internalString; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR operator std::string() const noexcept { return toBase(); }
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type getSize() const noexcept { return _internalString.size(); }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR bool isEmpty() const noexcept { return _internalString.empty(); }
@@ -206,7 +207,7 @@ namespace jutils
 
         JUTILS_STD20_CONSTEXPR jstring& assign(const char_type character) { return this->operator=(character); }
         JUTILS_STD20_CONSTEXPR jstring& assign(const char_type* const str) { return this->operator=(str); }
-        JUTILS_STD20_CONSTEXPR jstring& assign(const char_type* str, index_type strLength);
+        JUTILS_STD20_CONSTEXPR inline jstring& assign(const char_type* str, index_type strLength);
         JUTILS_STD20_CONSTEXPR jstring& assign(const base_type& str) { return this->operator=(str); }
         JUTILS_STD20_CONSTEXPR jstring& assign(base_type&& str) noexcept { return this->operator=(std::move(str)); }
         JUTILS_STD20_CONSTEXPR jstring& assign(const jstring& str) { return this->operator=(str); }
@@ -265,17 +266,17 @@ namespace jutils
         std::string _internalString;
 
         template<typename T>
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type _indexOf(T str, index_type startIndex, index_type finishIndex) const noexcept;
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type _indexOfStr(const char_type* str, std::size_t strLength, index_type startIndex, index_type finishIndex) const noexcept;
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type _indexOf(T value, index_type startIndex, index_type finishIndex) const noexcept;
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR inline index_type _indexOfStr(const char_type* str, std::size_t strLength, index_type startIndex, index_type finishIndex) const noexcept;
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool _startsWith(const char_type* str, std::size_t strLength) const noexcept;
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool _endsWith(const char_type* str, std::size_t strLength) const noexcept;
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool _startsWith(const char_type* str, std::size_t strLength) const noexcept;
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool _endsWith(const char_type* str, std::size_t strLength) const noexcept;
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<jstring> _split(const jstring::char_type* delimiter, index_type delimiterSize) const;
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR inline jarray<jstring> _split(const jstring::char_type* delimiter, index_type delimiterSize) const;
 
-        JUTILS_STD20_CONSTEXPR jstring& _replace(const jstring::char_type* value, std::size_t valueLength, index_type startIndex, index_type replacedLength);
+        JUTILS_STD20_CONSTEXPR inline jstring& _replace(const jstring::char_type* value, std::size_t valueLength, index_type startIndex, index_type replacedLength);
 
-        JUTILS_STD20_CONSTEXPR jstring& _replaceAll(const char_type* searchValue, std::size_t searchValueLength,
+        JUTILS_STD20_CONSTEXPR inline jstring& _replaceAll(const char_type* searchValue, std::size_t searchValueLength,
             const char_type* newValue, index_type newValueLength, index_type startIndex, index_type finishIndex);
         template<typename T>
         JUTILS_STD20_CONSTEXPR jstring& _replaceAll(const std::basic_regex<char_type>& searchRegex, const T newValue)
@@ -285,39 +286,39 @@ namespace jutils
         }
     };
 
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring& str1, const jstring::char_type character) { return str1.toBase() + character; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(jstring&& str1, const jstring::char_type character) { return jstring(std::move(str1)) += character; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring::char_type character, const jstring& str1) { return character + str1.toBase(); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring::char_type character, jstring&& str1) { return jstring(std::move(str1)).addAt(0, character); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring& str1, const jstring& str2) { return str1.toBase() + str2.toBase(); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring& str1, jstring&& str2) { return jstring(std::move(str2)).addAt(0, str1); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(jstring&& str1, const jstring& str2) { return jstring(std::move(str1)) += str2; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring& str1, const jstring::char_type* str2) { return str1.toBase() + str2; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(jstring&& str1, const jstring::char_type* str2) { return jstring(std::move(str1)) += str2; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring::char_type* const str1, const jstring& str2) { return str1 + str2.toBase(); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring operator+(const jstring::char_type* const str1, jstring&& str2) { return jstring(std::move(str2)).addAt(0, str1); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline jstring operator+(const jstring& str1, const jstring::char_type character) { return str1.toBase() + character; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline jstring operator+(jstring&& str1, const jstring::char_type character) { return jstring(std::move(str1)) += character; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline jstring operator+(const jstring::char_type character, const jstring& str1) { return character + str1.toBase(); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline jstring operator+(const jstring::char_type character, jstring&& str1) { return jstring(std::move(str1)).addAt(0, character); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline jstring operator+(const jstring& str1, const jstring& str2) { return str1.toBase() + str2.toBase(); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline jstring operator+(const jstring& str1, jstring&& str2) { return jstring(std::move(str2)).addAt(0, str1); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline jstring operator+(jstring&& str1, const jstring& str2) { return jstring(std::move(str1)) += str2; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline jstring operator+(const jstring& str1, const jstring::char_type* str2) { return str1.toBase() + str2; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline jstring operator+(jstring&& str1, const jstring::char_type* str2) { return jstring(std::move(str1)) += str2; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline jstring operator+(const jstring::char_type* const str1, const jstring& str2) { return str1 + str2.toBase(); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline jstring operator+(const jstring::char_type* const str1, jstring&& str2) { return jstring(std::move(str2)).addAt(0, str1); }
 
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator==(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) == 0; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator==(const jstring& str1, const jstring::char_type* const str2) noexcept { return str1.compare(str2) == 0; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator==(const jstring::char_type* const str1, const jstring& str2) noexcept { return str2 == str1; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator==(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) == 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator==(const jstring& str1, const jstring::char_type* const str2) noexcept { return str1.compare(str2) == 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator==(const jstring::char_type* const str1, const jstring& str2) noexcept { return str2 == str1; }
 
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator!=(const jstring& str1, const jstring& str2) noexcept { return !(str1 == str2); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator!=(const jstring& str1, const jstring::char_type* const str2) noexcept { return !(str1 == str2); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator!=(const jstring::char_type* const str1, const jstring& str2) noexcept { return !(str1 == str2); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator!=(const jstring& str1, const jstring& str2) noexcept { return !(str1 == str2); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator!=(const jstring& str1, const jstring::char_type* const str2) noexcept { return !(str1 == str2); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator!=(const jstring::char_type* const str1, const jstring& str2) noexcept { return !(str1 == str2); }
 
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator<(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) < 0; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator<(const jstring& str1, const jstring::char_type* const str2) noexcept { return str1.compare(str2) < 0; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator<(const jstring::char_type* const str1, const jstring& str2) noexcept { return str2.compare(str1) > 0; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator<=(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) <= 0; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator<=(const jstring& str1, const jstring::char_type* const str2) noexcept { return str1.compare(str2) <= 0; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator<=(const jstring::char_type* const str1, const jstring& str2) noexcept { return str2.compare(str1) >= 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator<(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) < 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator<(const jstring& str1, const jstring::char_type* const str2) noexcept { return str1.compare(str2) < 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator<(const jstring::char_type* const str1, const jstring& str2) noexcept { return str2.compare(str1) > 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator<=(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) <= 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator<=(const jstring& str1, const jstring::char_type* const str2) noexcept { return str1.compare(str2) <= 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator<=(const jstring::char_type* const str1, const jstring& str2) noexcept { return str2.compare(str1) >= 0; }
     
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator>(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) > 0; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator>(const jstring& str1, const jstring::char_type* const str2) noexcept { return str1.compare(str2) > 0; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator>(const jstring::char_type* const str1, const jstring& str2) noexcept { return str2.compare(str1) < 0; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator>=(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) >= 0; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator>=(const jstring& str1, const jstring::char_type* const str2) noexcept { return str1.compare(str2) >= 0; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator>=(const jstring::char_type* const str1, const jstring& str2) noexcept { return str2.compare(str1) <= 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator>(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) > 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator>(const jstring& str1, const jstring::char_type* const str2) noexcept { return str1.compare(str2) > 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator>(const jstring::char_type* const str1, const jstring& str2) noexcept { return str2.compare(str1) < 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator>=(const jstring& str1, const jstring& str2) noexcept { return str1.compare(str2) >= 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator>=(const jstring& str1, const jstring::char_type* const str2) noexcept { return str1.compare(str2) >= 0; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool operator>=(const jstring::char_type* const str1, const jstring& str2) noexcept { return str2.compare(str1) <= 0; }
 
 
 
