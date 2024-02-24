@@ -58,7 +58,7 @@ namespace jutils
             return "";
         }
         jstring result = toString(values[0]);
-        for (typename jarray<T>::size_type index = 1; index < values.getSize(); index++)
+        for (index_type index = 1; index < values.getSize(); index++)
         {
             result += separator + toString(values[index]);
         }
