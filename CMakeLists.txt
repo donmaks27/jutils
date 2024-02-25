@@ -9,7 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(JUTILS_FMT_ENABLED "Enable fmt lib even if format module not found" OFF)
 option(JUTILS_LOG_ENABLED "Enable log module" ON)
 option(JUTILS_LOG_COLOR_ENABLED "Enable colored logs (works only with fmt lib)" ON)
-option(JUTILS_CONFIG_ENABLED "Enable JSON and INI configs modules" ON)
+option(JUTILS_CONFIG_ENABLED "Enable JSON and INI configs modules" OFF)
 
 include(CheckIncludeFileCXX)
 check_include_file_cxx("format" JUTILS_STD_FORMAT_FOUND)
