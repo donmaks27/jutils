@@ -13,6 +13,15 @@ namespace jutils
     {
     public:
         jdelegate() = default;
+        template<typename T>
+        jdelegate(T* object, void (T::*function)(Args...))
+        {
+            bind(object, function);
+        }
+        jdelegate(void (*function)(Args...))
+        {
+            bind(function);
+        }
         jdelegate(const jdelegate& otherDelegate)
         {
             if (otherDelegate.delegate_container != nullptr)
@@ -184,15 +193,22 @@ namespace jutils
 
 #define JUTILS_DELEGATE_CONCAT_HELPER(...) __VA_ARGS__
 
-#define JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, ParamsTypes, ParamsNames, Params) \
-class DelegateName : public jutils::jdelegate<ParamsTypes>                              \
-{                                                                                       \
-    using base_class = jutils::jdelegate<ParamsTypes>;                                  \
-public:                                                                                 \
-    DelegateName() : base_class() {}                                                    \
-    DelegateName(const base_class& value) : base_class(value) {}                        \
-    DelegateName(base_class&& value) noexcept : base_class(std::move(value)) {}         \
-    void call(Params) const { base_class::call(ParamsNames); }                          \
+#define JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, ParamsTypes, ParamsNames, Params)         \
+class DelegateName : public jutils::jdelegate<ParamsTypes>                                      \
+{                                                                                               \
+    using base_class = jutils::jdelegate<ParamsTypes>;                                          \
+public:                                                                                         \
+    DelegateName() : base_class() {}                                                            \
+    template<typename T>                                                                        \
+    DelegateName(T* object, void (T::*function)(ParamsTypes)) : base_class(object, function) {} \
+    DelegateName(void (*function)(ParamsTypes)) : base_class(function) {}                       \
+    DelegateName(const base_class& value) : base_class(value) {}                                \
+    DelegateName(base_class&& value) noexcept : base_class(std::move(value)) {}                 \
+    DelegateName& operator=(const base_class& value)                                            \
+        { base_class::operator=(value); return *this; }                                         \
+    DelegateName& operator=(base_class&& value) noexcept                                        \
+        { base_class::operator=(std::move(value)); return *this; }                              \
+    void call(Params) const { base_class::call(ParamsNames); }                                  \
 }
 
 #define JUTILS_CREATE_DELEGATE(DelegateName) JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, , , )

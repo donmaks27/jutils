@@ -203,6 +203,10 @@ public:                                                                         
     DelegateName() : base_class() {}                                                                \
     DelegateName(const base_class& value) : base_class(value) {}                                    \
     DelegateName(base_class&& value) noexcept : base_class(std::move(value)) {}                     \
+    DelegateName& operator=(const base_class& value)                                                \
+        { base_class::operator=(value); return *this; }                                             \
+    DelegateName& operator=(base_class&& value) noexcept                                            \
+        { base_class::operator=(std::move(value)); return *this; }                                  \
     void call(Params) const { base_class::call(ParamsNames); }                                      \
 }
 
