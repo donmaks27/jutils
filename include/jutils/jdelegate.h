@@ -4,6 +4,7 @@
 
 #include "base_types.h"
 
+#include <functional>
 #include <utility>
 
 namespace jutils
@@ -18,9 +19,13 @@ namespace jutils
         {
             bind(object, function);
         }
-        jdelegate(void (*function)(Args...))
+        jdelegate(const std::function<void(Args...)>& function)
         {
             bind(function);
+        }
+        jdelegate(std::function<void(Args...)>&& function) noexcept
+        {
+            bind(std::move(function));
         }
         jdelegate(const jdelegate& otherDelegate)
         {
@@ -36,6 +41,16 @@ namespace jutils
         }
         ~jdelegate() { clear(); }
 
+        jdelegate& operator=(const std::function<void(Args...)>& function)
+        {
+            bind(function);
+            return *this;
+        }
+        jdelegate& operator=(std::function<void(Args...)>&& function) noexcept
+        {
+            bind(std::move(function));
+            return *this;
+        }
         jdelegate& operator=(const jdelegate& otherDelegate)
         {
             if (this != &otherDelegate)
@@ -65,12 +80,20 @@ namespace jutils
                 delegate_container = new container_class<T>(object, function);
             }
         }
-        void bind(void (*function)(Args...))
+        void bind(const std::function<void(Args...)>& function)
         {
             clear();
             if (function != nullptr)
             {
                 delegate_container = new container_function(function);
+            }
+        }
+        void bind(std::function<void(Args...)>&& function)
+        {
+            clear();
+            if (function != nullptr)
+            {
+                delegate_container = new container_function(std::move(function));
             }
         }
 
@@ -87,7 +110,7 @@ namespace jutils
             }
             return false;
         }
-        [[nodiscard]] bool isBinded(void (*function)(Args...)) const
+        [[nodiscard]] bool isBinded(const std::function<void(Args...)>& function) const
         {
             if ((function != nullptr) && (delegate_container != nullptr))
             {
@@ -162,17 +185,17 @@ namespace jutils
         class container_function : public container_interface
         {
         public:
-
-            using function_type = void (*)(Args...);
-
-            explicit container_function(function_type func)
+            explicit container_function(const std::function<void(Args...)>& func)
                 : _function(func)
+            {}
+            explicit container_function(std::function<void(Args...)>&& func)
+                : _function(std::move(func))
             {}
             virtual ~container_function() override = default;
 
             [[nodiscard]] virtual container_interface* copy() override { return new container_function(_function); }
 
-            [[nodiscard]] bool isBinded(function_type checking_function) const { return _function == checking_function; }
+            [[nodiscard]] bool isBinded(const std::function<void(Args...)>& checking_function) const { return _function == checking_function; }
 
             virtual void call(Args... args) override
             {
@@ -184,7 +207,7 @@ namespace jutils
 
         private:
 
-            function_type _function = nullptr;
+            std::function<void(Args...)> _function = nullptr;
         };
 
         mutable container_interface* delegate_container = nullptr;

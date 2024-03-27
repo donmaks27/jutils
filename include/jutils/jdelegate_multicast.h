@@ -57,7 +57,7 @@ namespace jutils
                 }
             }
         }
-        void bind(void (*function)(Args...))
+        void bind(const std::function<void(Args...)>& function)
         {
             if (function != nullptr)
             {
@@ -65,6 +65,21 @@ namespace jutils
                 if (entry == nullptr)
                 {
                     _delegates.addDefault().delegate.bind(function);
+                }
+                else if (entry->pendingDelete)
+                {
+                    entry->pendingDelete = false;
+                }
+            }
+        }
+        void bind(std::function<void(Args...)>&& function)
+        {
+            if (function != nullptr)
+            {
+                auto* entry = _findDelegateEntry(function);
+                if (entry == nullptr)
+                {
+                    _delegates.addDefault().delegate.bind(std::move(function));
                 }
                 else if (entry->pendingDelete)
                 {
@@ -83,7 +98,7 @@ namespace jutils
             const auto* entry = _findDelegateEntry(object, function);
             return (entry != nullptr) && !entry->pendingDelete;
         }
-        [[nodiscard]] bool isBinded(void (*function)(Args...)) const
+        [[nodiscard]] bool isBinded(const std::function<void(Args...)>& function) const
         {
             if (function == nullptr)
             {
@@ -115,7 +130,7 @@ namespace jutils
                 }
             }
         }
-        bool unbind(void (*function)(Args...))
+        bool unbind(const std::function<void(Args...)>& function)
         {
             if (function != nullptr)
             {
@@ -180,7 +195,7 @@ namespace jutils
             }
             return nullptr;
         }
-        [[nodiscard]] delegate_entry* _findDelegateEntry(void (*function)(Args...)) const
+        [[nodiscard]] delegate_entry* _findDelegateEntry(const std::function<void(Args...)>& function) const
         {
             for (delegate_entry& entry : _delegates)
             {
