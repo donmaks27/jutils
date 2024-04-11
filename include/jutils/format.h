@@ -87,6 +87,11 @@ namespace jutils
     struct formatter<double> : std::true_type { [[nodiscard]] static jstring format(double value) noexcept { return std::to_string(value); } };
 
     template<>
+    struct formatter<bool> : std::true_type
+    {
+        [[nodiscard]] static JUTILS_STD20_CONSTEXPR jstring format(const bool value) noexcept { return value ? "true" : "false"; }
+    };
+    template<>
     struct formatter<const char*> : std::true_type
     {
         [[nodiscard]] static JUTILS_STD20_CONSTEXPR jstring format(const char* value) noexcept { return value; }
