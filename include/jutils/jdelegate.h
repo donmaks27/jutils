@@ -127,7 +127,14 @@ namespace jutils
         {
             if (delegate_container != nullptr)
             {
-                delete delegate_container;
+                if (_callCounter > 0)
+                {
+                    delegate_container->pendingDelete = true;
+                }
+                else
+                {
+                    delete delegate_container;
+                }
                 delegate_container = nullptr;
             }
         }
@@ -136,7 +143,14 @@ namespace jutils
         {
             if (delegate_container != nullptr)
             {
-                delegate_container->call(std::forward<Args>(args)...);
+                _callCounter++;
+                container_interface* container = delegate_container;
+                container->call(std::forward<Args>(args)...);
+                if (container->pendingDelete)
+                {
+                    delete container;
+                }
+                _callCounter--;
             }
         }
 
@@ -150,6 +164,8 @@ namespace jutils
             [[nodiscard]] virtual container_interface* copy() = 0;
 
             virtual void call(Args...) = 0;
+
+            bool pendingDelete = false;
         };
         template<typename T>
         class container_class : public container_interface
@@ -211,6 +227,7 @@ namespace jutils
         };
 
         mutable container_interface* delegate_container = nullptr;
+        mutable uint32 _callCounter = 0;
     };
 }
 
