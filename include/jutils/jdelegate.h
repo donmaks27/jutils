@@ -29,15 +29,18 @@ namespace jutils
         }
         jdelegate(const jdelegate& otherDelegate)
         {
-            if (otherDelegate.delegate_container != nullptr)
+            if ((otherDelegate._delegate != nullptr) && !otherDelegate._delegate->pendingDelete)
             {
-                delegate_container = otherDelegate.delegate_container->copy();
+                _delegate = otherDelegate._delegate->copy();
             }
         }
         jdelegate(jdelegate&& otherDelegate) noexcept
-            : delegate_container(otherDelegate.delegate_container)
         {
-            otherDelegate.delegate_container = nullptr;
+            if ((otherDelegate._delegate != nullptr) && !otherDelegate._delegate->pendingDelete)
+            {
+                _delegate = otherDelegate._delegate;
+                otherDelegate._delegate = nullptr;
+            }
         }
         ~jdelegate() { clear(); }
 
@@ -56,9 +59,9 @@ namespace jutils
             if (this != &otherDelegate)
             {
                 clear();
-                if (otherDelegate.delegate_container != nullptr)
+                if ((otherDelegate._delegate != nullptr) && !otherDelegate._delegate->pendingDelete)
                 {
-                    delegate_container = otherDelegate.delegate_container->copy();
+                    _delegate = otherDelegate._delegate->copy();
                 }
             }
             return *this;
@@ -66,8 +69,11 @@ namespace jutils
         jdelegate& operator=(jdelegate&& otherDelegate) noexcept
         {
             clear();
-            delegate_container = otherDelegate.delegate_container;
-            otherDelegate.delegate_container = nullptr;
+            if ((otherDelegate._delegate != nullptr) && !otherDelegate._delegate->pendingDelete)
+            {
+                _delegate = otherDelegate._delegate;
+                otherDelegate._delegate = nullptr;
+            }
             return *this;
         }
 
@@ -77,7 +83,7 @@ namespace jutils
             clear();
             if ((object != nullptr) && (function != nullptr))
             {
-                delegate_container = new container_class<T>(object, function);
+                _delegate = new container_class<T>(object, function);
             }
         }
         void bind(const std::function<void(Args...)>& function)
@@ -85,7 +91,7 @@ namespace jutils
             clear();
             if (function != nullptr)
             {
-                delegate_container = new container_function(function);
+                _delegate = new container_function(function);
             }
         }
         void bind(std::function<void(Args...)>&& function)
@@ -93,16 +99,16 @@ namespace jutils
             clear();
             if (function != nullptr)
             {
-                delegate_container = new container_function(std::move(function));
+                _delegate = new container_function(std::move(function));
             }
         }
 
         template<typename T>
         [[nodiscard]] bool isBinded(T* object, void (T::*function)(Args...)) const
         {
-            if ((object != nullptr) && (function != nullptr) && (delegate_container != nullptr))
+            if ((object != nullptr) && (function != nullptr) && (_delegate != nullptr))
             {
-                const auto* container = dynamic_cast<const container_class<T>*>(delegate_container);
+                const auto* container = dynamic_cast<const container_class<T>*>(_delegate);
                 if (container != nullptr)
                 {
                     return container->isBinded(object, function);
@@ -112,9 +118,9 @@ namespace jutils
         }
         [[nodiscard]] bool isBinded(const std::function<void(Args...)>& function) const
         {
-            if ((function != nullptr) && (delegate_container != nullptr))
+            if ((function != nullptr) && (_delegate != nullptr))
             {
-                const auto* container = dynamic_cast<const container_function*>(delegate_container);
+                const auto* container = dynamic_cast<const container_function*>(_delegate);
                 if (container != nullptr)
                 {
                     return container->isBinded(function);
@@ -125,26 +131,26 @@ namespace jutils
 
         void clear()
         {
-            if (delegate_container != nullptr)
+            if (_delegate != nullptr)
             {
                 if (_callCounter > 0)
                 {
-                    delegate_container->pendingDelete = true;
+                    _delegate->pendingDelete = true;
                 }
                 else
                 {
-                    delete delegate_container;
+                    delete _delegate;
                 }
-                delegate_container = nullptr;
+                _delegate = nullptr;
             }
         }
 
         void call(Args... args) const
         {
-            if (delegate_container != nullptr)
+            if (_delegate != nullptr)
             {
                 _callCounter++;
-                container_interface* container = delegate_container;
+                container_interface* container = _delegate;
                 container->call(std::forward<Args>(args)...);
                 if (container->pendingDelete)
                 {
@@ -226,7 +232,7 @@ namespace jutils
             std::function<void(Args...)> _function = nullptr;
         };
 
-        mutable container_interface* delegate_container = nullptr;
+        mutable container_interface* _delegate = nullptr;
         mutable uint32 _callCounter = 0;
     };
 }
