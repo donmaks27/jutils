@@ -130,7 +130,7 @@ namespace jutils
                 }
             }
         }
-        bool unbind(const std::function<void(Args...)>& function)
+        void unbind(const std::function<void(Args...)>& function)
         {
             if (function != nullptr)
             {
