@@ -62,7 +62,17 @@ namespace jutils
 
         [[nodiscard]] const_iterator findIter(const type& key) const noexcept { return _internalData.find(key); }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
-        [[nodiscard]] const_iterator findIter(Pred pred) const noexcept;
+        [[nodiscard]] const_iterator findIter(Pred pred) const noexcept
+        {
+            for (auto iter = begin(); iter != end(); ++iter)
+            {
+                if (pred(*iter))
+                {
+                    return iter;
+                }
+            }
+            return end();
+        }
 
         [[nodiscard]] const type* find(const type& key) const noexcept
         {
@@ -127,7 +137,19 @@ namespace jutils
 
         bool remove(const type& key) noexcept { return _internalData.erase(key) != 0; }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
-        index_type remove(Pred pred) noexcept;
+        index_type remove(Pred pred) noexcept
+        {
+            index_type count = 0;
+            for (auto iter = begin(); iter != end(); ++iter)
+            {
+                if (pred(*iter))
+                {
+                    iter = _internalData.erase(iter);
+                    ++count;
+                }
+            }
+            return count;
+        }
         void clear() noexcept { _internalData.clear(); }
 
     private:
@@ -158,20 +180,6 @@ namespace jutils
     [[nodiscard]] jset<T, KeyCompare> operator+(jset<T, KeyCompare>&& container1, jset<T, KeyCompare>&& container2) { return jset<T, KeyCompare>(std::move(container1)) += std::move(container2); }
 
     template<typename T, typename KeyCompare>
-    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
-    typename jset<T, KeyCompare>::const_iterator jset<T, KeyCompare>::findIter(Pred pred) const noexcept
-    {
-        for (auto iter = begin(); iter != end(); ++iter)
-        {
-            if (pred(*iter))
-            {
-                return iter;
-            }
-        }
-        return end();
-    }
-
-    template<typename T, typename KeyCompare>
     bool jset<T, KeyCompare>::contains(const type& key) const noexcept
     {
 #if JUTILS_STD_VERSION >= JUTILS_STD20
@@ -190,21 +198,5 @@ namespace jutils
             keys.add(key);
         }
         return keys;
-    }
-
-    template<typename T, typename KeyCompare>
-    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
-    index_type jset<T, KeyCompare>::remove(Pred pred) noexcept
-    {
-        index_type count = 0;
-        for (auto iter = begin(); iter != end(); ++iter)
-        {
-            if (pred(*iter))
-            {
-                iter = _internalData.erase(iter);
-                ++count;
-            }
-        }
-        return count;
     }
 }

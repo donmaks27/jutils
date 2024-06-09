@@ -54,7 +54,7 @@ namespace jutils::log
 JUTILS_STRING_FORMATTER_CONSTEXPR(jutils::log::verbosityLevel, jutils::log::verbosityLevelToString);
 
 #ifndef JUTILS_LOG_DISABLED
-    #if JUTILS_STD_VERSION >= JUTILS_STD20 // __VA_OPT__
+    #if JUTILS_VA_OPT_SUPPORTED // __VA_OPT__
         #define JUTILS_LOG(type, formatStr, ...) jutils::log::print(jutils::format(                                         \
                 "{} {}({}): {}\n", jutils::log::verbosityLevel::type, static_cast<const char*>(JUTILS_FILENAME), __LINE__,  \
                     jutils::format(formatStr __VA_OPT__(,) __VA_ARGS__)                                                     \

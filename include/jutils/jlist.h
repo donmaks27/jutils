@@ -89,7 +89,19 @@ namespace jutils
 
         [[nodiscard]] index_type indexOf(const type& value) const noexcept;
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
-        [[nodiscard]] index_type indexOf(Pred pred) const noexcept;
+        [[nodiscard]] index_type indexOf(Pred pred) const noexcept
+        {
+            index_type index = 0;
+            for (const auto& _value : _internalData)
+            {
+                if (pred(_value))
+                {
+                    return index;
+                }
+                index++;
+            }
+            return index_invalid;
+        }
 
         [[nodiscard]] bool contains(const type& value) const noexcept { return findIter(value) != end(); }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
@@ -219,7 +231,17 @@ namespace jutils
         }
         index_type remove(const type& value) noexcept;
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
-        index_type remove(Pred pred) noexcept;
+        index_type remove(Pred pred) noexcept
+        {
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+            return std::erase_if(_internalData, pred);
+#else
+            const auto iter = std::remove_if(begin(), end(), pred);
+            const index_type deletedElementsCount = end() - iter;
+            _internalData.erase(iter, end());
+            return deletedElementsCount;
+#endif
+        }
 
         void clear() noexcept { _internalData.clear(); }
 
@@ -281,21 +303,6 @@ namespace jutils
         }
         return index_invalid;
     }
-    template<typename T>
-    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
-    index_type jlist<T>::indexOf(Pred pred) const noexcept
-    {
-        index_type index = 0;
-        for (const auto& _value : _internalData)
-        {
-            if (pred(_value))
-            {
-                return index;
-            }
-            index++;
-        }
-        return index_invalid;
-    }
 
     template<typename T>
     void jlist<T>::removeAt(jlist::const_iterator place, index_type count) noexcept
@@ -324,19 +331,6 @@ namespace jutils
         return std::erase(_internalData, value);
 #else
         const auto iter = std::remove(begin(), end(), value);
-        const index_type deletedElementsCount = end() - iter;
-        _internalData.erase(iter, end());
-        return deletedElementsCount;
-#endif
-    }
-    template<typename T>
-    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, T>), typename Pred)
-    index_type jlist<T>::remove(Pred pred) noexcept
-    {
-#if JUTILS_STD_VERSION >= JUTILS_STD20
-        return std::erase_if(_internalData, pred);
-#else
-        const auto iter = std::remove_if(begin(), end(), pred);
         const index_type deletedElementsCount = end() - iter;
         _internalData.erase(iter, end());
         return deletedElementsCount;

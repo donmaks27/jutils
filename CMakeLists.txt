@@ -6,6 +6,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+if(MSVC)
+    # Enable __cplusplus and __VA_OPT__ macros
+    add_compile_options(/Zc:__cplusplus /permissive- /Zc:preprocessor)
+endif()
+
 option(JUTILS_FMT_ENABLED "Enable fmt lib even if format module not found" OFF)
 option(JUTILS_LOG_ENABLED "Enable log module" ON)
 option(JUTILS_LOG_COLOR_ENABLED "Enable colored logs (works only with fmt lib)" ON)

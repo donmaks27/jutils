@@ -80,11 +80,31 @@ namespace jutils
 
         [[nodiscard]] iterator findIter(const key_type& key) noexcept { return _internalData.find(key); }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, key_type, value_type>), typename Pred)
-        [[nodiscard]] iterator findIter(Pred pred) noexcept;
+        [[nodiscard]] iterator findIter(Pred pred) noexcept
+        {
+            for (auto iter = begin(); iter != end(); ++iter)
+            {
+                if (pred(iter->first, iter->second))
+                {
+                    return iter;
+                }
+            }
+            return end();
+        }
         [[nodiscard]] iterator findValueIter(const value_type& value) noexcept;
         [[nodiscard]] const_iterator findIter(const key_type& key) const noexcept { return _internalData.find(key); }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, key_type, value_type>), typename Pred)
-        [[nodiscard]] const_iterator findIter(Pred pred) const noexcept;
+        [[nodiscard]] const_iterator findIter(Pred pred) const noexcept
+        {
+            for (auto iter = begin(); iter != end(); ++iter)
+            {
+                if (pred(iter->first, iter->second))
+                {
+                    return iter;
+                }
+            }
+            return end();
+        }
         [[nodiscard]] const_iterator findValueIter(const value_type& value) const noexcept;
 
         [[nodiscard]] value_type* find(const key_type& key) noexcept
@@ -174,7 +194,19 @@ namespace jutils
 
         index_type remove(const key_type& key) noexcept { return _internalData.erase(key); }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, key_type, value_type>), typename Pred)
-        index_type remove(Pred pred) noexcept;
+        index_type remove(Pred pred) noexcept
+        {
+            index_type count = 0;
+            for (auto iter = begin(); iter != end(); ++iter)
+            {
+                if (pred(iter->first, iter->second))
+                {
+                    iter = _internalData.erase(iter);
+                    ++count;
+                }
+            }
+            return count;
+        }
         void clear() noexcept { _internalData.clear(); }
 
     private:
@@ -205,19 +237,6 @@ namespace jutils
     [[nodiscard]] jmap<Key, Value, KeyCompare> operator+(jmap<Key, Value, KeyCompare>&& container1, jmap<Key, Value, KeyCompare>&& container2) { return jmap<Key, Value, KeyCompare>(std::move(container1)) += std::move(container2); }
 
     template<typename KeyType, typename ValueType, typename KeyCompare>
-    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, KeyType, ValueType>), typename Pred)
-    typename jmap<KeyType, ValueType, KeyCompare>::iterator jmap<KeyType, ValueType, KeyCompare>::findIter(Pred pred) noexcept
-    {
-        for (auto iter = begin(); iter != end(); ++iter)
-        {
-            if (pred(iter->first, iter->second))
-            {
-                return iter;
-            }
-        }
-        return end();
-    }
-    template<typename KeyType, typename ValueType, typename KeyCompare>
     typename jmap<KeyType, ValueType, KeyCompare>::iterator jmap<KeyType, ValueType, KeyCompare>::findValueIter(const value_type& value) noexcept
     {
         for (auto iter = begin(); iter != end(); ++iter)
@@ -230,19 +249,6 @@ namespace jutils
         return end();
     }
 
-    template<typename KeyType, typename ValueType, typename KeyCompare>
-    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, KeyType, ValueType>), typename Pred)
-    typename jmap<KeyType, ValueType, KeyCompare>::const_iterator jmap<KeyType, ValueType, KeyCompare>::findIter(Pred pred) const noexcept
-    {
-        for (auto iter = begin(); iter != end(); ++iter)
-        {
-            if (pred(iter->first, iter->second))
-            {
-                return iter;
-            }
-        }
-        return end();
-    }
     template<typename KeyType, typename ValueType, typename KeyCompare>
     typename jmap<KeyType, ValueType, KeyCompare>::const_iterator jmap<KeyType, ValueType, KeyCompare>::findValueIter(const value_type& value) const noexcept
     {
@@ -308,21 +314,5 @@ namespace jutils
             result.first->second = value_type(std::forward<Args>(args)...);
         }
         return result.first->second;
-    }
-
-    template<typename KeyType, typename ValueType, typename KeyCompare>
-    JUTILS_TEMPLATE_CONDITION_IMPL((jutils::is_predicate_v<Pred, KeyType, ValueType>), typename Pred)
-    index_type jmap<KeyType, ValueType, KeyCompare>::remove(Pred pred) noexcept
-    {
-        index_type count = 0;
-        for (auto iter = begin(); iter != end(); ++iter)
-        {
-            if (pred(iter->first, iter->second))
-            {
-                iter = _internalData.erase(iter);
-                ++count;
-            }
-        }
-        return count;
     }
 }
