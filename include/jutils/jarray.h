@@ -13,7 +13,9 @@ namespace jutils
     class jarray
     {
     public:
-        
+
+        static_assert(!std::is_same_v<T, bool>, "Use std::vector<bool> instead");
+
         using type = T;
         using base_type = std::vector<type>;
         using const_iterator = typename base_type::const_iterator;
