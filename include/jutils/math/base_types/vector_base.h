@@ -6,7 +6,7 @@
 
 namespace jutils::math
 {
-    using vector_size_type = int8;
+    using vector_size_type = uint8;
 
     template<vector_size_type Size, typename T>
     class vector;

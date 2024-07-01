@@ -18,37 +18,43 @@
 
 namespace jutils::log
 {
-    enum class verbosityLevel : uint8 { error, warning, info };
+    enum class verbosityLevel : uint8 { fatal, error, warning, info };
 
 #if defined(JUTILS_LOG_COLOR_ENABLED)
     constexpr const char* verbosityLevelToString(const verbosityLevel verbosity) noexcept
     {
         switch (verbosity)
         {
-            case verbosityLevel::error:   return "\033[1;38;5;9m[ERR] \033[0m";
-            case verbosityLevel::warning: return "\033[1;38;5;11m[WARN]\033[0m";
-            case verbosityLevel::info:    return "\033[1;38;5;10m[INFO]\033[0m";
-            default: ;
+        case verbosityLevel::fatal:   return  "\033[1;38;5;9m[FATAL]\033[0m";
+        case verbosityLevel::error:   return  "\033[1;38;5;9m[ERR]  \033[0m";
+        case verbosityLevel::warning: return "\033[1;38;5;11m[WARN] \033[0m";
+        case verbosityLevel::info:    return "\033[1;38;5;10m[INFO] \033[0m";
+        default: ;
         }
-        return "      ";
+        return "       ";
     }
 #else
     constexpr const char* verbosityLevelToString(const verbosityLevel verbosity) noexcept
     {
         switch (verbosity)
         {
-        case verbosityLevel::error:   return "[ERR] ";
-        case verbosityLevel::warning: return "[WARN]";
-        case verbosityLevel::info:    return "[INFO]";
+        case verbosityLevel::fatal:   return "[FATAL]";
+        case verbosityLevel::error:   return "[ERR]  ";
+        case verbosityLevel::warning: return "[WARN] ";
+        case verbosityLevel::info:    return "[INFO] ";
         default: ;
         }
-        return "      ";
+        return "       ";
     }
 #endif
 
     inline void print(const char* str) { std::printf("%s", str); }
     inline void print(const std::string& str) { jutils::log::print(str.c_str()); }
     inline void print(const jstring& str) { jutils::log::print(*str); }
+
+    inline void println(const char* str) { std::printf("%s\n", str); }
+    inline void println(const std::string& str) { jutils::log::println(str.c_str()); }
+    inline void println(const jstring& str) { jutils::log::println(*str); }
 }
 
 JUTILS_STRING_FORMATTER_CONSTEXPR(jutils::log::verbosityLevel, jutils::log::verbosityLevelToString);
