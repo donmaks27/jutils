@@ -84,7 +84,7 @@ namespace jutils
             { return jutils::math::isEqual(value, 0, eps); }
 
         JUTILS_TEMPLATE_CONDITION(std::is_arithmetic_v<T>, typename T)
-        [[nodiscard]] constexpr T sqr(const T value) noexcept { return value * value; }
+        [[nodiscard]] constexpr auto sqr(const T value) noexcept { return value * value; }
 
         JUTILS_TEMPLATE_CONDITION(std::is_integral_v<R> && std::is_floating_point_v<T>, typename R = int32, typename T = float)
         [[nodiscard]] R round(const T value) { return static_cast<R>(std::round(value)); }

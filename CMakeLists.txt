@@ -36,7 +36,6 @@ list(APPEND JUTILS_HEADER_FILES
     include/jutils/jmap_hash.h
     include/jutils/jmemory.h
     include/jutils/jpool.h
-    include/jutils/jpool_simple.h
     include/jutils/jset.h
     include/jutils/jset_hash.h
     include/jutils/jstring.h
@@ -45,41 +44,22 @@ list(APPEND JUTILS_HEADER_FILES
     include/jutils/log.h
     include/jutils/type_traits.h
 
-    include/jutils/math/math.h
-    include/jutils/math/math_vector.h
-    include/jutils/math/math_matrix.h
-    include/jutils/math/math_matrixTransform.h
+    include/jutils/math/common.h
     include/jutils/math/hash.h
-    include/jutils/math/vector2.h
-    include/jutils/math/vector3.h
-    include/jutils/math/vector4.h
-    include/jutils/math/matrix2.h
-    include/jutils/math/matrix2x3.h
-    include/jutils/math/matrix2x4.h
-    include/jutils/math/matrix3.h
-    include/jutils/math/matrix3x2.h
-    include/jutils/math/matrix3x4.h
-    include/jutils/math/matrix4.h
-    include/jutils/math/matrix4x2.h
-    include/jutils/math/matrix4x3.h
-
-    include/jutils/math/base_types/vector_base.h
-    include/jutils/math/base_types/vector2_base.h
-    include/jutils/math/base_types/vector3_base.h
-    include/jutils/math/base_types/vector4_base.h
-    include/jutils/math/base_types/matrix_base.h
-    include/jutils/math/base_types/matrix2_base.h
-    include/jutils/math/base_types/matrix2x2_base.h
-    include/jutils/math/base_types/matrix2x3_base.h
-    include/jutils/math/base_types/matrix2x4_base.h
-    include/jutils/math/base_types/matrix3_base.h
-    include/jutils/math/base_types/matrix3x2_base.h
-    include/jutils/math/base_types/matrix3x3_base.h
-    include/jutils/math/base_types/matrix3x4_base.h
-    include/jutils/math/base_types/matrix4_base.h
-    include/jutils/math/base_types/matrix4x2_base.h
-    include/jutils/math/base_types/matrix4x3_base.h
-    include/jutils/math/base_types/matrix4x4_base.h
+    include/jutils/math/vec_base.h
+    include/jutils/math/vec2.h
+    include/jutils/math/vec3.h
+    include/jutils/math/vec4.h
+    include/jutils/math/mat_base.h
+    include/jutils/math/mat2x2.h
+    include/jutils/math/mat2x3.h
+    include/jutils/math/mat2x4.h
+    include/jutils/math/mat3x3.h
+    include/jutils/math/mat3x2.h
+    include/jutils/math/mat3x4.h
+    include/jutils/math/mat4x4.h
+    include/jutils/math/mat4x2.h
+    include/jutils/math/mat4x3.h
 )
 
 if(JUTILS_USE_FMT)

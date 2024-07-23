@@ -5,6 +5,9 @@
 #include <cstdint>
 #include <cstddef>
 
+#define JUTILS_STD11 201103L
+#define JUTILS_STD14 201402L
+#define JUTILS_STD17 201703L
 #define JUTILS_STD20 202002L
 #define JUTILS_STD_VERSION __cplusplus
 

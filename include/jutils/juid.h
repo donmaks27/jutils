@@ -30,12 +30,12 @@ namespace jutils
             return *this;
         }
 
-        [[nodiscard]] constexpr uid_type getUID() const noexcept { return currentUID; }
+        [[nodiscard]] constexpr uid_type getCurrentUID() const noexcept { return currentUID; }
         [[nodiscard]] constexpr uid_type getNextUID() const noexcept { return currentUID != maxUID ? currentUID + 1 : minUID; }
         constexpr uid_type generateUID() noexcept
         {
             currentUID = getNextUID();
-            return getUID();
+            return getCurrentUID();
         }
 
         constexpr void reset() noexcept
@@ -43,12 +43,12 @@ namespace jutils
             currentUID = minUID;
         }
 
-        [[nodiscard]] explicit constexpr operator uid_type() const noexcept { return getUID(); }
+        [[nodiscard]] explicit constexpr operator uid_type() const noexcept { return getCurrentUID(); }
 
-        [[nodiscard]] constexpr bool operator==(const juid& uid) const noexcept { return getUID() == uid.getUID(); }
-        [[nodiscard]] constexpr bool operator!=(const juid& uid) const noexcept { return getUID() != uid.getUID(); }
-        [[nodiscard]] constexpr bool operator==(const uid_type uid) const noexcept { return getUID() == uid; }
-        [[nodiscard]] constexpr bool operator!=(const uid_type uid) const noexcept { return getUID() != uid; }
+        [[nodiscard]] constexpr bool operator==(const juid& uid) const noexcept { return getCurrentUID() == uid.getCurrentUID(); }
+        [[nodiscard]] constexpr bool operator!=(const juid& uid) const noexcept { return getCurrentUID() != uid.getCurrentUID(); }
+        [[nodiscard]] constexpr bool operator==(const uid_type uid) const noexcept { return getCurrentUID() == uid; }
+        [[nodiscard]] constexpr bool operator!=(const uid_type uid) const noexcept { return getCurrentUID() != uid; }
 
     private:
 
