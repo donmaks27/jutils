@@ -11,10 +11,8 @@ if(MSVC)
     add_compile_options(/Zc:__cplusplus /permissive- /Zc:preprocessor)
 endif()
 
-option(JUTILS_FMT_ENABLED "Enable fmt lib even if format module not found" OFF)
+option(JUTILS_FMT_ENABLED "Enable fmt lib even if format header is found" OFF)
 option(JUTILS_LOG_ENABLED "Enable log module" ON)
-option(JUTILS_LOG_COLOR_ENABLED "Enable colored logs (works only with fmt lib)" ON)
-option(JUTILS_CONFIG_ENABLED "Enable JSON and INI configs modules" OFF)
 
 include(CheckIncludeFileCXX)
 check_include_file_cxx("format" JUTILS_STD_FORMAT_FOUND)
@@ -82,15 +80,6 @@ list(APPEND JUTILS_HEADER_FILES
     include/jutils/math/base_types/matrix4x2_base.h
     include/jutils/math/base_types/matrix4x3_base.h
     include/jutils/math/base_types/matrix4x4_base.h
-
-    include/jutils/configs/ini.h
-    include/jutils/configs/ini_parser.h
-    include/jutils/configs/json.h
-    include/jutils/configs/json_parser.h
-)
-list(APPEND JUTILS_SOURCE_FILES
-    src/configs/ini_parser.cpp
-    src/configs/json_parser.cpp
 )
 
 if(JUTILS_USE_FMT)
@@ -100,21 +89,9 @@ if(JUTILS_USE_FMT)
 endif()
 if(NOT JUTILS_LOG_ENABLED)
     list(APPEND JUTILS_MACRO_DEFINITIONS JUTILS_LOG_DISABLED)
-elseif(JUTILS_LOG_COLOR_ENABLED)
-    list(APPEND JUTILS_MACRO_DEFINITIONS JUTILS_LOG_COLOR_ENABLED)
 endif()
 
-if(JUTILS_CONFIG_ENABLED)
-    add_library(jutils STATIC ${JUTILS_HEADER_FILES} ${JUTILS_SOURCE_FILES})
-    target_include_directories(jutils PUBLIC include PRIVATE
-        third_party/mattiasgustavsson/include
-        third_party/nlohmann/include
-    )
-    target_compile_definitions(jutils PUBLIC ${JUTILS_MACRO_DEFINITIONS})
-    target_link_libraries(jutils PUBLIC ${JUTILS_LIBS})
-else()
-    add_library(jutils INTERFACE ${JUTILS_HEADER_FILES})
-    target_include_directories(jutils INTERFACE include)
-    target_compile_definitions(jutils INTERFACE ${JUTILS_MACRO_DEFINITIONS})
-    target_link_libraries(jutils INTERFACE ${JUTILS_LIBS})
-endif()
+add_library(jutils INTERFACE ${JUTILS_HEADER_FILES})
+target_include_directories(jutils INTERFACE include)
+target_compile_definitions(jutils INTERFACE ${JUTILS_MACRO_DEFINITIONS})
+target_link_libraries(jutils INTERFACE ${JUTILS_LIBS})
