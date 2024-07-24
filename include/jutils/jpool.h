@@ -2,10 +2,8 @@
 
 #pragma once
 
+#include "jdeque.h"
 #include "jmemory.h"
-#include "math/common.h"
-
-#include <deque>
 
 namespace jutils
 {
@@ -18,11 +16,11 @@ namespace jutils
 
         jpool() = default;
         jpool(const jpool&) = delete;
-        jpool(jpool&& pool) noexcept = delete;
-        ~jpool() = default;
+        jpool(jpool&& pool) noexcept = default;
+        ~jpool() { clear(); }
 
         jpool& operator=(const jpool&) = delete;
-        jpool& operator=(jpool&& pool) noexcept = delete;
+        jpool& operator=(jpool&& pool) noexcept = default;
 
         template<typename... Args>
         [[nodiscard]] type* getObject(Args&&... args);
@@ -31,16 +29,18 @@ namespace jutils
         
     private:
 
+        static constexpr uint8 segment_size = jutils::math::max(SegmentSize, 1);
         struct alignas(type) internal_type
         {
             uint8 data[sizeof(type)];
         };
+        struct segment_type
+        {
+            internal_type data[segment_size];
+        };
 
-        static constexpr uint8 segment_size = jutils::math::max(SegmentSize, 1);
-
-        // TODO: jdeque?
-        std::deque<internal_type[segment_size]> objectsPool;
-        std::deque<type*> unusedObjects;
+        jdeque<segment_type> objectsPool;
+        jdeque<type*> unusedObjects;
 
         
         template<typename... Args>
@@ -53,20 +53,20 @@ namespace jutils
     typename jpool<T, SegmentSize>::type* jpool<T, SegmentSize>::getObject(Args&&... args)
     {
         type* object;
-        if (!unusedObjects.empty())
+        if (!unusedObjects.isEmpty())
         {
-            object = unusedObjects.front();
-            unusedObjects.pop_front();
+            object = unusedObjects.getFirst();
+            unusedObjects.removeFirst();
         }
         else
         {
-            auto& segment = objectsPool.emplace_back();
+            auto& segment = objectsPool.addDefault().data;
             object = reinterpret_cast<type*>(segment[0].data);
             if constexpr (segment_size > 1)
             {
                 for (uint8 index = 1; index < segment_size; index++)
                 {
-                    unusedObjects.push_back(reinterpret_cast<type*>(segment[index].data));
+                    unusedObjects.add(reinterpret_cast<type*>(segment[index].data));
                 }
             }
         }
@@ -79,7 +79,7 @@ namespace jutils
         if (object != nullptr)
         {
             this->_clearPoolObject(object);
-            unusedObjects.push_back(object);
+            unusedObjects.add(object);
         }
     }
     template<typename T, uint8 SegmentSize>
@@ -87,10 +87,10 @@ namespace jutils
     {
         for (auto& segment : objectsPool)
         {
-            for (auto& wrapper : segment)
+            for (auto& wrapper : segment.data)
             {
                 type* object = reinterpret_cast<type*>(wrapper.data);
-                if (std::find(unusedObjects.begin(), unusedObjects.end(), object) != unusedObjects.end())
+                if (!unusedObjects.contains(object))
                 {
                     this->_clearPoolObject(object);
                 }

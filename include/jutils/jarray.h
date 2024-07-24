@@ -137,7 +137,8 @@ namespace jutils
         }
 
         JUTILS_STD20_CONSTEXPR void reserve(const index_type capacity) { _internalData.reserve(capacity); }
-        JUTILS_STD20_CONSTEXPR void resize(const index_type size, const type& defaultValue = type()) { _internalData.resize(size, defaultValue); }
+        JUTILS_STD20_CONSTEXPR void resize(const index_type size) { _internalData.resize(size); }
+        JUTILS_STD20_CONSTEXPR void resize(const index_type size, const type& defaultValue) { _internalData.resize(size, defaultValue); }
 
         template<typename... Args>
         JUTILS_STD20_CONSTEXPR type& put(Args&&... args) { return _internalData.emplace_back(std::forward<Args>(args)...); }
@@ -157,13 +158,13 @@ namespace jutils
         JUTILS_STD20_CONSTEXPR type& addDefault() { return put(); }
         JUTILS_STD20_CONSTEXPR type& addUnique(const type& value)
         {
-            const index_type index = indexOf(value);
-            return index == index_invalid ? add(value) : get(index);
+            type* v = find(value);
+            return v == nullptr ? add(value) : *v;
         }
         JUTILS_STD20_CONSTEXPR type& addUnique(type&& value)
         {
-            const index_type index = indexOf(value);
-            return index == index_invalid ? add(std::move(value)) : get(index);
+            type* v = find(value);
+            return v == nullptr ? add(std::move(value)) : *v;
         }
 
         JUTILS_STD20_CONSTEXPR type& addAt(const const_iterator place, const type& value) { return putAt(place, value); }
@@ -217,7 +218,7 @@ namespace jutils
         {
             if (!isEmpty())
             {
-                _internalData.erase(--end());
+                _internalData.pop_back();
             }
         }
         JUTILS_STD20_CONSTEXPR index_type remove(const type& value) noexcept;
@@ -307,7 +308,7 @@ namespace jutils
     {
         if (isValidIndex(index))
         {
-            index_type elementsForDelete = jutils::math::min(count, getSize() - index);
+            const index_type elementsForDelete = jutils::math::min(count, getSize() - index);
             if (elementsForDelete == 1)
             {
                 _internalData.erase(std::next(begin(), index));
@@ -315,7 +316,7 @@ namespace jutils
             else if (elementsForDelete > 1)
             {
                 const auto startIter = std::next(begin(), index);
-                _internalData.erase(startIter, std::next(startIter, count));
+                _internalData.erase(startIter, std::next(startIter, elementsForDelete));
             }
         }
     }
