@@ -46,25 +46,14 @@ JUTILS_STRING_FORMATTER_CONSTEXPR(jutils::log::verbosityLevel, jutils::log::verb
 
 #ifndef JUTILS_LOG_DISABLED
     #if JUTILS_VA_OPT_SUPPORTED // __VA_OPT__
-        #define JUTILS_LOG(type, formatStr, ...) jutils::log::print(jutils::format(                                         \
-                "{} {}({}): {}\n", jutils::log::verbosityLevel::type, static_cast<const char*>(JUTILS_FILENAME), __LINE__,  \
-                    jutils::format(formatStr __VA_OPT__(,) __VA_ARGS__)                                                     \
-            ))
-        #define JUTILS_ERROR_LOG(errorCode, formatStr, ...) jutils::log::print(jutils::format(                                  \
-                "{} {}({}): Code {:#x}. {}\n", jutils::log::verbosityLevel::error, static_cast<const char*>(JUTILS_FILENAME),   \
-                    __LINE__, static_cast<jutils::int64>(errorCode), jutils::format(formatStr __VA_OPT__(,) __VA_ARGS__)        \
+        #define JUTILS_LOG(type, formatStr, ...) jutils::log::print(jutils::format(                                 \
+                "{} {}\n", jutils::log::verbosityLevel::type, jutils::format(formatStr __VA_OPT__(,) __VA_ARGS__)   \
             ))
     #else
-        #define JUTILS_LOG(type, ...) jutils::log::print(jutils::format(                                                    \
-                "{} {}({}): {}\n", jutils::log::verbosityLevel::type, static_cast<const char*>(JUTILS_FILENAME), __LINE__,  \
-                    jutils::format(__VA_ARGS__)                                                                             \
-            ))
-        #define JUTILS_ERROR_LOG(errorCode, ...) jutils::log::print(jutils::format(                                             \
-                "{} {}({}): Code {:#x}. {}\n", jutils::log::verbosityLevel::error, static_cast<const char*>(JUTILS_FILENAME),   \
-                    __LINE__, static_cast<jutils::int64>(errorCode), jutils::format(__VA_ARGS__)                                \
+        #define JUTILS_LOG(type, ...) jutils::log::print(jutils::format(                    \
+                "{} {}\n", jutils::log::verbosityLevel::type, jutils::format(__VA_ARGS__)   \
             ))
     #endif
 #else
     #define JUTILS_LOG(type, formatStr, ...)
-    #define JUTILS_ERROR_LOG(errorCode, formatStr, ...)
 #endif
