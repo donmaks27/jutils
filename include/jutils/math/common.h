@@ -81,7 +81,7 @@ namespace jutils
             { return jutils::math::abs(value2 - value1) < eps; }
         JUTILS_TEMPLATE_CONDITION(std::is_floating_point_v<T>, typename T)
         [[nodiscard]] constexpr bool isNearlyZero(const T value, const T eps = jutils::math::eps<T>) noexcept
-            { return jutils::math::isEqual(value, 0, eps); }
+            { return jutils::math::isEqual<T>(value, 0, eps); }
 
         JUTILS_TEMPLATE_CONDITION(std::is_arithmetic_v<T>, typename T)
         [[nodiscard]] constexpr auto sqr(const T value) noexcept { return value * value; }
