@@ -1,9 +1,9 @@
-﻿// Copyright © 2022-2024 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
 #include "math/hash.h"
-#include "jarray.h"
+#include "vector.h"
 
 #include <algorithm>
 #include <unordered_map>
@@ -141,8 +141,8 @@ namespace jutils
         [[nodiscard]] constexpr auto values() { return std::views::values(_internalData); }
         [[nodiscard]] constexpr auto values() const { return std::views::values(_internalData); }
 #endif
-        [[nodiscard]] jarray<key_type> getKeys() const noexcept;
-        [[nodiscard]] jarray<value_type> getValues() const noexcept;
+        [[nodiscard]] vector<key_type> getKeys() const noexcept;
+        [[nodiscard]] vector<value_type> getValues() const noexcept;
 
         template<typename... Args>
         value_type& put(const key_type& key, Args&&... args);
@@ -273,9 +273,9 @@ namespace jutils
     }
 
     template<typename KeyType, typename ValueType, typename KeyHash, typename KeyEqual>
-    jarray<KeyType> jmap_hash<KeyType, ValueType, KeyHash, KeyEqual>::getKeys() const noexcept
+    vector<KeyType> jmap_hash<KeyType, ValueType, KeyHash, KeyEqual>::getKeys() const noexcept
     {
-        jarray<key_type> keys;
+        vector<key_type> keys;
         for (const auto& pair : _internalData)
         {
             keys.add(pair.first);
@@ -283,9 +283,9 @@ namespace jutils
         return keys;
     }
     template<typename KeyType, typename ValueType, typename KeyHash, typename KeyEqual>
-    jarray<ValueType> jmap_hash<KeyType, ValueType, KeyHash, KeyEqual>::getValues() const noexcept
+    vector<ValueType> jmap_hash<KeyType, ValueType, KeyHash, KeyEqual>::getValues() const noexcept
     {
-        jarray<value_type> values;
+        vector<value_type> values;
         for (const auto& pair : _internalData)
         {
             values.add(pair.second);

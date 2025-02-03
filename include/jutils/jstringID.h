@@ -1,4 +1,4 @@
-﻿// Copyright © 2022-2024 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -114,7 +114,7 @@ namespace jutils
         };
         
         jset_hash<strings_table_entry, strings_table_entry_hash> stringsTable;
-        jarray<const strings_table_entry*> stringPointers;
+        vector<const strings_table_entry*> stringPointers;
         mutable std::shared_mutex rwMutex;
     };
 

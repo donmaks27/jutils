@@ -1,10 +1,10 @@
-﻿// Copyright © 2021-2024 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
 #include "base_types.h"
 #include "math/hash.h"
-#include "jarray.h"
+#include "vector.h"
 
 #include <string>
 #include <regex>
@@ -125,10 +125,10 @@ namespace jutils
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring substr(index_type startIndex = 0, index_type length = index_invalid) const noexcept { return _internalString.substr(startIndex, length); }
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<jstring> split(const char_type delimiter) const { return _split(&delimiter, 1); }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<jstring> split(const char_type* delimiter) const { return _split(delimiter, std::char_traits<char_type>::length(delimiter)); }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<jstring> split(const std::string& delimiter) const { return _split(delimiter.c_str(), delimiter.size()); }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<jstring> split(const jstring& delimiter) const { return _split(delimiter.getData(), delimiter.getSize()); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<jstring> split(const char_type delimiter) const { return _split(&delimiter, 1); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<jstring> split(const char_type* delimiter) const { return _split(delimiter, std::char_traits<char_type>::length(delimiter)); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<jstring> split(const std::string& delimiter) const { return _split(delimiter.c_str(), delimiter.size()); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<jstring> split(const jstring& delimiter) const { return _split(delimiter.getData(), delimiter.getSize()); }
 
 
         JUTILS_STD20_CONSTEXPR jstring& replace(const char_type value, const index_type startIndex, const index_type replacedLength = 0)
@@ -272,7 +272,7 @@ namespace jutils
         [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool _startsWith(const char_type* str, std::size_t strLength) const noexcept;
         [[nodiscard]] JUTILS_STD20_CONSTEXPR inline bool _endsWith(const char_type* str, std::size_t strLength) const noexcept;
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR inline jarray<jstring> _split(const jstring::char_type* delimiter, index_type delimiterSize) const;
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR inline vector<jstring> _split(const jstring::char_type* delimiter, index_type delimiterSize) const;
 
         JUTILS_STD20_CONSTEXPR inline jstring& _replace(const jstring::char_type* value, std::size_t valueLength, index_type startIndex, index_type replacedLength);
 
@@ -377,7 +377,7 @@ namespace jutils
         return false;
     }
 
-    JUTILS_STD20_CONSTEXPR jarray<jstring> jstring::_split(const jstring::char_type* const delimiter, const index_type delimiterSize) const
+    JUTILS_STD20_CONSTEXPR vector<jstring> jstring::_split(const jstring::char_type* const delimiter, const index_type delimiterSize) const
     {
         if (isEmpty())
         {
@@ -387,7 +387,7 @@ namespace jutils
         {
             return { *this };
         }
-        jarray<jstring> result;
+        vector<jstring> result;
         index_type index = 0;
         while (index < getSize())
         {

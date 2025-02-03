@@ -1,4 +1,4 @@
-﻿// Copyright © 2022-2025 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -10,54 +10,54 @@
 namespace jutils
 {
     template<typename T>
-    class jarray
+    class vector
     {
     public:
 
-        static_assert(!std::is_same_v<T, bool>, "Use jarray<uint8> or bitvector instead");
+        static_assert(!std::is_same_v<T, bool>, "Use vector<uint8> or bitvector instead");
 
         using type = T;
         using base_type = std::vector<type>;
         using const_iterator = typename base_type::const_iterator;
         using iterator = typename base_type::iterator;
 
-        JUTILS_STD20_CONSTEXPR jarray() noexcept = default;
-        JUTILS_STD20_CONSTEXPR explicit jarray(const index_type count)
+        JUTILS_STD20_CONSTEXPR vector() noexcept = default;
+        JUTILS_STD20_CONSTEXPR explicit vector(const index_type count)
             : _internalData(count)
         {}
-        JUTILS_STD20_CONSTEXPR jarray(const index_type count, const type& defaultValue)
+        JUTILS_STD20_CONSTEXPR vector(const index_type count, const type& defaultValue)
             : _internalData(count, defaultValue)
         {}
-        JUTILS_STD20_CONSTEXPR jarray(std::initializer_list<type> values)
+        JUTILS_STD20_CONSTEXPR vector(std::initializer_list<type> values)
             : _internalData(values)
         {}
-        JUTILS_STD20_CONSTEXPR jarray(const base_type& value)
+        JUTILS_STD20_CONSTEXPR vector(const base_type& value)
             : _internalData(value)
         {}
-        JUTILS_STD20_CONSTEXPR jarray(base_type&& value) noexcept
+        JUTILS_STD20_CONSTEXPR vector(base_type&& value) noexcept
             : _internalData(std::move(value))
         {}
-        JUTILS_STD20_CONSTEXPR jarray(const jarray&) = default;
-        JUTILS_STD20_CONSTEXPR jarray(jarray&&) noexcept = default;
-        JUTILS_STD20_CONSTEXPR ~jarray() noexcept = default;
+        JUTILS_STD20_CONSTEXPR vector(const vector&) = default;
+        JUTILS_STD20_CONSTEXPR vector(vector&&) noexcept = default;
+        JUTILS_STD20_CONSTEXPR ~vector() noexcept = default;
 
-        JUTILS_STD20_CONSTEXPR jarray& operator=(std::initializer_list<type> values)
+        JUTILS_STD20_CONSTEXPR vector& operator=(std::initializer_list<type> values)
         {
             _internalData = values;
             return *this;
         }
-        JUTILS_STD20_CONSTEXPR jarray& operator=(const base_type& value)
+        JUTILS_STD20_CONSTEXPR vector& operator=(const base_type& value)
         {
             _internalData = value;
             return *this;
         }
-        JUTILS_STD20_CONSTEXPR jarray& operator=(base_type&& value) noexcept
+        JUTILS_STD20_CONSTEXPR vector& operator=(base_type&& value) noexcept
         {
             _internalData = std::move(value);
             return *this;
         }
-        JUTILS_STD20_CONSTEXPR jarray& operator=(const jarray& value) = default;
-        JUTILS_STD20_CONSTEXPR jarray& operator=(jarray&& value) noexcept = default;
+        JUTILS_STD20_CONSTEXPR vector& operator=(const vector& value) = default;
+        JUTILS_STD20_CONSTEXPR vector& operator=(vector&& value) noexcept = default;
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const base_type& toBase() const noexcept { return _internalData; }
 
@@ -75,7 +75,7 @@ namespace jutils
         [[nodiscard]] JUTILS_STD20_CONSTEXPR type* operator*() noexcept { return getData(); }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const type* operator*() const noexcept { return getData(); }
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray copy() const noexcept { return *this; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR vector copy() const noexcept { return *this; }
         
         [[nodiscard]] JUTILS_STD20_CONSTEXPR type& get(const index_type index) noexcept { return _internalData[index]; }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const type& get(const index_type index) const noexcept { return _internalData[index]; }
@@ -172,12 +172,12 @@ namespace jutils
         JUTILS_STD20_CONSTEXPR type& addAt(const index_type index, type&& value) { return putAt(index, std::move(value)); }
         JUTILS_STD20_CONSTEXPR type& addDefaultAt(const index_type index) { return putAt(index); }
 
-        JUTILS_STD20_CONSTEXPR jarray& append(std::initializer_list<type> values)
+        JUTILS_STD20_CONSTEXPR vector& append(std::initializer_list<type> values)
         {
             _internalData.insert(end(), values);
             return *this;
         }
-        JUTILS_STD20_CONSTEXPR jarray& append(const base_type& value)
+        JUTILS_STD20_CONSTEXPR vector& append(const base_type& value)
         {
             if (&_internalData != &value)
             {
@@ -185,21 +185,21 @@ namespace jutils
             }
             return *this;
         }
-        JUTILS_STD20_CONSTEXPR jarray& append(const jarray& value) { return append(value.toBase()); }
+        JUTILS_STD20_CONSTEXPR vector& append(const vector& value) { return append(value.toBase()); }
 
-        JUTILS_STD20_CONSTEXPR jarray& operator+=(const type& value)
+        JUTILS_STD20_CONSTEXPR vector& operator+=(const type& value)
         {
             add(value);
             return *this;
         }
-        JUTILS_STD20_CONSTEXPR jarray& operator+=(type&& value)
+        JUTILS_STD20_CONSTEXPR vector& operator+=(type&& value)
         {
             add(std::move(value));
             return *this;
         }
-        JUTILS_STD20_CONSTEXPR jarray& operator+=(std::initializer_list<type> values) { return append(values); }
-        JUTILS_STD20_CONSTEXPR jarray& operator+=(const base_type& value) { return append(value); }
-        JUTILS_STD20_CONSTEXPR jarray& operator+=(const jarray& value) { return append(value); }
+        JUTILS_STD20_CONSTEXPR vector& operator+=(std::initializer_list<type> values) { return append(values); }
+        JUTILS_STD20_CONSTEXPR vector& operator+=(const base_type& value) { return append(value); }
+        JUTILS_STD20_CONSTEXPR vector& operator+=(const vector& value) { return append(value); }
 
         JUTILS_STD20_CONSTEXPR void removeAt(const const_iterator& placeStart, const const_iterator& placeEnd) noexcept
             { _internalData.erase(placeStart, placeEnd); }
@@ -262,37 +262,37 @@ namespace jutils
     };
 
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container, const T& value) { return container.copy() += value; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const vector<T>& container, const T& value) { return container.copy() += value; }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container, T&& value) { return container.copy() += std::forward<T>(value); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const vector<T>& container, T&& value) { return container.copy() += std::forward<T>(value); }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container, const T& value) { return jarray<T>(std::move(container)) += value; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(vector<T>&& container, const T& value) { return vector<T>(std::move(container)) += value; }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container, T&& value) { return jarray<T>(std::move(container)) += std::forward<T>(value); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(vector<T>&& container, T&& value) { return vector<T>(std::move(container)) += std::forward<T>(value); }
 
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const T& value, const jarray<T>& container)
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const T& value, const vector<T>& container)
     {
-        jarray<T> result;
+        vector<T> result;
         result.reserve(container.getSize() + 1);
         result.add(value);
         return result += container;
     }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(T&& value, const jarray<T>& container)
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(T&& value, const vector<T>& container)
     {
-        jarray<T> result;
+        vector<T> result;
         result.reserve(container.getSize() + 1);
         result.add(std::forward<T>(value));
         return result += container;
     }
     
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container1, std::initializer_list<T> list) { return container1.copy() += list; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const vector<T>& container1, std::initializer_list<T> list) { return container1.copy() += list; }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container1, std::initializer_list<T> list) { return jarray<T>(std::move(container1)) += list; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(vector<T>&& container1, std::initializer_list<T> list) { return vector<T>(std::move(container1)) += list; }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container1, const jarray<T>& container2) { return container1.copy() += container2; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const vector<T>& container1, const vector<T>& container2) { return container1.copy() += container2; }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container1, const jarray<T>& container2) { return jarray<T>(std::move(container1)) += container2; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(vector<T>&& container1, const vector<T>& container2) { return vector<T>(std::move(container1)) += container2; }
 }

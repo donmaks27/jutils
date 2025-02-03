@@ -1,8 +1,8 @@
-﻿// Copyright © 2022-2024 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
-#include "jarray.h"
+#include "vector.h"
 
 #include <set>
 
@@ -90,7 +90,7 @@ namespace jutils
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         [[nodiscard]] bool contains(Pred pred) const noexcept { return findIter(pred) != end(); }
 
-        [[nodiscard]] jarray<type> getKeys() const noexcept;
+        [[nodiscard]] vector<type> getKeys() const noexcept;
 
         template<typename... Args>
         const type& put(Args&&... args) { return *_internalData.emplace(std::forward<Args>(args)...).first; }
@@ -190,9 +190,9 @@ namespace jutils
     }
 
     template<typename T, typename KeyCompare>
-    jarray<T> jset<T, KeyCompare>::getKeys() const noexcept
+    vector<T> jset<T, KeyCompare>::getKeys() const noexcept
     {
-        jarray<type> keys;
+        vector<type> keys;
         for (const auto& key : _internalData)
         {
             keys.add(key);

@@ -1,8 +1,8 @@
-﻿// Copyright © 2023-2024 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2023 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
-#include "jarray.h"
+#include "vector.h"
 #include "jlist.h"
 #include "jmemory.h"
 
@@ -54,7 +54,7 @@ namespace jutils
         [[nodiscard]] bool isValid() const { return asyncWorkerCount != 0; }
 
         inline bool addTask(jasync_task* task);
-        inline void addTasks(const jarray<jasync_task*>& tasks) { addTasks(*tasks, tasks.getSize()); }
+        inline void addTasks(const vector<jasync_task*>& tasks) { addTasks(*tasks, tasks.getSize()); }
         inline void addTasks(std::initializer_list<jasync_task*> tasks) { addTasks(std::data(tasks), tasks.size()); }
         inline void clearTasks();
 

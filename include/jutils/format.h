@@ -51,7 +51,7 @@ namespace jutils
 #endif
 
     JUTILS_TEMPLATE_CONDITION(has_jstring_formatter_v<T>, typename T)
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring join(const jarray<T>& values, const jstring& separator = "")
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring join(const vector<T>& values, const jstring& separator = "")
     {
         if (values.isEmpty())
         {
