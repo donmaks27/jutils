@@ -1,4 +1,4 @@
-﻿// Copyright © 2022-2024 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2022-2025 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -14,7 +14,7 @@ namespace jutils
     {
     public:
 
-        static_assert(!std::is_same_v<T, bool>, "Use std::vector<bool> instead");
+        static_assert(!std::is_same_v<T, bool>, "Use jarray<uint8> or bitvector instead");
 
         using type = T;
         using base_type = std::vector<type>;
@@ -94,24 +94,21 @@ namespace jutils
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const_iterator findIter(Pred pred) const noexcept { return std::find_if(begin(), end(), pred); }
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type indexOf(const type& value) const noexcept;
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type indexOf(const type& value) const noexcept
+        {
+            const index_type index = std::distance(begin(), findIter(value));
+            return index < getSize() ? index : index_invalid;
+        }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type indexOf(Pred pred) const noexcept
         {
-            const index_type size = getSize();
-            for (index_type index = 0; index < size; ++index)
-            {
-                if (pred(get(index)))
-                {
-                    return index;
-                }
-            }
-            return index_invalid;
+            const index_type index = std::distance(begin(), findIter(pred));
+            return index < getSize() ? index : index_invalid;
         }
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(const type& value) const noexcept { return indexOf(value) != index_invalid; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(const type& value) const noexcept { return findIter(value) != end(); }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(Pred pred) const noexcept { return indexOf(pred) != index_invalid; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(Pred pred) const noexcept { return findIter(pred) != end(); }
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR type* find(const type& value) noexcept
         {
@@ -204,9 +201,21 @@ namespace jutils
         JUTILS_STD20_CONSTEXPR jarray& operator+=(const base_type& value) { return append(value); }
         JUTILS_STD20_CONSTEXPR jarray& operator+=(const jarray& value) { return append(value); }
 
-        JUTILS_STD20_CONSTEXPR void removeAt(const_iterator placeStart, const_iterator placeEnd) noexcept { _internalData.erase(placeStart, placeEnd); }
-        JUTILS_STD20_CONSTEXPR void removeAt(const_iterator place, index_type count = 1) noexcept;
-        JUTILS_STD20_CONSTEXPR void removeAt(index_type index, index_type count = 1) noexcept;
+        JUTILS_STD20_CONSTEXPR void removeAt(const const_iterator& placeStart, const const_iterator& placeEnd) noexcept
+            { _internalData.erase(placeStart, placeEnd); }
+        JUTILS_STD20_CONSTEXPR void removeAt(const const_iterator& place, index_type count = 1) noexcept
+        {
+            removeAt(place, std::next(place, static_cast<typename const_iterator::difference_type>(
+                jutils::math::clamp(count, 0, getSize() - std::distance<const_iterator>(begin(), place))
+            )));
+        }
+        JUTILS_STD20_CONSTEXPR void removeAt(index_type index, index_type count = 1) noexcept
+        {
+            if (isValidIndex(index))
+            {
+                removeAt(std::next(begin(), static_cast<typename const_iterator::difference_type>(index)), count);
+            }
+        }
         JUTILS_STD20_CONSTEXPR void removeFirst() noexcept
         {
             if (!isEmpty())
@@ -221,7 +230,17 @@ namespace jutils
                 _internalData.pop_back();
             }
         }
-        JUTILS_STD20_CONSTEXPR index_type remove(const type& value) noexcept;
+        JUTILS_STD20_CONSTEXPR index_type remove(const type& value) noexcept
+        {
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+            return std::erase(_internalData, value);
+#else
+            const auto iter = std::remove(begin(), end(), value);
+            const index_type deletedElementsCount = std::distance(iter, end());
+            _internalData.erase(iter, end());
+            return deletedElementsCount;
+#endif
+        }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         JUTILS_STD20_CONSTEXPR index_type remove(Pred pred) noexcept
         {
@@ -229,7 +248,7 @@ namespace jutils
             return std::erase_if(_internalData, pred);
 #else
             const auto iter = std::remove_if(begin(), end(), pred);
-            const index_type deletedElementsCount = end() - iter;
+            const index_type deletedElementsCount = std::distance(iter, end());
             _internalData.erase(iter, end());
             return deletedElementsCount;
 #endif
@@ -276,61 +295,4 @@ namespace jutils
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(const jarray<T>& container1, const jarray<T>& container2) { return container1.copy() += container2; }
     template<typename T>
     [[nodiscard]] JUTILS_STD20_CONSTEXPR jarray<T> operator+(jarray<T>&& container1, const jarray<T>& container2) { return jarray<T>(std::move(container1)) += container2; }
-
-    template<typename T>
-    JUTILS_STD20_CONSTEXPR index_type jarray<T>::indexOf(const type& value) const noexcept
-    {
-        const index_type size = getSize();
-        for (index_type index = 0; index < size; ++index)
-        {
-            if (value == get(index))
-            {
-                return index;
-            }
-        }
-        return index_invalid;
-    }
-
-    template<typename T>
-    JUTILS_STD20_CONSTEXPR void jarray<T>::removeAt(const_iterator place, index_type count) noexcept
-    {
-        const auto endIter = end();
-        auto placeEnd = place;
-        while ((count > 0) && (placeEnd != endIter))
-        {
-            ++placeEnd;
-            count--;
-        }
-        removeAt(place, placeEnd);
-    }
-    template<typename T>
-    JUTILS_STD20_CONSTEXPR void jarray<T>::removeAt(const index_type index, const index_type count) noexcept
-    {
-        if (isValidIndex(index))
-        {
-            const index_type elementsForDelete = jutils::math::min(count, getSize() - index);
-            if (elementsForDelete == 1)
-            {
-                _internalData.erase(std::next(begin(), index));
-            }
-            else if (elementsForDelete > 1)
-            {
-                const auto startIter = std::next(begin(), index);
-                _internalData.erase(startIter, std::next(startIter, elementsForDelete));
-            }
-        }
-    }
-
-    template<typename T>
-    JUTILS_STD20_CONSTEXPR index_type jarray<T>::remove(const type& value) noexcept
-    {
-#if JUTILS_STD_VERSION >= JUTILS_STD20
-        return std::erase(_internalData, value);
-#else
-        const auto iter = std::remove(begin(), end(), value);
-        const index_type deletedElementsCount = end() - iter;
-        _internalData.erase(iter, end());
-        return deletedElementsCount;
-#endif
-    }
 }
