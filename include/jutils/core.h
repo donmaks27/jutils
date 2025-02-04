@@ -28,3 +28,9 @@
     // Force using fmt lib
     #define JUTILS_USE_FMT
 #endif
+
+#ifdef JUTILS_USE_FMT
+    #define JUTILS_FORMAT_NAMESPACE fmt
+#else
+    #define JUTILS_FORMAT_NAMESPACE std
+#endif

@@ -2,17 +2,21 @@
 
 #pragma once
 
-#include "base_types.h"
-#include "type_traits.h"
-#include "string.h"
+#include "core.h"
+#include "macro_template_condition.h"
 
-#if defined(JUTILS_USE_FMT)
-    #include <fmt/format.h>
-#else
-    #include <format>
+#ifndef JUTILS_USE_MODULES
+    #include "type_traits.h"
+    #include "string.h"
+
+    #ifdef JUTILS_USE_FMT
+        #include <fmt/format.h>
+    #else
+        #include <format>
+    #endif
 #endif
 
-namespace jutils
+JUTILS_MODULE_EXPORT namespace jutils
 {
     template<typename T>
     struct formatter : std::false_type {};
@@ -108,19 +112,15 @@ namespace jutils
     };
 }
 
-#if defined(JUTILS_USE_FMT)
-    #define JUTILS_FORMAT_NAMESPACE fmt
-#else
-    #define JUTILS_FORMAT_NAMESPACE std
-#endif
-
-template<> struct JUTILS_FORMAT_NAMESPACE::formatter<jutils::string> : JUTILS_FORMAT_NAMESPACE::formatter<jutils::string::base_type>
+JUTILS_MODULE_EXPORT template<>
+struct JUTILS_FORMAT_NAMESPACE::formatter<jutils::string> : JUTILS_FORMAT_NAMESPACE::formatter<jutils::string::base_type>
 {
     template<typename FormatContext> auto format(const jutils::string& str, FormatContext& ctx) const
     {
         return JUTILS_FORMAT_NAMESPACE::formatter<jutils::string::base_type>::format(*str, ctx);
     }
 };
+
 #define JUTILS_FORMATTER(type, funcName)                                                                                            \
     template<>                                                                                                                      \
     struct JUTILS_FORMAT_NAMESPACE::formatter<type> : JUTILS_FORMAT_NAMESPACE::formatter<decltype(funcName(std::declval<type>()))>  \
