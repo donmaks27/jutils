@@ -1,8 +1,8 @@
-// Copyright © 2022-2024 Leonov Maksim. All Rights Reserved.
+// Copyright © 2022 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
-#include "math/common.h"
+#include "math/math.h"
 
 #include <algorithm>
 #include <list>
@@ -308,7 +308,7 @@ namespace jutils
     template<typename T>
     [[nodiscard]] jlist<T> operator+(const jlist<T>& container1, std::initializer_list<T> list) { return container1.copy() += list; }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, std::initializer_list<T> list) { return jlist<T>(std::move(container1)) += list; }
+    [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, std::initializer_list<T> list) { return list<T>(std::move(container1)) += list; }
     template<typename T>
     [[nodiscard]] jlist<T> operator+(const jlist<T>& container1, const jlist<T>& container2) { return container1.copy() += container2; }
     template<typename T>

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "type_traits.h"
-#include "math/common.h"
+#include "math/math.h"
 
 #include <deque>
 

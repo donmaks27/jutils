@@ -1,16 +1,26 @@
-﻿// Copyright © 2021-2024 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
-#include "../type_traits.h"
+#include "../core.h"
+#include "../macro_template_condition.h"
 
-#include <cmath>
-#include <initializer_list>
-#if JUTILS_STD_VERSION >= JUTILS_STD20
-    #include <numbers>
+#ifndef JUTILS_USE_MODULES
+    #include <cmath>
+    #include <initializer_list>
+    #if JUTILS_STD_VERSION >= JUTILS_STD20
+        #include <numbers>
+    #endif
+
+    #ifdef JUTILS_USE_GLM
+        #include <glm/detail/qualifier.hpp>
+    #endif
+
+    #include "../base_types.h"
+    #include "../type_traits.h"
 #endif
 
-namespace jutils
+JUTILS_MODULE_EXPORT namespace jutils
 {
     namespace math
     {
@@ -85,6 +95,8 @@ namespace jutils
 
         JUTILS_TEMPLATE_CONDITION(std::is_arithmetic_v<T>, typename T)
         [[nodiscard]] constexpr auto sqr(const T value) noexcept { return value * value; }
+        JUTILS_TEMPLATE_CONDITION(std::is_arithmetic_v<T>, typename T)
+        [[nodiscard]] auto sqrt(const T value) { return std::sqrt(value); }
 
         JUTILS_TEMPLATE_CONDITION(std::is_integral_v<R> && std::is_floating_point_v<T>, typename R = int32, typename T = float)
         [[nodiscard]] R round(const T value) { return static_cast<R>(std::round(value)); }
@@ -93,17 +105,41 @@ namespace jutils
         JUTILS_TEMPLATE_CONDITION(std::is_integral_v<R> && std::is_floating_point_v<T>, typename R = int32, typename T = float)
         [[nodiscard]] R roundUp(const T value) { return static_cast<R>(std::ceil(value)); }
 
-        JUTILS_TEMPLATE_CONDITION(std::is_arithmetic_v<T>, typename T)
-        [[nodiscard]] constexpr auto rads(const T degrees)
+#ifdef JUTILS_USE_GLM
+
+        JUTILS_TEMPLATE_CONDITION(
+            (std::is_floating_point_v<T> && jutils::math::isWithin(Size, 2, 4)), 
+            glm::length_t Size, typename T, glm::qualifier Q
+        )
+        [[nodiscard]] constexpr bool isEqual(const glm::vec<Size, T, Q>& value1, const glm::vec<Size, T, Q>& value2, const T eps = jutils::math::eps<T>) noexcept
         {
-            using R = std::conditional_t<std::is_floating_point_v<T>, T, double>;
-            return static_cast<R>(degrees) * jutils::math::pi<R> / 180;
+            for (glm::length_t i = 0; i < Size; i++)
+            {
+                if (!jutils::math::isEqual(value1[i], value2[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
-        JUTILS_TEMPLATE_CONDITION(std::is_arithmetic_v<T>, typename T)
-        [[nodiscard]] constexpr auto degrees(const T rads)
+        JUTILS_TEMPLATE_CONDITION(
+            (std::is_floating_point_v<T> && jutils::math::isWithin(Size, 2, 4)), 
+            glm::length_t Size, typename T, glm::qualifier Q
+        )
+        [[nodiscard]] constexpr bool isNearlyZero(const glm::vec<Size, T, Q>& value, const T eps = jutils::math::eps<T>) noexcept
         {
-            using R = std::conditional_t<std::is_floating_point_v<T>, T, double>;
-            return static_cast<R>(rads) / jutils::math::pi<R> * 180;
+            for (glm::length_t i = 0; i < Size; i++)
+            {
+                if (!jutils::math::isNearlyZero(value[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
+
+#endif
     }
 }
+
+

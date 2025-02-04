@@ -18,12 +18,12 @@ namespace jutils
     struct formatter : std::false_type {};
 
     template<typename T>
-    using has_jstring_formatter = std::bool_constant<formatter<T>::value>;
+    using has_jstring_formatter = std::bool_constant<formatter<jutils::remove_cvref_t<T>>::value>;
     template<typename T>
     constexpr bool has_jstring_formatter_v = has_jstring_formatter<T>::value;
 
     JUTILS_TEMPLATE_CONDITION(has_jstring_formatter_v<T>, typename T)
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring toString(T value) noexcept { return formatter<T>::format(value); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR jstring toString(T value) noexcept { return formatter<jutils::remove_cvref_t<T>>::format(value); }
 
 #if defined(JUTILS_USE_FMT)
     template<typename T>
@@ -104,7 +104,7 @@ namespace jutils
     template<>
     struct formatter<jstring> : std::true_type
     {
-        [[nodiscard]] static JUTILS_STD20_CONSTEXPR jstring format(jstring value) noexcept { return std::move(value); }
+        [[nodiscard]] static JUTILS_STD20_CONSTEXPR jstring format(jstring value) noexcept { return value; }
     };
 }
 

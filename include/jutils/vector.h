@@ -2,14 +2,18 @@
 
 #pragma once
 
-#include "math/common.h"
+#include "core.h"
 
-#include <algorithm>
-#include <vector>
+#ifndef JUTILS_USE_MODULES
+    #include <algorithm>
+    #include <vector>
+
+    #include "math/math.h"
+#endif
 
 namespace jutils
 {
-    template<typename T>
+    JUTILS_MODULE_EXPORT template<typename T>
     class vector
     {
     public:
