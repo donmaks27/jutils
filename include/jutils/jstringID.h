@@ -35,7 +35,7 @@ namespace jutils
             }
         }
 
-        index_type addOrFind(const jstring& str)
+        index_type addOrFind(const string& str)
         {
             if (str.isEmpty())
             {
@@ -64,7 +64,7 @@ namespace jutils
             std::shared_lock lock(rwMutex);
             return stringPointers.isValidIndex(index);
         }
-        jstring get(const index_type index) const noexcept
+        string get(const index_type index) const noexcept
         {
             {
                 std::shared_lock lock(rwMutex);
@@ -86,10 +86,10 @@ namespace jutils
         struct strings_table_entry
         {
             strings_table_entry() noexcept = default;
-            strings_table_entry(const jstring& str)
+            strings_table_entry(const string& str)
                 : string(str)
             {}
-            strings_table_entry(jstring&& str) noexcept
+            strings_table_entry(string&& str) noexcept
                 : string(std::move(str))
             {}
             strings_table_entry(const strings_table_entry&) = default;
@@ -98,19 +98,19 @@ namespace jutils
             strings_table_entry& operator=(const strings_table_entry&) = default;
             strings_table_entry& operator=(strings_table_entry&&) noexcept = default;
 
-            jstring string;
+            string string;
             index_type pointerIndex = index_invalid;
 
-            [[nodiscard]] bool operator==(const jstring& str) const noexcept { return string == str; }
+            [[nodiscard]] bool operator==(const string& str) const noexcept { return string == str; }
             [[nodiscard]] bool operator==(const strings_table_entry& entry) const noexcept { return operator==(entry.string); }
 
-            [[nodiscard]] bool operator!=(const jstring& str) const noexcept { return !operator==(str); }
+            [[nodiscard]] bool operator!=(const string& str) const noexcept { return !operator==(str); }
             [[nodiscard]] bool operator!=(const strings_table_entry& entry) const noexcept { return operator!=(entry.string); }
         };
         struct strings_table_entry_hash
         {
             [[nodiscard]] std::size_t operator()(const strings_table_entry& entry) const noexcept
-                { return jutils::hash<jstring>{}(entry.string); }
+                { return jutils::hash<string>{}(entry.string); }
         };
         
         jset_hash<strings_table_entry, strings_table_entry_hash> stringsTable;
@@ -122,10 +122,10 @@ namespace jutils
     {
     public:
         constexpr jstringID() noexcept = default;
-        jstringID(const jstring::char_type* const str)
-            : jstringID(jstring(str))
+        jstringID(const string::char_type* const str)
+            : jstringID(string(str))
         {}
-        jstringID(const jstring& str)
+        jstringID(const string& str)
         {
             pointerIndex = jstring_hash_table::GetInstanse()->addOrFind(str);
         }
@@ -134,7 +134,7 @@ namespace jutils
         constexpr jstringID& operator=(const jstringID&) noexcept = default;
 
         [[nodiscard]] constexpr bool isValid() const noexcept { return pointerIndex != index_invalid; }
-        [[nodiscard]] jstring toString() const noexcept { return jstring_hash_table::GetInstanse()->get(pointerIndex); }
+        [[nodiscard]] string toString() const noexcept { return jstring_hash_table::GetInstanse()->get(pointerIndex); }
 
         [[nodiscard]] constexpr bool operator==(const jstringID& strID) const noexcept { return isValid() && (pointerIndex == strID.pointerIndex); }
         [[nodiscard]] constexpr bool operator!=(const jstringID& strID) const noexcept { return !operator==(strID); }
@@ -153,27 +153,14 @@ namespace jutils
 template<>
 struct jutils::formatter<jutils::remove_cvref_t< jutils::jstringID >> : std::true_type
 {
-    [[nodiscard]] static jutils::jstring format(const jutils::jstringID& value) noexcept { return value.toString(); }
+    [[nodiscard]] static jutils::string format(const jutils::jstringID& value) noexcept { return value.toString(); }
 };
-
-#if defined(JUTILS_USE_FMT)
 template<>
-struct fmt::formatter<jutils::jstringID> : fmt::formatter<const char*>
+struct JUTILS_FORMAT_NAMESPACE::formatter<jutils::jstringID> : JUTILS_FORMAT_NAMESPACE::formatter<jutils::string>
 {
     template<typename FormatContext>
     auto format(const jutils::jstringID& value, FormatContext& ctx) const
     {
-        return fmt::formatter<const char*>::format(*value.toString(), ctx);
+        return JUTILS_FORMAT_NAMESPACE::formatter<jutils::string>::format(value.toString(), ctx);
     }
 };
-#else
-template<>
-struct std::formatter<jutils::jstringID> : std::formatter<const char*>
-{
-    template<typename FormatContext>
-    auto format(const jutils::jstringID& value, FormatContext& ctx) const
-    {
-        return std::formatter<const char*>::format(*value.toString(), ctx);
-    }
-};
-#endif

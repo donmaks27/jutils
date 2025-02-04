@@ -3,6 +3,7 @@
 #pragma once
 
 #include "core.h"
+#include "macro_template_condition.h"
 
 #ifndef JUTILS_USE_MODULES
     #include <algorithm>

@@ -1,4 +1,4 @@
-// Copyright © 2021-2024 Leonov Maksim. All Rights Reserved.
+// Copyright © 2021 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
@@ -35,11 +35,11 @@ namespace jutils::log
 
     inline void print(const char* str) { std::printf("%s", str); }
     inline void print(const std::string& str) { jutils::log::print(str.c_str()); }
-    inline void print(const jstring& str) { jutils::log::print(*str); }
+    inline void print(const string& str) { jutils::log::print(*str); }
 
     inline void println(const char* str) { std::printf("%s\n", str); }
     inline void println(const std::string& str) { jutils::log::println(str.c_str()); }
-    inline void println(const jstring& str) { jutils::log::println(*str); }
+    inline void println(const string& str) { jutils::log::println(*str); }
 }
 
 JUTILS_STRING_FORMATTER_CONSTEXPR(jutils::log::verbosityLevel, jutils::log::verbosityLevelToString);

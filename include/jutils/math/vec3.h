@@ -9,7 +9,7 @@
 template<typename T, glm::qualifier Q>
 struct jutils::formatter<glm::vec<3, T, Q>> : std::true_type
 {
-    [[nodiscard]] static jutils::jstring format(const glm::vec<3, T, Q>& v) noexcept
+    [[nodiscard]] static jutils::string format(const glm::vec<3, T, Q>& v) noexcept
     {
         return jutils::format("{{ {}; {}; {} }}", v.x, v.y, v.z);
     }
