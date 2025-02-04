@@ -6,15 +6,15 @@
 #include "macro_template_condition.h"
 
 #ifndef JUTILS_USE_MODULES
+    #include "math/math.h"
+
     #include <algorithm>
     #include <vector>
-
-    #include "math/math.h"
 #endif
 
-namespace jutils
+JUTILS_MODULE_EXPORT namespace jutils
 {
-    JUTILS_MODULE_EXPORT template<typename T>
+    template<typename T>
     class vector
     {
     public:
@@ -65,6 +65,7 @@ namespace jutils
         JUTILS_STD20_CONSTEXPR vector& operator=(vector&& value) noexcept = default;
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const base_type& toBase() const noexcept { return _internalData; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR operator base_type() const noexcept { return toBase(); }
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type getSize() const noexcept { return _internalData.size(); }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR bool isEmpty() const noexcept { return _internalData.empty(); }
