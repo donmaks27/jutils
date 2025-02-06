@@ -151,7 +151,7 @@ namespace jutils
 }
 
 template<>
-struct jutils::formatter<jutils::remove_cvref_t< jutils::jstringID >> : std::true_type
+struct jutils::string_formatter<jutils::remove_cvref_t< jutils::jstringID >> : std::true_type
 {
     [[nodiscard]] static jutils::string format(const jutils::jstringID& value) noexcept { return value.toString(); }
 };

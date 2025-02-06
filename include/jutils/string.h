@@ -3,16 +3,13 @@
 #pragma once
 
 #include "core.h"
+#include "math/hash.h"
+#include "vector.h"
 
-#ifndef JUTILS_USE_MODULES
-    #include "math/hash.h"
-    #include "vector.h"
+#include <string>
+#include <regex>
 
-    #include <string>
-    #include <regex>
-#endif
-
-JUTILS_MODULE_EXPORT namespace jutils
+namespace jutils
 {
     class string
     {

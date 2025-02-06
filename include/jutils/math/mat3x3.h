@@ -8,7 +8,7 @@
 #include <glm/mat3x3.hpp>
 
 template<typename T, glm::qualifier Q>
-struct jutils::formatter<glm::mat<3, 3, T, Q>> : std::true_type
+struct jutils::string_formatter<glm::mat<3, 3, T, Q>> : std::true_type
 {
     [[nodiscard]] static jutils::string format(const glm::mat<3, 3, T, Q>& v) noexcept
     {

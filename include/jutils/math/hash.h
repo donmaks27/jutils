@@ -3,15 +3,12 @@
 #pragma once
 
 #include "../core.h"
+#include "../base_types.h"
 #include "../macro_template_condition.h"
 
-#ifndef JUTILS_USE_MODULES
-    #include <string>
+#include <string>
 
-    #include "../type_traits.h"
-#endif
-
-namespace jutils_details
+namespace jutils_private
 {
     constexpr jutils::uint64 hash_crc64_table[256] = {
         0x0000000000000000, 0x42F0E1EBA9EA3693, 0x85E1C3D753D46D26, 0xC711223CFA3E5BB5, 0x493366450E42ECDF, 0x0BC387AEA7A8DA4C, 0xCCD2A5925D9681F9, 0x8E224479F47CB76A,
@@ -49,7 +46,7 @@ namespace jutils_details
     };
 }
 
-JUTILS_MODULE_EXPORT namespace jutils::math
+namespace jutils::math
 {
     using hash_t = std::size_t;
 
@@ -77,7 +74,7 @@ JUTILS_MODULE_EXPORT namespace jutils::math
         uint64 result = 0;
         for (uint64 i = 0; i < length; i++)
         {
-            result = (result << 8) ^ jutils_details::hash_crc64_table[((result >> 56) ^ data[i]) & mask];
+            result = (result << 8) ^ jutils_private::hash_crc64_table[((result >> 56) ^ data[i]) & mask];
         }
         return result;
     }
@@ -88,42 +85,42 @@ JUTILS_MODULE_EXPORT namespace jutils::math
         uint64 result = 0;
         for (uint64 i = 0; i < length; i++)
         {
-            result = (result << 8) ^ jutils_details::hash_crc64_table[((result >> 56) ^ static_cast<uint8>(str[i])) & mask];
+            result = (result << 8) ^ jutils_private::hash_crc64_table[((result >> 56) ^ static_cast<uint8>(str[i])) & mask];
         }
         return result;
     }
     [[nodiscard]] constexpr uint64 hash_crc64(const char* str) noexcept
         { return str != nullptr ? hash_crc64(str, std::char_traits<char>::length(str)) : 0; }
 
-    [[nodiscard]] constexpr uint64 hash_crc64(const uint8 value) noexcept { return jutils_details::hash_crc64_table[value]; }
+    [[nodiscard]] constexpr uint64 hash_crc64(const uint8 value) noexcept { return jutils_private::hash_crc64_table[value]; }
     [[nodiscard]] constexpr uint64 hash_crc64(const uint16 value) noexcept
     {
         constexpr uint64 mask = 0x00000000000000FF;
 
-        const uint64 preResult = jutils_details::hash_crc64_table[value & mask];
-        return (preResult << 8) ^ jutils_details::hash_crc64_table[((preResult >> 56) ^ (value >> 8)) & mask];
+        const uint64 preResult = jutils_private::hash_crc64_table[value & mask];
+        return (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ (value >> 8)) & mask];
     }
     [[nodiscard]] constexpr uint64 hash_crc64(const uint32 value) noexcept
     {
         constexpr uint64 mask = 0x00000000000000FF;
 
-        uint64 preResult = jutils_details::hash_crc64_table[value & mask];
-        preResult = (preResult << 8) ^ jutils_details::hash_crc64_table[((preResult >> 56) ^ ((value >> 8) & mask)) & mask];
-        preResult = (preResult << 8) ^ jutils_details::hash_crc64_table[((preResult >> 56) ^ ((value >> 16) & mask)) & mask];
-        return (preResult << 8) ^ jutils_details::hash_crc64_table[((preResult >> 56) ^ (value >> 24)) & mask];
+        uint64 preResult = jutils_private::hash_crc64_table[value & mask];
+        preResult = (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ ((value >> 8) & mask)) & mask];
+        preResult = (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ ((value >> 16) & mask)) & mask];
+        return (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ (value >> 24)) & mask];
     }
     [[nodiscard]] constexpr uint64 hash_crc64(const uint64 value) noexcept
     {
         constexpr uint64 mask = 0x00000000000000FF;
 
-        uint64 preResult = jutils_details::hash_crc64_table[value & mask];
-        preResult = (preResult << 8) ^ jutils_details::hash_crc64_table[((preResult >> 56) ^ ((value >> 8) & mask)) & mask];
-        preResult = (preResult << 8) ^ jutils_details::hash_crc64_table[((preResult >> 56) ^ ((value >> 16) & mask)) & mask];
-        preResult = (preResult << 8) ^ jutils_details::hash_crc64_table[((preResult >> 56) ^ ((value >> 24) & mask)) & mask];
-        preResult = (preResult << 8) ^ jutils_details::hash_crc64_table[((preResult >> 56) ^ ((value >> 32) & mask)) & mask];
-        preResult = (preResult << 8) ^ jutils_details::hash_crc64_table[((preResult >> 56) ^ ((value >> 40) & mask)) & mask];
-        preResult = (preResult << 8) ^ jutils_details::hash_crc64_table[((preResult >> 56) ^ ((value >> 48) & mask)) & mask];
-        return (preResult << 8) ^ jutils_details::hash_crc64_table[((preResult >> 56) ^ (value >> 56)) & mask];
+        uint64 preResult = jutils_private::hash_crc64_table[value & mask];
+        preResult = (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ ((value >> 8) & mask)) & mask];
+        preResult = (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ ((value >> 16) & mask)) & mask];
+        preResult = (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ ((value >> 24) & mask)) & mask];
+        preResult = (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ ((value >> 32) & mask)) & mask];
+        preResult = (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ ((value >> 40) & mask)) & mask];
+        preResult = (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ ((value >> 48) & mask)) & mask];
+        return (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ (value >> 56)) & mask];
     }
 
     JUTILS_TEMPLATE_CONDITION(std::is_integral_v<T> && std::is_signed_v<T>, typename T)

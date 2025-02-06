@@ -2,12 +2,6 @@
 
 #pragma once
 
-#ifdef JUTILS_USE_MODULES
-    #define JUTILS_MODULE_EXPORT export
-#else
-    #define JUTILS_MODULE_EXPORT
-#endif
-
 #define JUTILS_STD11 201103L
 #define JUTILS_STD14 201402L
 #define JUTILS_STD17 201703L
@@ -33,4 +27,14 @@
     #define JUTILS_FORMAT_NAMESPACE fmt
 #else
     #define JUTILS_FORMAT_NAMESPACE std
+#endif
+
+#ifndef JUTILS_LOG_DISABLED
+    #if !defined(_MSC_VER) && defined(__FILE_NAME__)
+        #define JUTILS_FILENAME __FILE_NAME__
+    #else
+        #define JUTILS_FILENAME __FILE__
+    #endif
+#else
+    #define JUTILS_FILENAME
 #endif
