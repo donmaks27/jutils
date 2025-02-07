@@ -8,6 +8,7 @@ module;
 #include <initializer_list>
 #include <numbers>
 #include <string>
+#include <type_traits>
 #ifdef JUTILS_USE_GLM
     #include <glm/detail/qualifier.hpp>
 #endif

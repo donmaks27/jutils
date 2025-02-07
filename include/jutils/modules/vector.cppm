@@ -6,6 +6,7 @@ module;
 
 #include <algorithm>
 #include <vector>
+#include <type_traits>
 
 export module jutils.vector;
 

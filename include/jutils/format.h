@@ -4,16 +4,18 @@
 
 #include "core.h"
 #include "macro_template_condition.h"
-#include "type_traits.h"
-#include "string.h"
 
-#ifdef JUTILS_USE_FMT
-    #include <fmt/format.h>
-#else
-    #include <format>
+#ifndef JUTILS_MODULE
+    #include "type_traits.h"
+    #include "string.h"
+    #ifdef JUTILS_USE_FMT
+        #include <fmt/format.h>
+    #else
+        #include <format>
+    #endif
 #endif
 
-namespace jutils
+JUTILS_MODULE_EXPORT namespace jutils
 {
     template<typename T>
     struct string_formatter : std::false_type {};
