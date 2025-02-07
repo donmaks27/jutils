@@ -4,7 +4,7 @@
 
 #include "core.h"
 
-#ifndef JUTILS_USE_MODULES
+#ifndef JUTILS_MODULE
     #include <type_traits>
 #endif
 
@@ -12,7 +12,7 @@
 #define JUTILS_TEMPLATE_ENABLE(...) JUTILS_TEMPLATE_ENABLE_IMPL(__VA_ARGS__) = nullptr
 
 #if JUTILS_STD_VERSION >= JUTILS_STD20
-    #ifndef JUTILS_USE_MODULES
+    #ifndef JUTILS_MODULE
         #include <concepts>
     #endif
     #define JUTILS_TEMPLATE_CONDITION_IMPL(Condition, ...) template<__VA_ARGS__> requires Condition

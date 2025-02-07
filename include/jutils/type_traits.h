@@ -4,12 +4,14 @@
 
 #include "core.h"
 
-#include <type_traits>
-#if JUTILS_STD_VERSION >= JUTILS_STD20
-    #include <concepts>
+#ifndef JUTILS_MODULE
+    #include <type_traits>
+    #if JUTILS_STD_VERSION >= JUTILS_STD20
+        #include <concepts>
+    #endif
 #endif
 
-namespace jutils
+JUTILS_MODULE_EXPORT namespace jutils
 {
 #if JUTILS_STD_VERSION >= JUTILS_STD20
     template<typename T>

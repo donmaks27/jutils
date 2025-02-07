@@ -4,12 +4,14 @@
 
 #include "core.h"
 #include "macro_template_condition.h"
-#include "math/math.h"
 
-#include <algorithm>
-#include <vector>
+#ifndef JUTILS_MODULE
+    #include "math/math.h"
+    #include <algorithm>
+    #include <vector>
+#endif
 
-namespace jutils
+JUTILS_MODULE_EXPORT namespace jutils
 {
     template<typename T>
     class vector

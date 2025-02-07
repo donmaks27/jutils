@@ -3,13 +3,15 @@
 #pragma once
 
 #include "core.h"
-#include "math/hash.h"
-#include "vector.h"
 
-#include <string>
-#include <regex>
+#ifndef JUTILS_MODULE
+    #include "math/hash.h"
+    #include "vector.h"
+    #include <string>
+    #include <regex>
+#endif
 
-namespace jutils
+JUTILS_MODULE_EXPORT namespace jutils
 {
     class string
     {
@@ -407,19 +409,6 @@ namespace jutils
         }
     };
 
-    template<>
-    struct math::hash<string>
-    {
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR math::hash_t operator()(const string& str) const noexcept
-            { return math::hash<const char*>{}(*str); }
-    };
-    template<>
-    struct math::hash<std::string>
-    {
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR math::hash_t operator()(const std::string& str) const noexcept
-            { return math::hash<const char*>{}(str.c_str()); }
-    };
-
     [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(const string& str1, const string::char_type character)    { return str1.toBase() + character; }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(string&& str1, const string::char_type character)         { return std::move(string(std::move(str1)) += character); }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(const string::char_type character, const string& str1)    { return character + str1.toBase(); }
@@ -453,4 +442,20 @@ namespace jutils
     [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator>=(const string& str1, const string& str2) noexcept                   { return str1.compare(str2) >= 0; }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator>=(const string& str1, const string::char_type* const str2) noexcept  { return str1.compare(str2) >= 0; }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator>=(const string::char_type* const str1, const string& str2) noexcept  { return str2.compare(str1) <= 0; }
+}
+
+JUTILS_MODULE_EXPORT namespace jutils::math
+{
+    template<>
+    struct hash<string>
+    {
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR math::hash_t operator()(const string& str) const noexcept
+            { return math::hash<const char*>{}(*str); }
+    };
+    template<>
+    struct hash<std::string>
+    {
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR math::hash_t operator()(const std::string& str) const noexcept
+            { return math::hash<const char*>{}(str.c_str()); }
+    };
 }
