@@ -2,15 +2,14 @@
 
 #pragma once
 
-/**
- * #define JUTILS_LOG_DISABLED - disable printing logs
- */
-
 #include "core.h"
-#include "format.h"
 #include "macro_formatter.h"
 
-namespace jutils::log
+#ifndef JUTILS_MODULE
+    #include "format.h"
+#endif
+
+JUTILS_MODULE_EXPORT namespace jutils::log
 {
     enum class type : uint8 { fatal, error, warning, info };
 
@@ -38,4 +37,4 @@ namespace jutils_private::log
         return "       ";
     }
 }
-JUTILS_STRING_FORMATTER_CONSTEXPR(jutils::log::type, jutils_private::log::typeToString);
+JUTILS_STRING_FORMATTER_CONSTEXPR(jutils::log::type, jutils_private::log::typeToString)

@@ -24,8 +24,10 @@
 #endif
 
 #ifdef JUTILS_USE_FMT
+    #define JUTILS_FORMAT_HEADER <fmt/format.h>
     #define JUTILS_FORMAT_NAMESPACE fmt
 #else
+    #define JUTILS_FORMAT_HEADER <format>
     #define JUTILS_FORMAT_NAMESPACE std
 #endif
 

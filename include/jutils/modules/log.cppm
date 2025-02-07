@@ -5,12 +5,10 @@ module;
 #define JUTILS_MODULE
 
 #include "../core.h"
-#include <type_traits>
-#include <string>
 #include JUTILS_FORMAT_HEADER
 
-export module jutils.format;
+export module jutils.log;
 
-export import jutils.string;
+export import jutils.format;
 
-#include "../format.h"
+#include "../log.h"

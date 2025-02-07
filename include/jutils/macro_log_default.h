@@ -4,6 +4,10 @@
 
 #include "core.h"
 
+#ifndef JUTILS_MODULE
+    #include JUTILS_FORMAT_HEADER
+#endif
+
 #ifndef JUTILS_LOG_DISABLED
     #if JUTILS_VA_OPT_SUPPORTED // __VA_OPT__
         #define JUTILS_LOG(logType, formatStr, ...) jutils::log::print(jutils::format(                      \

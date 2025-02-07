@@ -8,11 +8,7 @@
 #ifndef JUTILS_MODULE
     #include "type_traits.h"
     #include "string.h"
-    #ifdef JUTILS_USE_FMT
-        #include <fmt/format.h>
-    #else
-        #include <format>
-    #endif
+    #include JUTILS_FORMAT_HEADER
 #endif
 
 JUTILS_MODULE_EXPORT namespace jutils
