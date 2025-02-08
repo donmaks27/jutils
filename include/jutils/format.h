@@ -8,7 +8,7 @@
 #ifndef JUTILS_MODULE
     #include "type_traits.h"
     #include "string.h"
-    #include JUTILS_FORMAT_HEADER
+    #include "macro/formatter.h"
 #endif
 
 JUTILS_MODULE_EXPORT namespace jutils
@@ -107,11 +107,14 @@ JUTILS_MODULE_EXPORT namespace jutils
     };
 }
 
-template<>
-struct JUTILS_FORMAT_NAMESPACE::formatter<jutils::string> : JUTILS_FORMAT_NAMESPACE::formatter<jutils::string::base_type>
+JUTILS_MODULE_EXPORT namespace JUTILS_FORMAT_NAMESPACE
 {
-    template<typename FormatContext> auto format(const jutils::string& str, FormatContext& ctx) const
+    template<>
+    struct formatter<jutils::string> : formatter<jutils::string::base_type>
     {
-        return JUTILS_FORMAT_NAMESPACE::formatter<jutils::string::base_type>::format(*str, ctx);
-    }
-};
+        template<typename FormatContext> auto format(const jutils::string& str, FormatContext& ctx) const
+        {
+            return formatter<jutils::string::base_type>::format(*str, ctx);
+        }
+    };
+}

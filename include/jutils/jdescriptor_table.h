@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "jdelegate_multicast.h"
+#include "delegate_multicast.h"
 #include "juid.h"
 
 namespace jutils

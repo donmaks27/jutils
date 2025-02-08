@@ -2,29 +2,33 @@
 
 #pragma once
 
-#include "jdelegate.h"
-#include "vector.h"
+#include "core.h"
 
-namespace jutils
+#ifndef JUTILS_MODULE
+    #include "delegate.h"
+    #include "vector.h"
+#endif
+
+JUTILS_MODULE_EXPORT namespace jutils
 {
     template<typename... Args>
-    class jdelegate_multicast
+    class delegate_multicast
     {
     public:
-        jdelegate_multicast() = default;
-        jdelegate_multicast(const jdelegate_multicast& value)
+        delegate_multicast() = default;
+        delegate_multicast(const delegate_multicast& value)
             : _delegates(value._delegates)
         {
             _clearPendingDeleteEntries();
         }
-        jdelegate_multicast(jdelegate_multicast&& value) noexcept
+        delegate_multicast(delegate_multicast&& value) noexcept
             : _delegates(std::move(value._delegates))
             , _callCounter(value._callCounter)
         {
             value._callCounter = 0;
         }
 
-        jdelegate_multicast& operator=(const jdelegate_multicast& value)
+        delegate_multicast& operator=(const delegate_multicast& value)
         {
             if (this != &value)
             {
@@ -33,7 +37,7 @@ namespace jutils
             }
             return *this;
         }
-        jdelegate_multicast& operator=(jdelegate_multicast&& value) noexcept
+        delegate_multicast& operator=(delegate_multicast&& value) noexcept
         {
             _delegates = std::move(value._delegates);
             _callCounter = value._callCounter;
@@ -175,7 +179,7 @@ namespace jutils
 
         struct delegate_entry
         {
-            jdelegate<Args...> delegate;
+            delegate<Args...> delegate;
             bool pendingDelete = false;
         };
 
@@ -209,35 +213,3 @@ namespace jutils
         void _clearPendingDeleteEntries() const { _delegates.remove([](const delegate_entry& entry){ return entry.pendingDelete; }); }
     };
 }
-
-#define JUTILS_CREATE_MULTICAST_DELEGATE_INTERNAL(DelegateName, ParamsTypes, ParamsNames, Params)   \
-class DelegateName : public jutils::jdelegate_multicast<ParamsTypes>                                \
-{                                                                                                   \
-    using base_class = jutils::jdelegate_multicast<ParamsTypes>;                                    \
-public:                                                                                             \
-    DelegateName() : base_class() {}                                                                \
-    DelegateName(const base_class& value) : base_class(value) {}                                    \
-    DelegateName(base_class&& value) noexcept : base_class(std::move(value)) {}                     \
-    DelegateName& operator=(const base_class& value)                                                \
-        { base_class::operator=(value); return *this; }                                             \
-    DelegateName& operator=(base_class&& value) noexcept                                            \
-        { base_class::operator=(std::move(value)); return *this; }                                  \
-    void call(Params) const { base_class::call(ParamsNames); }                                      \
-}
-
-#define JUTILS_CREATE_MULTICAST_DELEGATE(DelegateName) JUTILS_CREATE_MULTICAST_DELEGATE_INTERNAL(DelegateName, , , )
-#define JUTILS_CREATE_MULTICAST_DELEGATE1(DelegateName, ParamType1, ParamName1) JUTILS_CREATE_MULTICAST_DELEGATE_INTERNAL(DelegateName, \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1), \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1))
-#define JUTILS_CREATE_MULTICAST_DELEGATE2(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2) JUTILS_CREATE_MULTICAST_DELEGATE_INTERNAL(DelegateName, \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1, ParamType2), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1, ParamName2), \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1, ParamType2 ParamName2))
-#define JUTILS_CREATE_MULTICAST_DELEGATE3(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2, ParamType3, ParamName3) JUTILS_CREATE_MULTICAST_DELEGATE_INTERNAL(DelegateName, \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1, ParamType2, ParamType3), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1, ParamName2, ParamName3), \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1, ParamType2 ParamName2, ParamType3 ParamName3))
-#define JUTILS_CREATE_MULTICAST_DELEGATE4(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2, ParamType3, ParamName3, ParamType4, ParamName4) JUTILS_CREATE_MULTICAST_DELEGATE_INTERNAL(DelegateName, \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1, ParamType2, ParamType3, ParamType4), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1, ParamName2, ParamName3, ParamName4), \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1, ParamType2 ParamName2, ParamType3 ParamName3, ParamType4 ParamName4))
-#define JUTILS_CREATE_MULTICAST_DELEGATE5(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2, ParamType3, ParamName3, ParamType4, ParamName4, ParamType5, ParamName5) JUTILS_CREATE_MULTICAST_DELEGATE_INTERNAL(DelegateName, \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1, ParamType2, ParamType3, ParamType4, ParamType5), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1, ParamName2, ParamName3, ParamName4, ParamName5), \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1, ParamType2 ParamName2, ParamType3 ParamName3, ParamType4 ParamName4, ParamType5 ParamName5))

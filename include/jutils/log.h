@@ -7,6 +7,7 @@
 
 #ifndef JUTILS_MODULE
     #include "format.h"
+    #include "macro/log.h"
 #endif
 
 JUTILS_MODULE_EXPORT namespace jutils::log

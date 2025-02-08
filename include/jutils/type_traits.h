@@ -5,10 +5,7 @@
 #include "core.h"
 
 #ifndef JUTILS_MODULE
-    #include <type_traits>
-    #if JUTILS_STD_VERSION >= JUTILS_STD20
-        #include <concepts>
-    #endif
+    #include "macro/template_condition.h"
 #endif
 
 JUTILS_MODULE_EXPORT namespace jutils
