@@ -13,3 +13,4 @@ export module jutils.vector;
 export import jutils.math;
 
 #include "../vector.h"
+#include "../bitvector.h"

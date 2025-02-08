@@ -2,12 +2,15 @@
 
 #pragma once
 
-#include "math/math.h"
+#include "core.h"
 
-#include <algorithm>
-#include <vector>
+#ifndef JUTILS_MODULE
+    #include "math/math.h"
+    #include <algorithm>
+    #include <vector>
+#endif
 
-namespace jutils
+JUTILS_MODULE_EXPORT namespace jutils
 {
     class bitvector
     {
