@@ -409,17 +409,47 @@ JUTILS_MODULE_EXPORT namespace jutils
         }
     };
 
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(string&& str, const string::char_type character)
+    {
+        string result = std::move(str);
+        result += character;
+        return result;
+    }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(const string::char_type character, string&& str)
+    {
+        string result = std::move(str);
+        result.addAt(0, character);
+        return result;
+    }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(string&& str1, const string& str2)
+    {
+        string result = std::move(str1);
+        result += str2;
+        return result;
+    }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(const string& str1, string&& str2)
+    {
+        string result = std::move(str2);
+        result.addAt(0, str1);
+        return result;
+    }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(string&& str1, const string::char_type* str2)
+    {
+        string result = std::move(str1);
+        result += str2;
+        return result;
+    }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(const string::char_type* const str1, string&& str2)
+    {
+        string result = std::move(str2);
+        result.addAt(0, str1);
+        return result;
+    }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(const string& str1, const string::char_type character)    { return str1.toBase() + character; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(string&& str1, const string::char_type character)         { return std::move(string(std::move(str1)) += character); }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(const string::char_type character, const string& str1)    { return character + str1.toBase(); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(const string::char_type character, string&& str1)         { return std::move(string(std::move(str1)).addAt(0, character)); }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(const string& str1, const string& str2)                   { return str1.toBase() + str2.toBase(); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(const string& str1, string&& str2)                        { return std::move(string(std::move(str2)).addAt(0, str1)); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(string&& str1, const string& str2)                        { return std::move(string(std::move(str1)) += str2); }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(const string& str1, const string::char_type* str2)        { return str1.toBase() + str2; }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(string&& str1, const string::char_type* str2)             { return std::move(string(std::move(str1)) += str2); }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(const string::char_type* const str1, const string& str2)  { return str1 + str2.toBase(); }
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR string operator+(const string::char_type* const str1, string&& str2)       { return std::move(string(std::move(str2)).addAt(0, str1)); }
 
     [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator==(const string& str1, const string& str2) noexcept                   { return str1.compare(str2) == 0; }
     [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator==(const string& str1, const string::char_type* const str2) noexcept  { return str1.compare(str2) == 0; }

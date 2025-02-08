@@ -3,10 +3,7 @@
 #pragma once
 
 #include "core.h"
-
-#ifndef JUTILS_MODULE
-    #include "macro/template_condition.h"
-#endif
+#include "macro/template_condition.h"
 
 JUTILS_MODULE_EXPORT namespace jutils
 {
