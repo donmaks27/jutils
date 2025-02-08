@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "core.h"
+#include "../core.h"
 
 #ifndef JUTILS_MODULE
     #include JUTILS_FORMAT_HEADER

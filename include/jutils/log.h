@@ -3,7 +3,7 @@
 #pragma once
 
 #include "core.h"
-#include "macro_formatter.h"
+#include "macro/formatter.h"
 
 #ifndef JUTILS_MODULE
     #include "format.h"

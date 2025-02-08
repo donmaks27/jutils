@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base_types.h"
+#include "../core.h"
 
 #define JUTILS_IF_HAS_ARGS_SUPPORTED JUTILS_VA_OPT_SUPPORTED
 
