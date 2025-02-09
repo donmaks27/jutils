@@ -236,7 +236,7 @@ JUTILS_MODULE_EXPORT namespace jutils
         map& operator+=(const map& value) { return append(value); }
         map& operator+=(map&& value) { return append(std::move(value)); }
 
-        void remove(const key_type& key) noexcept { _internalData.erase(key); }
+        bool remove(const key_type& key) noexcept { return _internalData.erase(key) != 0; }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, pair_type>), typename Pred)
         index_type remove(Pred pred) noexcept
         {

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "jset_hash.h"
+#include "hash_set.h"
 #include "format.h"
 
 #include <mutex>
@@ -113,7 +113,7 @@ namespace jutils
                 { return jutils::hash<string>{}(entry.string); }
         };
         
-        jset_hash<strings_table_entry, strings_table_entry_hash> stringsTable;
+        hash_set<strings_table_entry, strings_table_entry_hash> stringsTable;
         vector<const strings_table_entry*> stringPointers;
         mutable std::shared_mutex rwMutex;
     };
