@@ -6,6 +6,7 @@ module;
 
 #include <algorithm>
 #include <map>
+#include <unordered_map>
 #include <ranges>
 
 export module jutils.map;
@@ -13,3 +14,4 @@ export module jutils.map;
 export import jutils.vector;
 
 #include "../map.h"
+#include "../hash_map.h"
