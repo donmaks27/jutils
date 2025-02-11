@@ -5,7 +5,7 @@
 #include "core.h"
 
 #include "delegate.h"
-#include "vector.h"
+#include <vector>
 
 namespace jutils
 {
@@ -181,7 +181,7 @@ namespace jutils
             bool pendingDelete = false;
         };
 
-        mutable vector<delegate_entry> _delegates;
+        mutable std::vector<delegate_entry> _delegates;
         mutable uint32 _callCounter = 0;
 
 

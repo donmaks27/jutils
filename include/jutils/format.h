@@ -48,7 +48,7 @@ namespace jutils
 #endif
 
     JUTILS_TEMPLATE_CONDITION(has_string_formatter_v<T>, typename T)
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR string join(const vector<T>& values, const string& separator = "")
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR string join(const std::vector<T>& values, const string& separator = "")
     {
         if (values.isEmpty())
         {

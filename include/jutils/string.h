@@ -5,8 +5,8 @@
 #include "core.h"
 
 #include "math/hash.h"
-#include "vector.h"
 
+#include <vector>
 #include <string>
 #include <regex>
 
@@ -135,13 +135,13 @@ namespace jutils
         [[nodiscard]] JUTILS_STD20_CONSTEXPR string substr(std::size_t startIndex = 0, std::size_t length = index_invalid) const noexcept
             { return _internalString.substr(startIndex, length); }
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<string> split(const char_type delimiter) const
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR std::vector<string> split(const char_type delimiter) const
             { return _split(&delimiter, 1); }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<string> split(const char_type* delimiter) const
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR std::vector<string> split(const char_type* delimiter) const
             { return _split(delimiter, std::char_traits<char_type>::length(delimiter)); }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<string> split(const std::string& delimiter) const
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR std::vector<string> split(const std::string& delimiter) const
             { return _split(delimiter.c_str(), delimiter.size()); }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<string> split(const string& delimiter) const
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR std::vector<string> split(const string& delimiter) const
             { return _split(delimiter.getData(), delimiter.getSize()); }
 
 
@@ -348,7 +348,7 @@ namespace jutils
             return true;
         }
 
-        JUTILS_STD20_CONSTEXPR vector<string> _split(const char_type* delimiter, const std::size_t delimiterSize) const
+        JUTILS_STD20_CONSTEXPR std::vector<string> _split(const char_type* delimiter, const std::size_t delimiterSize) const
         {
             if (isEmpty())
             {
@@ -358,19 +358,19 @@ namespace jutils
             {
                 return { *this };
             }
-            vector<string> result;
+            std::vector<string> result;
             std::size_t index = 0;
             while (index < getSize())
             {
                 const std::size_t delimiterIndex = _indexOfStr(delimiter, delimiterSize, index, index_invalid);
                 if (delimiterIndex == index_invalid)
                 {
-                    result.add(substr(index));
+                    result.push_back(substr(index));
                     break;
                 }
                 if (delimiterIndex > 0)
                 {
-                    result.add(substr(index, delimiterIndex - index));
+                    result.push_back(substr(index, delimiterIndex - index));
                 }
                 index = delimiterIndex + delimiterSize;
             }

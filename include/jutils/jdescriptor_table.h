@@ -173,7 +173,7 @@ namespace jutils
 			juid<uid_type> UID;
 		};
 		
-		vector<descriptor> descriptors;
+		std::vector<descriptor> descriptors;
 		int32 firstEmptyDescriptor = -1;
 
 		

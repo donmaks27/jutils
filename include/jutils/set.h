@@ -4,9 +4,9 @@
 
 #include "core.h"
 
-#include "vector.h"
 #include "macro/template_condition.h"
 
+#include <vector>
 #include <set>
 
 namespace jutils
@@ -90,13 +90,13 @@ namespace jutils
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         [[nodiscard]] bool contains(Pred pred) const noexcept { return this->findIter(pred) != end(); }
 
-        [[nodiscard]] vector<type> toVector() const noexcept
+        [[nodiscard]] std::vector<type> toVector() const noexcept
         {
-            vector<type> keys;
+            std::vector<type> keys;
             keys.reserve(getSize());
             for (const auto& key : _internalData)
             {
-                keys.add(key);
+                keys.push_back(key);
             }
             return keys;
         }

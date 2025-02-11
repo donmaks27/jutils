@@ -52,8 +52,8 @@ namespace jutils
                 }
                 else
                 {
-                    strIndex = e.pointerIndex = stringPointers.getSize();
-                    stringPointers.add( &stringsTable.add(std::move(e)) );
+                    strIndex = e.pointerIndex = stringPointers.size();
+                    stringPointers.push_back( &stringsTable.add(std::move(e)) );
                 }
             }
             return strIndex;
@@ -61,13 +61,13 @@ namespace jutils
         bool contains(const std::size_t index) const noexcept
         {
             std::shared_lock lock(rwMutex);
-            return stringPointers.isValidIndex(index);
+            return index < stringPointers.size();
         }
         string get(const std::size_t index) const noexcept
         {
             {
                 std::shared_lock lock(rwMutex);
-                if (stringPointers.isValidIndex(index))
+                if (index < stringPointers.size())
                 {
                     return stringPointers[index]->stringValue;
                 }
@@ -116,7 +116,7 @@ namespace jutils
         };
         
         hash_set<entry, entry::hash> stringsTable;
-        vector<const entry*> stringPointers;
+        std::vector<const entry*> stringPointers;
         mutable std::shared_mutex rwMutex;
     };
 

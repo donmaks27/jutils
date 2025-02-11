@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "vector.h"
 #include "list.h"
 #include "jmemory.h"
 
@@ -11,6 +10,7 @@
 #include <functional>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 namespace jutils
 {
@@ -54,7 +54,7 @@ namespace jutils
         [[nodiscard]] bool isValid() const { return asyncWorkerCount != 0; }
 
         inline bool addTask(jasync_task* task);
-        inline void addTasks(const vector<jasync_task*>& tasks) { addTasks(*tasks, tasks.getSize()); }
+        inline void addTasks(const std::vector<jasync_task*>& tasks) { addTasks(tasks.data(), tasks.size()); }
         inline void addTasks(std::initializer_list<jasync_task*> tasks) { addTasks(std::data(tasks), tasks.size()); }
         inline void clearTasks();
 

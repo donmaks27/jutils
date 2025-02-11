@@ -4,9 +4,9 @@
 
 #include "core.h"
 
-#include "vector.h"
 #include "macro/template_condition.h"
 
+#include <vector>
 #include <algorithm>
 #include <map>
 #if JUTILS_STD_VERSION >= JUTILS_STD20
@@ -149,23 +149,23 @@ namespace jutils
         [[nodiscard]] constexpr auto values() { return std::views::values(_internalData); }
         [[nodiscard]] constexpr auto values() const { return std::views::values(_internalData); }
 #endif
-        [[nodiscard]] vector<key_type> getKeys() const noexcept
+        [[nodiscard]] std::vector<key_type> getKeys() const noexcept
         {
-            vector<key_type> keys;
+            std::vector<key_type> keys;
             keys.reserve(getSize());
             for (const auto& pair : _internalData)
             {
-                keys.add(pair.first);
+                keys.push_back(pair.first);
             }
             return keys;
         }
-        [[nodiscard]] vector<value_type> getValues() const noexcept
+        [[nodiscard]] std::vector<value_type> getValues() const noexcept
         {
-            vector<value_type> values;
+            std::vector<value_type> values;
             values.reserve(getSize());
             for (const auto& pair : _internalData)
             {
-                values.add(pair.second);
+                values.push_back(pair.second);
             }
             return values;
         }
