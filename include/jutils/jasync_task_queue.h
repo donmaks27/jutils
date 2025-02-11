@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "list.h"
 #include "jmemory.h"
 
 #include <atomic>
@@ -11,6 +10,7 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#include <list>
 
 namespace jutils
 {
@@ -75,7 +75,7 @@ namespace jutils
 
         std::mutex tasksQueueMutex;
         std::condition_variable taskAvailableCondition;
-        list<task_description> tasksQueue;
+        std::list<task_description> tasksQueue;
 
         int32 asyncWorkerCount = 0;
 
@@ -144,7 +144,7 @@ namespace jutils
         }
 
         tasksQueueMutex.lock();
-        tasksQueue.add({ task });
+        tasksQueue.push_back({ task });
         tasksQueueMutex.unlock();
 
         taskAvailableCondition.notify_one();
@@ -160,7 +160,7 @@ namespace jutils
         tasksQueueMutex.lock();
         for (std::size_t index = 0; index < tasksCount; index++)
         {
-            tasksQueue.add({ tasks[index] });
+            tasksQueue.push_back({ tasks[index] });
         }
         tasksQueueMutex.unlock();
 
@@ -265,7 +265,7 @@ namespace jutils
                 break;
             }
             bool shouldStopWorker = false;
-            while (!shouldStopWorker && tasksQueue.isEmpty())
+            while (!shouldStopWorker && tasksQueue.empty())
             {
                 taskAvailableCondition.wait(lock);
                 if (worker->shouldStop)
@@ -277,8 +277,8 @@ namespace jutils
             {
                 break;
             }
-            const task_description task = tasksQueue.getFirst();
-            tasksQueue.removeFirst();
+            const task_description task = tasksQueue.front();
+            tasksQueue.pop_front();
             lock.unlock();
 
             if (task.task != nullptr)
