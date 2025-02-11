@@ -4,12 +4,10 @@
 
 #include "core.h"
 
-#ifndef JUTILS_MODULE
-    #include <cstdint>
-    #include <cstddef>
-#endif
+#include <cstdint>
+#include <cstddef>
 
-JUTILS_MODULE_EXPORT namespace jutils
+namespace jutils
 {
     using int8 = std::int8_t;
     using uint8 = std::uint8_t;

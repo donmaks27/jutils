@@ -3,15 +3,13 @@
 #pragma once
 
 #include "core.h"
+
+#include "type_traits.h"
+#include "string.h"
+#include "macro/formatter.h"
 #include "macro/template_condition.h"
 
-#ifndef JUTILS_MODULE
-    #include "type_traits.h"
-    #include "string.h"
-    #include "macro/formatter.h"
-#endif
-
-JUTILS_MODULE_EXPORT namespace jutils
+namespace jutils
 {
     template<typename T>
     struct string_formatter : std::false_type {};
@@ -107,7 +105,7 @@ JUTILS_MODULE_EXPORT namespace jutils
     };
 }
 
-JUTILS_MODULE_EXPORT namespace JUTILS_FORMAT_NAMESPACE
+namespace JUTILS_FORMAT_NAMESPACE
 {
     template<>
     struct formatter<jutils::string> : formatter<jutils::string::base_type>

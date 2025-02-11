@@ -3,15 +3,14 @@
 #pragma once
 
 #include "core.h"
+
+#include "math/math.h"
 #include "macro/template_condition.h"
 
-#ifndef JUTILS_MODULE
-    #include "math/math.h"
-    #include <algorithm>
-    #include <list>
-#endif
+#include <algorithm>
+#include <list>
 
-JUTILS_MODULE_EXPORT namespace jutils
+namespace jutils
 {
     template<typename T>
     class list

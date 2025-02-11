@@ -4,14 +4,12 @@
 
 #include "core.h"
 
-#ifndef JUTILS_MODULE
-    #include "base_types.h"
-    #include "macro/delegate.h"
-    #include <functional>
-    #include <utility>
-#endif
+#include "base_types.h"
+#include "macro/delegate.h"
+#include <functional>
+#include <utility>
 
-JUTILS_MODULE_EXPORT namespace jutils
+namespace jutils
 {
     template<typename... Args>
     class delegate

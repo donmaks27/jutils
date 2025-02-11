@@ -4,13 +4,11 @@
 
 #include "core.h"
 
-#ifndef JUTILS_MODULE
-    #include "math/math.h"
-    #include <algorithm>
-    #include <vector>
-#endif
+#include "math/math.h"
+#include <algorithm>
+#include <vector>
 
-JUTILS_MODULE_EXPORT namespace jutils
+namespace jutils
 {
     class bitvector
     {

@@ -5,7 +5,7 @@
 #include "core.h"
 #include "macro/template_condition.h"
 
-JUTILS_MODULE_EXPORT namespace jutils
+namespace jutils
 {
 #if JUTILS_STD_VERSION >= JUTILS_STD20
     template<typename T>

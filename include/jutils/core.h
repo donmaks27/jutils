@@ -40,9 +40,3 @@
 #else
     #define JUTILS_FILENAME
 #endif
-
-#ifdef JUTILS_MODULE
-    #define JUTILS_MODULE_EXPORT export
-#else
-    #define JUTILS_MODULE_EXPORT
-#endif

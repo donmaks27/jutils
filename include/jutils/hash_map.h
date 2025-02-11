@@ -3,19 +3,18 @@
 #pragma once
 
 #include "core.h"
+
+#include "math/hash.h"
+#include "vector.h"
 #include "macro/template_condition.h"
 
-#ifndef JUTILS_MODULE
-    #include "math/hash.h"
-    #include "vector.h"
-    #include <algorithm>
-    #include <unordered_map>
-    #if JUTILS_STD_VERSION >= JUTILS_STD20
-        #include <ranges>
-    #endif
+#include <algorithm>
+#include <unordered_map>
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+    #include <ranges>
 #endif
 
-JUTILS_MODULE_EXPORT namespace jutils
+namespace jutils
 {
     template<typename KeyType, typename ValueType, typename KeyHash = jutils::math::hash<KeyType>, typename KeyEqual = std::equal_to<KeyType>>
     class hash_map

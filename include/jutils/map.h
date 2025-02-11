@@ -3,18 +3,17 @@
 #pragma once
 
 #include "core.h"
+
+#include "vector.h"
 #include "macro/template_condition.h"
 
-#ifndef JUTILS_MODULE
-    #include "vector.h"
-    #include <algorithm>
-    #include <map>
-    #if JUTILS_STD_VERSION >= JUTILS_STD20
-        #include <ranges>
-    #endif
+#include <algorithm>
+#include <map>
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+    #include <ranges>
 #endif
 
-JUTILS_MODULE_EXPORT namespace jutils
+namespace jutils
 {
     template<typename KeyType, typename ValueType, typename KeyCompare = std::less<KeyType>>
     class map

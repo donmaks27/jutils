@@ -3,14 +3,12 @@
 #pragma once
 
 #include "core.h"
+
+#include "format.h"
 #include "macro/formatter.h"
+#include "macro/log.h"
 
-#ifndef JUTILS_MODULE
-    #include "format.h"
-    #include "macro/log.h"
-#endif
-
-JUTILS_MODULE_EXPORT namespace jutils::log
+namespace jutils::log
 {
     enum class type : uint8 { fatal, error, warning, info };
 

@@ -4,12 +4,10 @@
 
 #include "core.h"
 
-#ifndef JUTILS_MODULE
-    #include "delegate.h"
-    #include "vector.h"
-#endif
+#include "delegate.h"
+#include "vector.h"
 
-JUTILS_MODULE_EXPORT namespace jutils
+namespace jutils
 {
     template<typename... Args>
     class delegate_multicast

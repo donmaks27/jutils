@@ -4,11 +4,9 @@
 
 #include "../core.h"
 
-#ifndef JUTILS_MODULE
-    #include JUTILS_FORMAT_HEADER
-#endif
+#include JUTILS_FORMAT_HEADER
 
-#define JUTILS_FORMATTER(type, funcName) JUTILS_MODULE_EXPORT namespace JUTILS_FORMAT_NAMESPACE             \
+#define JUTILS_FORMATTER(type, funcName) namespace JUTILS_FORMAT_NAMESPACE                                  \
     {                                                                                                       \
         template<>                                                                                          \
         struct formatter<type> : formatter<decltype(funcName(std::declval<type>()))>                        \
@@ -20,7 +18,7 @@
         };                                                                                                  \
     }
 
-#define JUTILS_STRING_FORMATTER_CONSTEXPR(type, funcName) JUTILS_MODULE_EXPORT namespace jutils             \
+#define JUTILS_STRING_FORMATTER_CONSTEXPR(type, funcName) namespace jutils                                  \
     {                                                                                                       \
         template<> struct string_formatter<jutils::remove_cvref_t< type >> : std::true_type                 \
         {                                                                                                   \
@@ -30,7 +28,7 @@
     }                                                                                                       \
     JUTILS_FORMATTER(type, funcName)
 
-#define JUTILS_STRING_FORMATTER(type, funcName) JUTILS_MODULE_EXPORT namespace jutils                           \
+#define JUTILS_STRING_FORMATTER(type, funcName) namespace jutils                                                \
     {                                                                                                           \
         template<> struct string_formatter<jutils::remove_cvref_t< type >> : std::true_type                     \
         {                                                                                                       \

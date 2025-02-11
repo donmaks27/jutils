@@ -4,9 +4,7 @@
 
 #include "../core.h"
 
-#ifndef JUTILS_MODULE
-    #include JUTILS_FORMAT_HEADER
-#endif
+#include JUTILS_FORMAT_HEADER
 
 #ifndef JUTILS_LOG_DISABLED
     #if JUTILS_VA_OPT_SUPPORTED // __VA_OPT__

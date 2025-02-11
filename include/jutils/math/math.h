@@ -3,22 +3,21 @@
 #pragma once
 
 #include "../core.h"
+
+#include "../base_types.h"
+#include "../type_traits.h"
 #include "../macro/template_condition.h"
 
-#ifndef JUTILS_MODULE
-    #include "../base_types.h"
-    #include "../type_traits.h"
-    #include <cmath>
-    #include <initializer_list>
-    #if JUTILS_STD_VERSION >= JUTILS_STD20
-        #include <numbers>
-    #endif
-    #ifdef JUTILS_USE_GLM
-        #include <glm/detail/qualifier.hpp>
-    #endif
+#include <cmath>
+#include <initializer_list>
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+    #include <numbers>
+#endif
+#ifdef JUTILS_USE_GLM
+    #include <glm/detail/qualifier.hpp>
 #endif
 
-JUTILS_MODULE_EXPORT namespace jutils::math
+namespace jutils::math
 {
     JUTILS_TEMPLATE_CONDITION(std::is_floating_point_v<T>, typename T = float)
     inline constexpr T eps = static_cast<T>(0.00000001l);

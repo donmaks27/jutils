@@ -3,12 +3,10 @@
 #pragma once
 
 #include "../core.h"
-#include "../macro/template_condition.h"
 
-#ifndef JUTILS_MODULE
-    #include "../base_types.h"
-    #include <string>
-#endif
+#include "../base_types.h"
+#include "../macro/template_condition.h"
+#include <string>
 
 namespace jutils_private
 {
@@ -48,7 +46,7 @@ namespace jutils_private
     };
 }
 
-JUTILS_MODULE_EXPORT namespace jutils::math
+namespace jutils::math
 {
     using hash_t = std::size_t;
 

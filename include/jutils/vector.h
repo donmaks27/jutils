@@ -3,15 +3,14 @@
 #pragma once
 
 #include "core.h"
+
+#include "math/math.h"
 #include "macro/template_condition.h"
 
-#ifndef JUTILS_MODULE
-    #include "math/math.h"
-    #include <algorithm>
-    #include <vector>
-#endif
+#include <algorithm>
+#include <vector>
 
-JUTILS_MODULE_EXPORT namespace jutils
+namespace jutils
 {
     template<typename T>
     class vector

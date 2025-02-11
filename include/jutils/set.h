@@ -3,14 +3,13 @@
 #pragma once
 
 #include "core.h"
+
+#include "vector.h"
 #include "macro/template_condition.h"
 
-#ifndef JUTILS_MODULE
-    #include "vector.h"
-    #include <set>
-#endif
+#include <set>
 
-JUTILS_MODULE_EXPORT namespace jutils
+namespace jutils
 {
     template<typename T, typename KeyCompare = std::less<T>>
     class set

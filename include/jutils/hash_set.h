@@ -3,15 +3,14 @@
 #pragma once
 
 #include "core.h"
+
+#include "vector.h"
+#include "math/hash.h"
 #include "macro/template_condition.h"
 
-#ifndef JUTILS_MODULE
-    #include "vector.h"
-    #include "math/hash.h"
-    #include <unordered_set>
-#endif
+#include <unordered_set>
 
-JUTILS_MODULE_EXPORT namespace jutils
+namespace jutils
 {
     template<typename T, typename KeyHash = jutils::math::hash<T>, typename KeyEqual = std::equal_to<T>>
     class hash_set

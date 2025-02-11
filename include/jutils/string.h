@@ -4,14 +4,13 @@
 
 #include "core.h"
 
-#ifndef JUTILS_MODULE
-    #include "math/hash.h"
-    #include "vector.h"
-    #include <string>
-    #include <regex>
-#endif
+#include "math/hash.h"
+#include "vector.h"
 
-JUTILS_MODULE_EXPORT namespace jutils
+#include <string>
+#include <regex>
+
+namespace jutils
 {
     class string
     {
@@ -474,7 +473,7 @@ JUTILS_MODULE_EXPORT namespace jutils
     [[nodiscard]] JUTILS_STD20_CONSTEXPR bool operator>=(const string::char_type* const str1, const string& str2) noexcept  { return str2.compare(str1) <= 0; }
 }
 
-JUTILS_MODULE_EXPORT namespace jutils::math
+namespace jutils::math
 {
     template<>
     struct hash<string>
