@@ -2,7 +2,10 @@
 
 #pragma once
 
-#include "math/common.h"
+#include "core.h"
+
+#include "math/math.h"
+#include "macro/template_condition.h"
 
 #include <algorithm>
 #include <vector>
@@ -60,6 +63,7 @@ namespace jutils
         JUTILS_STD20_CONSTEXPR vector& operator=(vector&& value) noexcept = default;
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const base_type& toBase() const noexcept { return _internalData; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR operator base_type() const noexcept { return toBase(); }
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type getSize() const noexcept { return _internalData.size(); }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR bool isEmpty() const noexcept { return _internalData.empty(); }
@@ -262,13 +266,25 @@ namespace jutils
     };
 
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const vector<T>& container, const T& value) { return container.copy() += value; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(vector<T>&& container, const T& value)
+    {
+        vector<T> result = std::move(container);
+        result += value;
+        return result;
+    }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const vector<T>& container, T&& value) { return container.copy() += std::forward<T>(value); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(vector<T>&& container, T&& value)
+    {
+        vector<T> result = std::move(container);
+        result += std::forward<T>(value);
+        return result;
+    }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(vector<T>&& container, const T& value) { return vector<T>(std::move(container)) += value; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const vector<T>& container, const T& value)
+        { return container.copy() + value; }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(vector<T>&& container, T&& value) { return vector<T>(std::move(container)) += std::forward<T>(value); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const vector<T>& container, T&& value)
+        { return container.copy() + std::forward<T>(value); }
 
     template<typename T>
     [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const T& value, const vector<T>& container)
@@ -276,7 +292,8 @@ namespace jutils
         vector<T> result;
         result.reserve(container.getSize() + 1);
         result.add(value);
-        return result += container;
+        result += container;
+        return result;
     }
     template<typename T>
     [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(T&& value, const vector<T>& container)
@@ -284,15 +301,28 @@ namespace jutils
         vector<T> result;
         result.reserve(container.getSize() + 1);
         result.add(std::forward<T>(value));
-        return result += container;
+        result += container;
+        return result;
     }
     
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const vector<T>& container1, std::initializer_list<T> list) { return container1.copy() += list; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(vector<T>&& container1, std::initializer_list<T> list)
+    {
+        vector<T> result = std::move(container1);
+        result += list;
+        return result;
+    }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(vector<T>&& container1, std::initializer_list<T> list) { return vector<T>(std::move(container1)) += list; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(vector<T>&& container1, const vector<T>& container2)
+    {
+        vector<T> result = std::move(container1);
+        result += container2;
+        return result;
+    }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const vector<T>& container1, const vector<T>& container2) { return container1.copy() += container2; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const vector<T>& container1, std::initializer_list<T> list)
+        { return container1.copy() + list; }
     template<typename T>
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(vector<T>&& container1, const vector<T>& container2) { return vector<T>(std::move(container1)) += container2; }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<T> operator+(const vector<T>& container1, const vector<T>& container2)
+        { return container1.copy() + container2; }
 }

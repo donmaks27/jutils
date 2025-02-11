@@ -6,24 +6,12 @@
 
 #include <glm/detail/qualifier.hpp>
 
-#if defined(JUTILS_USE_FMT)
-    template<typename CharT, glm::length_t C, glm::length_t R, typename T, glm::qualifier Q>
-    struct fmt::formatter<glm::mat<C, R, T, Q>, CharT> : fmt::formatter<jutils::jstring, CharT>
+template<glm::length_t C, glm::length_t R, typename T, glm::qualifier Q>
+struct JUTILS_FORMAT_NAMESPACE::formatter<glm::mat<C, R, T, Q>> : JUTILS_FORMAT_NAMESPACE::formatter<jutils::string>
+{
+    template<typename FormatContext>
+    auto format(const glm::mat<C, R, T, Q>& value, FormatContext& ctx)
     {
-        template<typename FormatContext>
-        auto format(const glm::mat<C, R, T, Q>& value, FormatContext& ctx)
-        {
-            return fmt::formatter<jutils::jstring, CharT>::format(jutils::toString(value), ctx);
-        }
-    };
-#else
-    template<typename CharT, glm::length_t C, glm::length_t R, typename T, glm::qualifier Q>
-    struct std::formatter<glm::mat<C, R, T, Q>, CharT> : std::formatter<jutils::jstring, CharT>
-    {
-        template<typename FormatContext>
-        auto format(const glm::mat<C, R, T, Q>& value, FormatContext& ctx)
-        {
-            return std::formatter<jutils::jstring, CharT>::format(jutils::toString(value), ctx);
-        }
-    };
-#endif
+        return JUTILS_FORMAT_NAMESPACE::formatter<jutils::string>::format(jutils::toString(value), ctx);
+    }
+};

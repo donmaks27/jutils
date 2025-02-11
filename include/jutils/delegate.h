@@ -1,40 +1,42 @@
-﻿// Copyright © 2021-2024 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
-#include "base_types.h"
+#include "core.h"
 
+#include "base_types.h"
+#include "macro/delegate.h"
 #include <functional>
 #include <utility>
 
 namespace jutils
 {
     template<typename... Args>
-    class jdelegate
+    class delegate
     {
     public:
-        jdelegate() = default;
+        delegate() = default;
         template<typename T>
-        jdelegate(T* object, void (T::*function)(Args...))
+        delegate(T* object, void (T::*function)(Args...))
         {
             bind(object, function);
         }
-        jdelegate(const std::function<void(Args...)>& function)
+        delegate(const std::function<void(Args...)>& function)
         {
             bind(function);
         }
-        jdelegate(std::function<void(Args...)>&& function) noexcept
+        delegate(std::function<void(Args...)>&& function) noexcept
         {
             bind(std::move(function));
         }
-        jdelegate(const jdelegate& otherDelegate)
+        delegate(const delegate& otherDelegate)
         {
             if ((otherDelegate._delegate != nullptr) && !otherDelegate._delegate->pendingDelete)
             {
                 _delegate = otherDelegate._delegate->copy();
             }
         }
-        jdelegate(jdelegate&& otherDelegate) noexcept
+        delegate(delegate&& otherDelegate) noexcept
         {
             if ((otherDelegate._delegate != nullptr) && !otherDelegate._delegate->pendingDelete)
             {
@@ -42,19 +44,19 @@ namespace jutils
                 otherDelegate._delegate = nullptr;
             }
         }
-        ~jdelegate() { clear(); }
+        ~delegate() { clear(); }
 
-        jdelegate& operator=(const std::function<void(Args...)>& function)
+        delegate& operator=(const std::function<void(Args...)>& function)
         {
             bind(function);
             return *this;
         }
-        jdelegate& operator=(std::function<void(Args...)>&& function) noexcept
+        delegate& operator=(std::function<void(Args...)>&& function) noexcept
         {
             bind(std::move(function));
             return *this;
         }
-        jdelegate& operator=(const jdelegate& otherDelegate)
+        delegate& operator=(const delegate& otherDelegate)
         {
             if (this != &otherDelegate)
             {
@@ -66,7 +68,7 @@ namespace jutils
             }
             return *this;
         }
-        jdelegate& operator=(jdelegate&& otherDelegate) noexcept
+        delegate& operator=(delegate&& otherDelegate) noexcept
         {
             clear();
             if ((otherDelegate._delegate != nullptr) && !otherDelegate._delegate->pendingDelete)
@@ -236,40 +238,3 @@ namespace jutils
         mutable uint32 _callCounter = 0;
     };
 }
-
-#define JUTILS_DELEGATE_CONCAT_HELPER(...) __VA_ARGS__
-
-#define JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, ParamsTypes, ParamsNames, Params)         \
-class DelegateName : public jutils::jdelegate<ParamsTypes>                                      \
-{                                                                                               \
-    using base_class = jutils::jdelegate<ParamsTypes>;                                          \
-public:                                                                                         \
-    DelegateName() : base_class() {}                                                            \
-    template<typename T>                                                                        \
-    DelegateName(T* object, void (T::*function)(ParamsTypes)) : base_class(object, function) {} \
-    DelegateName(void (*function)(ParamsTypes)) : base_class(function) {}                       \
-    DelegateName(const base_class& value) : base_class(value) {}                                \
-    DelegateName(base_class&& value) noexcept : base_class(std::move(value)) {}                 \
-    DelegateName& operator=(const base_class& value)                                            \
-        { base_class::operator=(value); return *this; }                                         \
-    DelegateName& operator=(base_class&& value) noexcept                                        \
-        { base_class::operator=(std::move(value)); return *this; }                              \
-    void call(Params) const { base_class::call(ParamsNames); }                                  \
-}
-
-#define JUTILS_CREATE_DELEGATE(DelegateName) JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, , , )
-#define JUTILS_CREATE_DELEGATE1(DelegateName, ParamType1, ParamName1) JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1), \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1))
-#define JUTILS_CREATE_DELEGATE2(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2) JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1, ParamType2), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1, ParamName2), \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1, ParamType2 ParamName2))
-#define JUTILS_CREATE_DELEGATE3(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2, ParamType3, ParamName3) JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1, ParamType2, ParamType3), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1, ParamName2, ParamName3), \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1, ParamType2 ParamName2, ParamType3 ParamName3))
-#define JUTILS_CREATE_DELEGATE4(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2, ParamType3, ParamName3, ParamType4, ParamName4) JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1, ParamType2, ParamType3, ParamType4), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1, ParamName2, ParamName3, ParamName4), \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1, ParamType2 ParamName2, ParamType3 ParamName3, ParamType4 ParamName4))
-#define JUTILS_CREATE_DELEGATE5(DelegateName, ParamType1, ParamName1, ParamType2, ParamName2, ParamType3, ParamName3, ParamType4, ParamName4, ParamType5, ParamName5) JUTILS_CREATE_DELEGATE_INTERNAL(DelegateName, \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1, ParamType2, ParamType3, ParamType4, ParamType5), JUTILS_DELEGATE_CONCAT_HELPER(ParamName1, ParamName2, ParamName3, ParamName4, ParamName5), \
-    JUTILS_DELEGATE_CONCAT_HELPER(ParamType1 ParamName1, ParamType2 ParamName2, ParamType3 ParamName3, ParamType4 ParamName4, ParamType5 ParamName5))

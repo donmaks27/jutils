@@ -1,8 +1,11 @@
-// Copyright © 2022-2024 Leonov Maksim. All Rights Reserved.
+// Copyright © 2022 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
-#include "math/common.h"
+#include "core.h"
+
+#include "math/math.h"
+#include "macro/template_condition.h"
 
 #include <algorithm>
 #include <list>
@@ -10,7 +13,7 @@
 namespace jutils
 {
     template<typename T>
-    class jlist
+    class list
     {
     public:
 
@@ -19,43 +22,43 @@ namespace jutils
         using const_iterator = typename base_type::const_iterator;
         using iterator = typename base_type::iterator;
 
-        jlist() noexcept = default;
-        explicit jlist(const index_type count)
+        list() noexcept = default;
+        explicit list(const index_type count)
             : _internalData(count)
         {}
-        jlist(const index_type count, const type& defaultValue)
+        list(const index_type count, const type& defaultValue)
             : _internalData(count, defaultValue)
         {}
-        jlist(std::initializer_list<type> values)
+        list(std::initializer_list<type> values)
             : _internalData(values)
         {}
-        jlist(const base_type& value)
+        list(const base_type& value)
             : _internalData(value)
         {}
-        jlist(base_type&& value) noexcept
-        : _internalData(std::move(value))
+        list(base_type&& value) noexcept
+            : _internalData(std::move(value))
         {}
-        jlist(const jlist&) = default;
-        jlist(jlist&&) noexcept = default;
-        ~jlist() noexcept = default;
+        list(const list&) = default;
+        list(list&&) noexcept = default;
+        ~list() noexcept = default;
 
-        jlist& operator=(std::initializer_list<type> values)
+        list& operator=(std::initializer_list<type> values)
         {
             _internalData = values;
             return *this;
         }
-        jlist& operator=(const base_type& value)
+        list& operator=(const base_type& value)
         {
             _internalData = value;
             return *this;
         }
-        jlist& operator=(base_type&& value) noexcept
+        list& operator=(base_type&& value) noexcept
         {
             _internalData = std::move(value);
             return *this;
         }
-        jlist& operator=(const jlist& value) = default;
-        jlist& operator=(jlist&& value) noexcept = default;
+        list& operator=(const list& value) = default;
+        list& operator=(list&& value) noexcept = default;
 
         [[nodiscard]] const base_type& toBase() const noexcept { return _internalData; }
 
@@ -68,7 +71,7 @@ namespace jutils
         [[nodiscard]] const_iterator begin() const noexcept { return _internalData.begin(); }
         [[nodiscard]] const_iterator end() const noexcept { return _internalData.end(); }
 
-        [[nodiscard]] jlist copy() const noexcept { return *this; }
+        [[nodiscard]] list copy() const noexcept { return *this; }
 
         [[nodiscard]] type& get(const index_type index) noexcept { return *std::next(begin(), index); }
         [[nodiscard]] const type& get(const index_type index) const noexcept { return *std::next(begin(), index); }
@@ -87,7 +90,19 @@ namespace jutils
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         [[nodiscard]] const_iterator findIter(Pred pred) const noexcept { return std::find_if(begin(), end(), pred); }
 
-        [[nodiscard]] index_type indexOf(const type& value) const noexcept;
+        [[nodiscard]] index_type indexOf(const type& value) const noexcept
+        {
+            index_type index = 0;
+            for (const auto& _value : _internalData)
+            {
+                if (_value == value)
+                {
+                    return index;
+                }
+                index++;
+            }
+            return index_invalid;
+        }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         [[nodiscard]] index_type indexOf(Pred pred) const noexcept
         {
@@ -192,12 +207,12 @@ namespace jutils
         type& addAt(const index_type index, type&& value) { return putAt(index, std::move(value)); }
         type& addDefaultAt(const index_type index) { return putAt(index); }
 
-        jlist& append(std::initializer_list<type> values)
+        list& append(std::initializer_list<type> values)
         {
             _internalData.insert(end(), values);
             return *this;
         }
-        jlist& append(const base_type& value)
+        list& append(const base_type& value)
         {
             if (&_internalData != &value)
             {
@@ -205,33 +220,50 @@ namespace jutils
             }
             return *this;
         }
-        jlist& append(base_type&& value)
+        list& append(base_type&& value)
         {
             _internalData.merge(std::move(value));
             return *this;
         }
-        jlist& append(const jlist& value) { return append(value.toBase()); }
-        jlist& append(jlist&& value) { return append(std::move(value._internalData)); }
+        list& append(const list& value) { return append(value.toBase()); }
+        list& append(list&& value) { return append(std::move(value._internalData)); }
 
-        jlist& operator+=(const type& value)
+        list& operator+=(const type& value)
         {
             add(value);
             return *this;
         }
-        jlist& operator+=(type&& value)
+        list& operator+=(type&& value)
         {
             add(std::move(value));
             return *this;
         }
-        jlist& operator+=(std::initializer_list<type> values) { return append(values); }
-        jlist& operator+=(const base_type& value) { return append(value); }
-        jlist& operator+=(base_type&& value) { return append(std::move(value)); }
-        jlist& operator+=(const jlist& value) { return append(value); }
-        jlist& operator+=(jlist&& value) { return append(std::move(value)); }
+        list& operator+=(std::initializer_list<type> values) { return append(values); }
+        list& operator+=(const base_type& value) { return append(value); }
+        list& operator+=(base_type&& value) { return append(std::move(value)); }
+        list& operator+=(const list& value) { return append(value); }
+        list& operator+=(list&& value) { return append(std::move(value)); }
 
         void removeAt(const_iterator placeStart, const_iterator placeEnd) noexcept { _internalData.erase(placeStart, placeEnd); }
-        void removeAt(const_iterator place, index_type count = 1) noexcept;
-        void removeAt(index_type index, index_type count = 1) noexcept;
+        void removeAt(const_iterator place, index_type count = 1) noexcept
+        {
+
+            const auto endIter = end();
+            auto placeEnd = place;
+            while ((count > 0) && (placeEnd != endIter))
+            {
+                ++placeEnd;
+                count--;
+            }
+            removeAt(place, placeEnd);
+        }
+        void removeAt(index_type index, index_type count = 1) noexcept
+        {
+            if (isValidIndex(index))
+            {
+                removeAt(std::next(begin(), index), count);
+            }
+        }
         void removeFirst() noexcept
         {
             if (!isEmpty())
@@ -246,7 +278,17 @@ namespace jutils
                 _internalData.pop_back();
             }
         }
-        index_type remove(const type& value) noexcept;
+        index_type remove(const type& value) noexcept
+        {
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+            return std::erase(_internalData, value);
+#else
+            const auto iter = std::remove(begin(), end(), value);
+            const index_type deletedElementsCount = end() - iter;
+            _internalData.erase(iter, end());
+            return deletedElementsCount;
+#endif
+        }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         index_type remove(Pred pred) noexcept
         {
@@ -268,103 +310,68 @@ namespace jutils
     };
 
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(const jlist<T>& container, const T& value) { return container.copy() += value; }
+    [[nodiscard]] list<T> operator+(list<T>&& container, const T& value)
+    {
+        list<T> result = std::move(container);
+        result += value;
+        return result;
+    }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(const jlist<T>& container, T&& value) { return container.copy() += std::forward<T>(value); }
+    [[nodiscard]] list<T> operator+(list<T>&& container, T&& value)
+    {
+        list<T> result = std::move(container);
+        result += std::forward<T>(value);
+        return result;
+    }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(jlist<T>&& container, const T& value) { return jlist<T>(std::move(container)) += value; }
+    [[nodiscard]] list<T> operator+(const list<T>& container, const T& value) { return container.copy() + value; }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(jlist<T>&& container, T&& value) { return jlist<T>(std::move(container)) += std::forward<T>(value); }
+    [[nodiscard]] list<T> operator+(const list<T>& container, T&& value) { return container.copy() + std::forward<T>(value); }
 
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(const T& value, const jlist<T>& container)
+    [[nodiscard]] list<T> operator+(const T& value, list<T>&& container)
     {
-        jlist<T> result = container;
+        list<T> result = std::move(container);
         result.addFirst(value);
         return result;
     }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(const T& value, jlist<T>&& container)
+    [[nodiscard]] list<T> operator+(T&& value, list<T>&& container)
     {
-        jlist<T> result = std::move(container);
-        result.addFirst(value);
+        list<T> result = std::move(container);
+        result.addFirst(std::forward<T>(value));
         return result;
     }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(T&& value, const jlist<T>& container)
+    [[nodiscard]] list<T> operator+(const T& value, const list<T>& container) { return value + container.copy(); }
+    template<typename T>
+    [[nodiscard]] list<T> operator+(T&& value, const list<T>& container) { return std::forward<T>(value) + container.copy(); }
+
+    template<typename T>
+    [[nodiscard]] list<T> operator+(list<T>&& container1, std::initializer_list<T> list)
     {
-        jlist<T> result = container;
-        result.addFirst(std::move(value));
+        jutils::list<T> result = std::move(container1);
+        result += list;
         return result;
     }
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(T&& value, jlist<T>&& container)
+    [[nodiscard]] list<T> operator+(list<T>&& container1, const list<T>& container2)
     {
-        jlist<T> result = std::move(container);
-        result.addFirst(std::move(value));
+        list<T> result = std::move(container1);
+        result += container2;
         return result;
     }
-
     template<typename T>
-    [[nodiscard]] jlist<T> operator+(const jlist<T>& container1, std::initializer_list<T> list) { return container1.copy() += list; }
-    template<typename T>
-    [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, std::initializer_list<T> list) { return jlist<T>(std::move(container1)) += list; }
-    template<typename T>
-    [[nodiscard]] jlist<T> operator+(const jlist<T>& container1, const jlist<T>& container2) { return container1.copy() += container2; }
-    template<typename T>
-    [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, const jlist<T>& container2) { return jlist<T>(std::move(container1)) += container2; }
-    template<typename T>
-    [[nodiscard]] jlist<T> operator+(const jlist<T>& container1, jlist<T>&& container2) { return container1.copy() += std::forward<jlist<T>>(container2); }
-    template<typename T>
-    [[nodiscard]] jlist<T> operator+(jlist<T>&& container1, jlist<T>&& container2) { return jlist<T>(std::move(container1)) += std::forward<jlist<T>>(container2); }
-
-
-
-    template<typename T>
-    index_type jlist<T>::indexOf(const type& value) const noexcept
+    [[nodiscard]] list<T> operator+(list<T>&& container1, list<T>&& container2)
     {
-        index_type index = 0;
-        for (const auto& _value : _internalData)
-        {
-            if (_value == value)
-            {
-                return index;
-            }
-            index++;
-        }
-        return index_invalid;
-    }
-
-    template<typename T>
-    void jlist<T>::removeAt(jlist::const_iterator place, index_type count) noexcept
-    {
-        const auto endIter = end();
-        auto placeEnd = place;
-        while ((count > 0) && (placeEnd != endIter))
-        {
-            ++placeEnd;
-            count--;
-        }
-        removeAt(place, placeEnd);
+        list<T> result = std::move(container1);
+        result += std::move(container2);
+        return result;
     }
     template<typename T>
-    void jlist<T>::removeAt(const index_type index, const index_type count) noexcept
-    {
-        if (isValidIndex(index))
-        {
-            removeAt(std::next(begin(), index), count);
-        }
-    }
+    [[nodiscard]] list<T> operator+(const list<T>& container1, std::initializer_list<T> list) { return container1.copy() + list; }
     template<typename T>
-    index_type jlist<T>::remove(const type& value) noexcept
-    {
-#if JUTILS_STD_VERSION >= JUTILS_STD20
-        return std::erase(_internalData, value);
-#else
-        const auto iter = std::remove(begin(), end(), value);
-        const index_type deletedElementsCount = end() - iter;
-        _internalData.erase(iter, end());
-        return deletedElementsCount;
-#endif
-    }
+    [[nodiscard]] list<T> operator+(const list<T>& container1, const list<T>& container2) { return container1.copy() + container2; }
+    template<typename T>
+    [[nodiscard]] list<T> operator+(const list<T>& container1, list<T>&& container2) { return container1.copy() + std::move(container2); }
 }

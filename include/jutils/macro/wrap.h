@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "macro_args_count.h"
+#include "args_count.h"
 
 #define JUTILS_WRAP_SUPPORTED JUTILS_ARGS_COUNT_SUPPORTED
 

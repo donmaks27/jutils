@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "math/common.h"
+#include "core.h"
 
+#include "math/math.h"
 #include <algorithm>
 #include <vector>
 

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "vector.h"
-#include "jlist.h"
+#include "list.h"
 #include "jmemory.h"
 
 #include <atomic>
@@ -75,7 +75,7 @@ namespace jutils
 
         std::mutex tasksQueueMutex;
         std::condition_variable taskAvailableCondition;
-        jlist<task_description> tasksQueue;
+        list<task_description> tasksQueue;
 
         int32 asyncWorkerCount = 0;
 
