@@ -7,11 +7,11 @@
 #include <glm/detail/qualifier.hpp>
 
 template<glm::length_t Size, typename T, glm::qualifier Q>
-struct JUTILS_FORMAT_NAMESPACE::formatter<glm::vec<Size, T, Q>> : JUTILS_FORMAT_NAMESPACE::formatter<jutils::string>
+struct JUTILS_FORMAT_NAMESPACE::formatter<glm::vec<Size, T, Q>> : JUTILS_FORMAT_NAMESPACE::formatter<std::string>
 {
     template<typename FormatContext>
     auto format(const glm::vec<Size, T, Q>& value, FormatContext& ctx)
     {
-        return JUTILS_FORMAT_NAMESPACE::formatter<jutils::string>::format(jutils::toString(value), ctx);
+        return JUTILS_FORMAT_NAMESPACE::formatter<std::string>::format(jutils::toString(value), ctx);
     }
 };

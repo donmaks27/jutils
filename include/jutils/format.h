@@ -5,9 +5,10 @@
 #include "core.h"
 
 #include "type_traits.h"
-#include "string.h"
 #include "macro/formatter.h"
 #include "macro/template_condition.h"
+#include <string>
+#include <vector>
 
 namespace jutils
 {
@@ -20,7 +21,7 @@ namespace jutils
     constexpr bool has_string_formatter_v = has_string_formatter<T>::value;
 
     JUTILS_TEMPLATE_CONDITION(has_string_formatter_v<T>, typename T)
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR string toString(T value) noexcept { return string_formatter<jutils::remove_cvref_t<T>>::format(value); }
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR std::string toString(T value) noexcept { return string_formatter<jutils::remove_cvref_t<T>>::format(value); }
 
 #if defined(JUTILS_USE_FMT)
     template<typename T>
@@ -32,29 +33,29 @@ namespace jutils
     template<typename T>
     constexpr bool has_formatter_v = has_formatter<jutils::remove_cvref_t<T>>::value;
 
-    [[nodiscard]] inline string format(const char* str) { return str; }
+    [[nodiscard]] inline std::string format(const char* str) { return str; }
 #if defined(JUTILS_USE_FMT)
     JUTILS_TEMPLATE_CONDITION((has_formatter_v<Args> && ...), typename... Args)
-    [[nodiscard]] string format(const fmt::format_string<Args...> formatStr, Args&&... args)
+    [[nodiscard]] std::string format(const fmt::format_string<Args...> formatStr, Args&&... args)
     {
         return fmt::format(formatStr, std::forward<Args>(args)...);
     }
 #else
     JUTILS_TEMPLATE_CONDITION((has_formatter_v<Args> && ...), typename... Args)
-    [[nodiscard]] string format(const std::format_string<Args...> formatStr, Args&&... args)
+    [[nodiscard]] std::string format(const std::format_string<Args...> formatStr, Args&&... args)
     {
         return std::format(formatStr, std::forward<Args>(args)...);
     }
 #endif
 
     JUTILS_TEMPLATE_CONDITION(has_string_formatter_v<T>, typename T)
-    [[nodiscard]] JUTILS_STD20_CONSTEXPR string join(const std::vector<T>& values, const string& separator = "")
+    [[nodiscard]] JUTILS_STD20_CONSTEXPR std::string join(const std::vector<T>& values, const std::string& separator = "")
     {
         if (values.isEmpty())
         {
             return {};
         }
-        string result = jutils::toString(values[0]);
+        std::string result = jutils::toString(values[0]);
         for (std::size_t index = 1; index < values.getSize(); index++)
         {
             result += separator + jutils::toString(values[index]);
@@ -63,56 +64,39 @@ namespace jutils
     }
 
     template<>
-    struct string_formatter<int8> : std::true_type { [[nodiscard]] static string format(int8 value) noexcept { return std::to_string(value); } };
+    struct string_formatter<int8> : std::true_type { [[nodiscard]] static std::string format(int8 value) noexcept { return std::to_string(value); } };
     template<>
-    struct string_formatter<uint8> : std::true_type { [[nodiscard]] static string format(uint8 value) noexcept { return std::to_string(value); } };
+    struct string_formatter<uint8> : std::true_type { [[nodiscard]] static std::string format(uint8 value) noexcept { return std::to_string(value); } };
     template<>
-    struct string_formatter<int16> : std::true_type { [[nodiscard]] static string format(int16 value) noexcept { return std::to_string(value); } };
+    struct string_formatter<int16> : std::true_type { [[nodiscard]] static std::string format(int16 value) noexcept { return std::to_string(value); } };
     template<>
-    struct string_formatter<uint16> : std::true_type { [[nodiscard]] static string format(uint16 value) noexcept { return std::to_string(value); } };
+    struct string_formatter<uint16> : std::true_type { [[nodiscard]] static std::string format(uint16 value) noexcept { return std::to_string(value); } };
     template<>
-    struct string_formatter<int32> : std::true_type { [[nodiscard]] static string format(int32 value) noexcept { return std::to_string(value); } };
+    struct string_formatter<int32> : std::true_type { [[nodiscard]] static std::string format(int32 value) noexcept { return std::to_string(value); } };
     template<>
-    struct string_formatter<uint32> : std::true_type { [[nodiscard]] static string format(uint32 value) noexcept { return std::to_string(value); } };
+    struct string_formatter<uint32> : std::true_type { [[nodiscard]] static std::string format(uint32 value) noexcept { return std::to_string(value); } };
     template<>
-    struct string_formatter<int64> : std::true_type { [[nodiscard]] static string format(int64 value) noexcept { return std::to_string(value); } };
+    struct string_formatter<int64> : std::true_type { [[nodiscard]] static std::string format(int64 value) noexcept { return std::to_string(value); } };
     template<>
-    struct string_formatter<uint64> : std::true_type { [[nodiscard]] static string format(uint64 value) noexcept { return std::to_string(value); } };
+    struct string_formatter<uint64> : std::true_type { [[nodiscard]] static std::string format(uint64 value) noexcept { return std::to_string(value); } };
     template<>
-    struct string_formatter<float> : std::true_type { [[nodiscard]] static string format(float value) noexcept { return std::to_string(value); } };
+    struct string_formatter<float> : std::true_type { [[nodiscard]] static std::string format(float value) noexcept { return std::to_string(value); } };
     template<>
-    struct string_formatter<double> : std::true_type { [[nodiscard]] static string format(double value) noexcept { return std::to_string(value); } };
+    struct string_formatter<double> : std::true_type { [[nodiscard]] static std::string format(double value) noexcept { return std::to_string(value); } };
 
     template<>
     struct string_formatter<bool> : std::true_type
     {
-        [[nodiscard]] static JUTILS_STD20_CONSTEXPR string format(const bool value) noexcept { return value ? "true" : "false"; }
+        [[nodiscard]] static JUTILS_STD20_CONSTEXPR std::string format(const bool value) noexcept { return value ? "true" : "false"; }
     };
     template<>
     struct string_formatter<const char*> : std::true_type
     {
-        [[nodiscard]] static JUTILS_STD20_CONSTEXPR string format(const char* value) noexcept { return value; }
+        [[nodiscard]] static JUTILS_STD20_CONSTEXPR std::string format(const char* value) noexcept { return value; }
     };
     template<>
     struct string_formatter<std::string> : std::true_type
     {
-        [[nodiscard]] static JUTILS_STD20_CONSTEXPR string format(std::string value) noexcept { return value; }
-    };
-    template<>
-    struct string_formatter<string> : std::true_type
-    {
-        [[nodiscard]] static JUTILS_STD20_CONSTEXPR string format(string value) noexcept { return value; }
-    };
-}
-
-namespace JUTILS_FORMAT_NAMESPACE
-{
-    template<>
-    struct formatter<jutils::string> : formatter<jutils::string::base_type>
-    {
-        template<typename FormatContext> auto format(const jutils::string& str, FormatContext& ctx) const
-        {
-            return formatter<jutils::string::base_type>::format(*str, ctx);
-        }
+        [[nodiscard]] static JUTILS_STD20_CONSTEXPR std::string format(std::string value) noexcept { return value; }
     };
 }
