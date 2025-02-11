@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "hash_set.h"
+#include "math/hash.h"
 #include "format.h"
+#include <unordered_set>
 #include <mutex>
 #include <shared_mutex>
 
@@ -45,15 +46,15 @@ namespace jutils
             {
                 entry e = { str };
                 std::scoped_lock lock(rwMutex);
-                const entry* entryPtr = stringsTable.find(e);
-                if (entryPtr != nullptr)
+                const auto entryPtr = stringsTable.find(e);
+                if (entryPtr != stringsTable.end())
                 {
                     strIndex = entryPtr->pointerIndex;
                 }
                 else
                 {
                     strIndex = e.pointerIndex = stringPointers.size();
-                    stringPointers.push_back( &stringsTable.add(std::move(e)) );
+                    stringPointers.push_back( &*stringsTable.insert(std::move(e)).first );
                 }
             }
             return strIndex;
@@ -115,7 +116,7 @@ namespace jutils
             };
         };
         
-        hash_set<entry, entry::hash> stringsTable;
+        std::unordered_set<entry, entry::hash> stringsTable;
         std::vector<const entry*> stringPointers;
         mutable std::shared_mutex rwMutex;
     };
