@@ -25,10 +25,10 @@ namespace jutils
         using iterator = typename base_type::iterator;
 
         JUTILS_STD20_CONSTEXPR vector() noexcept = default;
-        JUTILS_STD20_CONSTEXPR explicit vector(const index_type count)
+        JUTILS_STD20_CONSTEXPR explicit vector(const std::size_t count)
             : _internalData(count)
         {}
-        JUTILS_STD20_CONSTEXPR vector(const index_type count, const type& defaultValue)
+        JUTILS_STD20_CONSTEXPR vector(const std::size_t count, const type& defaultValue)
             : _internalData(count, defaultValue)
         {}
         JUTILS_STD20_CONSTEXPR vector(std::initializer_list<type> values)
@@ -65,9 +65,9 @@ namespace jutils
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const base_type& toBase() const noexcept { return _internalData; }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR operator base_type() const noexcept { return toBase(); }
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type getSize() const noexcept { return _internalData.size(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR std::size_t getSize() const noexcept { return _internalData.size(); }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR bool isEmpty() const noexcept { return _internalData.empty(); }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool isValidIndex(const index_type index) const noexcept { return index < getSize(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool isValidIndex(const std::size_t index) const noexcept { return index < getSize(); }
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR iterator begin() noexcept { return _internalData.begin(); }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR iterator end() noexcept { return _internalData.end(); }
@@ -81,10 +81,10 @@ namespace jutils
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR vector copy() const noexcept { return *this; }
         
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR type& get(const index_type index) noexcept { return _internalData[index]; }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR const type& get(const index_type index) const noexcept { return _internalData[index]; }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR type& operator[](const index_type index) noexcept { return get(index); }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR const type& operator[](const index_type index) const noexcept { return get(index); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR type& get(const std::size_t index) noexcept { return _internalData[index]; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const type& get(const std::size_t index) const noexcept { return _internalData[index]; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR type& operator[](const std::size_t index) noexcept { return get(index); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const type& operator[](const std::size_t index) const noexcept { return get(index); }
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR type& getFirst() noexcept { return _internalData.front(); }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR type& getLast() noexcept { return _internalData.back(); }
@@ -98,15 +98,15 @@ namespace jutils
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const_iterator findIter(Pred pred) const noexcept { return std::find_if(begin(), end(), pred); }
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type indexOf(const type& value) const noexcept
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR std::size_t indexOf(const type& value) const noexcept
         {
-            const index_type index = std::distance(begin(), findIter(value));
+            const std::size_t index = std::distance(begin(), findIter(value));
             return index < getSize() ? index : index_invalid;
         }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type indexOf(Pred pred) const noexcept
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR std::size_t indexOf(Pred pred) const noexcept
         {
-            const index_type index = std::distance(begin(), findIter(pred));
+            const std::size_t index = std::distance(begin(), findIter(pred));
             return index < getSize() ? index : index_invalid;
         }
 
@@ -137,9 +137,9 @@ namespace jutils
             return iter != end() ? &*iter : nullptr;
         }
 
-        JUTILS_STD20_CONSTEXPR void reserve(const index_type capacity) { _internalData.reserve(capacity); }
-        JUTILS_STD20_CONSTEXPR void resize(const index_type size) { _internalData.resize(size); }
-        JUTILS_STD20_CONSTEXPR void resize(const index_type size, const type& defaultValue) { _internalData.resize(size, defaultValue); }
+        JUTILS_STD20_CONSTEXPR void reserve(const std::size_t capacity) { _internalData.reserve(capacity); }
+        JUTILS_STD20_CONSTEXPR void resize(const std::size_t size) { _internalData.resize(size); }
+        JUTILS_STD20_CONSTEXPR void resize(const std::size_t size, const type& defaultValue) { _internalData.resize(size, defaultValue); }
 
         template<typename... Args>
         JUTILS_STD20_CONSTEXPR type& put(Args&&... args) { return _internalData.emplace_back(std::forward<Args>(args)...); }
@@ -149,7 +149,7 @@ namespace jutils
             return *_internalData.emplace(place, std::forward<Args>(args)...);
         }
         template<typename... Args>
-        JUTILS_STD20_CONSTEXPR type& putAt(const index_type index, Args&&... args)
+        JUTILS_STD20_CONSTEXPR type& putAt(const std::size_t index, Args&&... args)
         {
             return putAt(std::next(begin(), jutils::math::min(index, getSize())), std::forward<Args>(args)...);
         }
@@ -172,9 +172,9 @@ namespace jutils
         JUTILS_STD20_CONSTEXPR type& addAt(const const_iterator place, type&& value) { return putAt(place, std::move(value)); }
         JUTILS_STD20_CONSTEXPR type& addDefaultAt(const const_iterator place) { return putAt(place); }
 
-        JUTILS_STD20_CONSTEXPR type& addAt(const index_type index, const type& value) { return putAt(index, value); }
-        JUTILS_STD20_CONSTEXPR type& addAt(const index_type index, type&& value) { return putAt(index, std::move(value)); }
-        JUTILS_STD20_CONSTEXPR type& addDefaultAt(const index_type index) { return putAt(index); }
+        JUTILS_STD20_CONSTEXPR type& addAt(const std::size_t index, const type& value) { return putAt(index, value); }
+        JUTILS_STD20_CONSTEXPR type& addAt(const std::size_t index, type&& value) { return putAt(index, std::move(value)); }
+        JUTILS_STD20_CONSTEXPR type& addDefaultAt(const std::size_t index) { return putAt(index); }
 
         JUTILS_STD20_CONSTEXPR vector& append(std::initializer_list<type> values)
         {
@@ -207,13 +207,13 @@ namespace jutils
 
         JUTILS_STD20_CONSTEXPR void removeAt(const const_iterator& placeStart, const const_iterator& placeEnd) noexcept
             { _internalData.erase(placeStart, placeEnd); }
-        JUTILS_STD20_CONSTEXPR void removeAt(const const_iterator& place, index_type count = 1) noexcept
+        JUTILS_STD20_CONSTEXPR void removeAt(const const_iterator& place, std::size_t count = 1) noexcept
         {
             removeAt(place, std::next(place, static_cast<typename const_iterator::difference_type>(
                 jutils::math::clamp(count, 0, getSize() - std::distance<const_iterator>(begin(), place))
             )));
         }
-        JUTILS_STD20_CONSTEXPR void removeAt(index_type index, index_type count = 1) noexcept
+        JUTILS_STD20_CONSTEXPR void removeAt(std::size_t index, std::size_t count = 1) noexcept
         {
             if (isValidIndex(index))
             {
@@ -234,25 +234,25 @@ namespace jutils
                 _internalData.pop_back();
             }
         }
-        JUTILS_STD20_CONSTEXPR index_type remove(const type& value) noexcept
+        JUTILS_STD20_CONSTEXPR std::size_t remove(const type& value) noexcept
         {
 #if JUTILS_STD_VERSION >= JUTILS_STD20
             return std::erase(_internalData, value);
 #else
             const auto iter = std::remove(begin(), end(), value);
-            const index_type deletedElementsCount = std::distance(iter, end());
+            const std::size_t deletedElementsCount = std::distance(iter, end());
             _internalData.erase(iter, end());
             return deletedElementsCount;
 #endif
         }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
-        JUTILS_STD20_CONSTEXPR index_type remove(Pred pred) noexcept
+        JUTILS_STD20_CONSTEXPR std::size_t remove(Pred pred) noexcept
         {
 #if JUTILS_STD_VERSION >= JUTILS_STD20
             return std::erase_if(_internalData, pred);
 #else
             const auto iter = std::remove_if(begin(), end(), pred);
-            const index_type deletedElementsCount = std::distance(iter, end());
+            const std::size_t deletedElementsCount = std::distance(iter, end());
             _internalData.erase(iter, end());
             return deletedElementsCount;
 #endif

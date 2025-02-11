@@ -55,7 +55,7 @@ namespace jutils
             return {};
         }
         string result = jutils::toString(values[0]);
-        for (index_type index = 1; index < values.getSize(); index++)
+        for (std::size_t index = 1; index < values.getSize(); index++)
         {
             result += separator + jutils::toString(values[index]);
         }

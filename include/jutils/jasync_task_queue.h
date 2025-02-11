@@ -80,7 +80,7 @@ namespace jutils
         int32 asyncWorkerCount = 0;
 
 
-        inline void addTasks(jasync_task* const* tasks, index_type tasksCount);
+        inline void addTasks(jasync_task* const* tasks, std::size_t tasksCount);
     };
 
     class jasync_worker;
@@ -150,7 +150,7 @@ namespace jutils
         taskAvailableCondition.notify_one();
         return true;
     }
-    inline void jasync_task_queue_base::addTasks(jasync_task* const* const tasks, const index_type tasksCount)
+    inline void jasync_task_queue_base::addTasks(jasync_task* const* const tasks, const std::size_t tasksCount)
     {
         if ((asyncWorkerCount == 0) || (tasksCount == 0))
         {
@@ -158,7 +158,7 @@ namespace jutils
         }
 
         tasksQueueMutex.lock();
-        for (index_type index = 0; index < tasksCount; index++)
+        for (std::size_t index = 0; index < tasksCount; index++)
         {
             tasksQueue.add({ tasks[index] });
         }

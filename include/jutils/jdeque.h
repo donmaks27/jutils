@@ -20,10 +20,10 @@ namespace jutils
         using iterator = typename base_type::iterator;
 
         jdeque() = default;
-        explicit jdeque(const index_type count)
+        explicit jdeque(const std::size_t count)
             : _internalData(count)
         {}
-        jdeque(const index_type count, const type& defaultValue)
+        jdeque(const std::size_t count, const type& defaultValue)
             : _internalData(count, defaultValue)
         {}
         jdeque(std::initializer_list<type> values)
@@ -59,9 +59,9 @@ namespace jutils
 
         [[nodiscard]] const base_type& toBase() const noexcept { return _internalData; }
 
-        [[nodiscard]] index_type getSize() const noexcept { return _internalData.size(); }
+        [[nodiscard]] std::size_t getSize() const noexcept { return _internalData.size(); }
         [[nodiscard]] bool isEmpty() const noexcept { return _internalData.empty(); }
-        [[nodiscard]] bool isValidIndex(const index_type index) const noexcept { return index < getSize(); }
+        [[nodiscard]] bool isValidIndex(const std::size_t index) const noexcept { return index < getSize(); }
 
         [[nodiscard]] iterator begin() noexcept { return _internalData.begin(); }
         [[nodiscard]] iterator end() noexcept { return _internalData.end(); }
@@ -70,10 +70,10 @@ namespace jutils
 
         [[nodiscard]] jdeque copy() const noexcept { return *this; }
         
-        [[nodiscard]] type& get(const index_type index) noexcept { return _internalData[index]; }
-        [[nodiscard]] const type& get(const index_type index) const noexcept { return _internalData[index]; }
-        [[nodiscard]] type& operator[](const index_type index) noexcept { return get(index); }
-        [[nodiscard]] const type& operator[](const index_type index) const noexcept { return get(index); }
+        [[nodiscard]] type& get(const std::size_t index) noexcept { return _internalData[index]; }
+        [[nodiscard]] const type& get(const std::size_t index) const noexcept { return _internalData[index]; }
+        [[nodiscard]] type& operator[](const std::size_t index) noexcept { return get(index); }
+        [[nodiscard]] const type& operator[](const std::size_t index) const noexcept { return get(index); }
 
         [[nodiscard]] type& getFirst() noexcept { return _internalData.front(); }
         [[nodiscard]] type& getLast() noexcept { return _internalData.back(); }
@@ -87,9 +87,9 @@ namespace jutils
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
         [[nodiscard]] const_iterator findIter(Pred pred) const noexcept { return std::find_if(begin(), end(), pred); }
 
-        [[nodiscard]] index_type indexOf(const type& value) const noexcept
+        [[nodiscard]] std::size_t indexOf(const type& value) const noexcept
         {
-            index_type index = 0;
+            std::size_t index = 0;
             for (const auto& v : _internalData)
             {
                 if (v == value)
@@ -101,9 +101,9 @@ namespace jutils
             return index_invalid;
         }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
-        [[nodiscard]] index_type indexOf(Pred pred) const noexcept
+        [[nodiscard]] std::size_t indexOf(Pred pred) const noexcept
         {
-            index_type index = 0;
+            std::size_t index = 0;
             for (const auto& v : _internalData)
             {
                 if (pred(v))
@@ -142,8 +142,8 @@ namespace jutils
             return iter != end() ? &*iter : nullptr;
         }
         
-        void resize(const index_type size) { _internalData.resize(size); }
-        void resize(const index_type size, const type& defaultValue) { _internalData.resize(size, defaultValue); }
+        void resize(const std::size_t size) { _internalData.resize(size); }
+        void resize(const std::size_t size, const type& defaultValue) { _internalData.resize(size, defaultValue); }
 
         template<typename... Args>
         type& put(Args&&... args) { return _internalData.emplace_back(std::forward<Args>(args)...); }
@@ -155,7 +155,7 @@ namespace jutils
             return *_internalData.emplace(place, std::forward<Args>(args)...);
         }
         template<typename... Args>
-        type& putAt(const index_type index, Args&&... args)
+        type& putAt(const std::size_t index, Args&&... args)
         {
             return putAt(std::next(begin(), jutils::math::min(index, getSize())), std::forward<Args>(args)...);
         }
@@ -192,9 +192,9 @@ namespace jutils
         type& addAt(const const_iterator place, type&& value) { return putAt(place, std::move(value)); }
         type& addDefaultAt(const const_iterator place) { return putAt(place); }
 
-        type& addAt(const index_type index, const type& value) { return putAt(index, value); }
-        type& addAt(const index_type index, type&& value) { return putAt(index, std::move(value)); }
-        type& addDefaultAt(const index_type index) { return putAt(index); }
+        type& addAt(const std::size_t index, const type& value) { return putAt(index, value); }
+        type& addAt(const std::size_t index, type&& value) { return putAt(index, std::move(value)); }
+        type& addDefaultAt(const std::size_t index) { return putAt(index); }
 
         jdeque& append(std::initializer_list<type> values)
         {
@@ -226,7 +226,7 @@ namespace jutils
         jdeque& operator+=(const jdeque& value) { return append(value); }
 
         void removeAt(const_iterator placeStart, const_iterator placeEnd) noexcept { _internalData.erase(placeStart, placeEnd); }
-        void removeAt(const_iterator place, index_type count = 1) noexcept
+        void removeAt(const_iterator place, std::size_t count = 1) noexcept
         {
             const auto endIter = end();
             auto placeEnd = place;
@@ -237,11 +237,11 @@ namespace jutils
             }
             removeAt(place, placeEnd);
         }
-        void removeAt(const index_type index, const index_type count = 1) noexcept
+        void removeAt(const std::size_t index, const std::size_t count = 1) noexcept
         {
             if (isValidIndex(index))
             {
-                const index_type elementsForDelete = jutils::math::min(count, getSize() - index);
+                const std::size_t elementsForDelete = jutils::math::min(count, getSize() - index);
                 if (elementsForDelete == 1)
                 {
                     _internalData.erase(std::next(begin(), index));
@@ -267,25 +267,25 @@ namespace jutils
                 _internalData.pop_back();
             }
         }
-        index_type remove(const type& value) noexcept
+        std::size_t remove(const type& value) noexcept
         {
 #if JUTILS_STD_VERSION >= JUTILS_STD20
             return std::erase(_internalData, value);
 #else
             const auto iter = std::remove(begin(), end(), value);
-            const index_type deletedElementsCount = end() - iter;
+            const std::size_t deletedElementsCount = end() - iter;
             _internalData.erase(iter, end());
             return deletedElementsCount;
 #endif
         }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
-        index_type remove(Pred pred) noexcept
+        std::size_t remove(Pred pred) noexcept
         {
 #if JUTILS_STD_VERSION >= JUTILS_STD20
             return std::erase_if(_internalData, pred);
 #else
             const auto iter = std::remove_if(begin(), end(), pred);
-            const index_type deletedElementsCount = end() - iter;
+            const std::size_t deletedElementsCount = end() - iter;
             _internalData.erase(iter, end());
             return deletedElementsCount;
 #endif

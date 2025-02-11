@@ -55,7 +55,7 @@ namespace jutils
 
         [[nodiscard]] const base_type& toBase() const noexcept { return _internalData; }
 
-        [[nodiscard]] index_type getSize() const noexcept { return _internalData.size(); }
+        [[nodiscard]] std::size_t getSize() const noexcept { return _internalData.size(); }
         [[nodiscard]] bool isEmpty() const noexcept { return _internalData.empty(); }
 
         [[nodiscard]] const_iterator begin() const noexcept { return _internalData.begin(); }
@@ -146,9 +146,9 @@ namespace jutils
 
         bool remove(const type& key) noexcept { return _internalData.erase(key) != 0; }
         JUTILS_TEMPLATE_CONDITION((jutils::is_predicate_v<Pred, type>), typename Pred)
-        index_type remove(Pred pred) noexcept
+        std::size_t remove(Pred pred) noexcept
         {
-            index_type count = 0;
+            std::size_t count = 0;
             for (auto iter = begin(); iter != end(); ++iter)
             {
                 if (pred(*iter))

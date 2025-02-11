@@ -34,14 +34,14 @@ namespace jutils
             }
         }
 
-        index_type addOrFind(const string& str)
+        std::size_t addOrFind(const string& str)
         {
             if (str.isEmpty())
             {
                 return index_invalid;
             }
 
-            index_type strIndex;
+            std::size_t strIndex;
             {
                 entry e = { str };
                 std::scoped_lock lock(rwMutex);
@@ -58,12 +58,12 @@ namespace jutils
             }
             return strIndex;
         }
-        bool contains(const index_type index) const noexcept
+        bool contains(const std::size_t index) const noexcept
         {
             std::shared_lock lock(rwMutex);
             return stringPointers.isValidIndex(index);
         }
-        string get(const index_type index) const noexcept
+        string get(const std::size_t index) const noexcept
         {
             {
                 std::shared_lock lock(rwMutex);
@@ -100,7 +100,7 @@ namespace jutils
             entry& operator=(entry&&) noexcept = default;
 
             string stringValue;
-            index_type pointerIndex = index_invalid;
+            std::size_t pointerIndex = index_invalid;
 
             [[nodiscard]] bool operator==(const string& str) const noexcept { return stringValue == str; }
             [[nodiscard]] bool operator==(const entry& entry) const noexcept { return operator==(entry.stringValue); }
@@ -148,7 +148,7 @@ namespace jutils
 
     private:
 
-        index_type pointerIndex = index_invalid;
+        std::size_t pointerIndex = index_invalid;
     };
 
     template<>

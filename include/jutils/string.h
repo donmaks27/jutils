@@ -28,10 +28,10 @@ namespace jutils
         JUTILS_STD20_CONSTEXPR string(const char_type* str)
             : _internalString(str)
         {}
-        JUTILS_STD20_CONSTEXPR string(const char_type* const str, const index_type count)
+        JUTILS_STD20_CONSTEXPR string(const char_type* const str, const std::size_t count)
             : _internalString(str, count)
         {}
-        JUTILS_STD20_CONSTEXPR string(const index_type count, const char_type character)
+        JUTILS_STD20_CONSTEXPR string(const std::size_t count, const char_type character)
             : _internalString(count, character)
         {}
         JUTILS_STD20_CONSTEXPR string(const base_type& str)
@@ -70,9 +70,9 @@ namespace jutils
         [[nodiscard]] JUTILS_STD20_CONSTEXPR const base_type& toBase() const noexcept { return _internalString; }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR operator std::string() const noexcept { return toBase(); }
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type getSize() const noexcept { return _internalString.size(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR std::size_t getSize() const noexcept { return _internalString.size(); }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR bool isEmpty() const noexcept { return _internalString.empty(); }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool isValidIndex(const index_type index) const noexcept { return index < getSize(); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool isValidIndex(const std::size_t index) const noexcept { return index < getSize(); }
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR iterator begin() noexcept { return _internalString.begin(); }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR iterator end() noexcept { return _internalString.end(); }
@@ -86,29 +86,29 @@ namespace jutils
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR string copy() const noexcept { return *this; }
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR char_type& get(const index_type index) noexcept { return _internalString[index]; }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR const char_type& get(const index_type index) const noexcept {  return _internalString[index]; }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR char_type& operator[](const index_type index) noexcept { return get(index); }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR const char_type& operator[](const index_type index) const noexcept { return get(index); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR char_type& get(const std::size_t index) noexcept { return _internalString[index]; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const char_type& get(const std::size_t index) const noexcept {  return _internalString[index]; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR char_type& operator[](const std::size_t index) noexcept { return get(index); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR const char_type& operator[](const std::size_t index) const noexcept { return get(index); }
 
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type indexOf(const char_type character, const index_type startIndex = 0,
-            const index_type finishIndex = index_invalid) const noexcept { return _indexOf(character, startIndex, finishIndex); }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type indexOf(const char_type* const str, const index_type startIndex = 0,
-            const index_type finishIndex = index_invalid) const noexcept { return _indexOfStr(str, std::char_traits<char_type>::length(str), startIndex, finishIndex); }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type indexOf(const base_type& str, const index_type startIndex = 0,
-            const index_type finishIndex = index_invalid) const noexcept { return _indexOf(str, startIndex, finishIndex); }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR index_type indexOf(const string& str, const index_type startIndex = 0,
-            const index_type finishIndex = index_invalid) const noexcept { return _indexOf(str.toBase(), startIndex, finishIndex); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR std::size_t indexOf(const char_type character, const std::size_t startIndex = 0,
+            const std::size_t finishIndex = index_invalid) const noexcept { return _indexOf(character, startIndex, finishIndex); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR std::size_t indexOf(const char_type* const str, const std::size_t startIndex = 0,
+            const std::size_t finishIndex = index_invalid) const noexcept { return _indexOfStr(str, std::char_traits<char_type>::length(str), startIndex, finishIndex); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR std::size_t indexOf(const base_type& str, const std::size_t startIndex = 0,
+            const std::size_t finishIndex = index_invalid) const noexcept { return _indexOf(str, startIndex, finishIndex); }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR std::size_t indexOf(const string& str, const std::size_t startIndex = 0,
+            const std::size_t finishIndex = index_invalid) const noexcept { return _indexOf(str.toBase(), startIndex, finishIndex); }
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(const char_type character, const index_type startIndex = 0,
-            const index_type finishIndex = index_invalid) const noexcept { return indexOf(character, startIndex, finishIndex) != index_invalid; }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(const char_type* const str, const index_type startIndex = 0,
-            const index_type finishIndex = index_invalid) const noexcept { return indexOf(str, startIndex, finishIndex) != index_invalid; }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(const std::string& str, const index_type startIndex = 0,
-            const index_type finishIndex = index_invalid) const noexcept { return indexOf(str, startIndex, finishIndex) != index_invalid; }
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(const string& str, const index_type startIndex = 0,
-            const index_type finishIndex = index_invalid) const noexcept { return indexOf(str, startIndex, finishIndex) != index_invalid; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(const char_type character, const std::size_t startIndex = 0,
+            const std::size_t finishIndex = index_invalid) const noexcept { return indexOf(character, startIndex, finishIndex) != index_invalid; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(const char_type* const str, const std::size_t startIndex = 0,
+            const std::size_t finishIndex = index_invalid) const noexcept { return indexOf(str, startIndex, finishIndex) != index_invalid; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(const std::string& str, const std::size_t startIndex = 0,
+            const std::size_t finishIndex = index_invalid) const noexcept { return indexOf(str, startIndex, finishIndex) != index_invalid; }
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR bool contains(const string& str, const std::size_t startIndex = 0,
+            const std::size_t finishIndex = index_invalid) const noexcept { return indexOf(str, startIndex, finishIndex) != index_invalid; }
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR bool startsWith(const char_type character) const noexcept
             { return !isEmpty() && (get(0) == character); }
@@ -132,7 +132,7 @@ namespace jutils
         [[nodiscard]] JUTILS_STD20_CONSTEXPR int compare(const std::string& str) const noexcept { return _internalString.compare(str); }
         [[nodiscard]] JUTILS_STD20_CONSTEXPR int compare(const string& str) const noexcept { return _internalString.compare(*str); }
 
-        [[nodiscard]] JUTILS_STD20_CONSTEXPR string substr(index_type startIndex = 0, index_type length = index_invalid) const noexcept
+        [[nodiscard]] JUTILS_STD20_CONSTEXPR string substr(std::size_t startIndex = 0, std::size_t length = index_invalid) const noexcept
             { return _internalString.substr(startIndex, length); }
 
         [[nodiscard]] JUTILS_STD20_CONSTEXPR vector<string> split(const char_type delimiter) const
@@ -145,65 +145,65 @@ namespace jutils
             { return _split(delimiter.getData(), delimiter.getSize()); }
 
 
-        JUTILS_STD20_CONSTEXPR string& replace(const char_type value, const index_type startIndex, const index_type replacedLength = 0)
+        JUTILS_STD20_CONSTEXPR string& replace(const char_type value, const std::size_t startIndex, const std::size_t replacedLength = 0)
             { return _replace(&value, 1, startIndex, replacedLength); }
-        JUTILS_STD20_CONSTEXPR string& replace(const char_type* value, const index_type startIndex, const index_type replacedLength = 0)
+        JUTILS_STD20_CONSTEXPR string& replace(const char_type* value, const std::size_t startIndex, const std::size_t replacedLength = 0)
             { return _replace(value, std::char_traits<char_type>::length(value), startIndex, replacedLength); }
-        JUTILS_STD20_CONSTEXPR string& replace(const std::string& value, const index_type startIndex, const index_type replacedLength = 0)
+        JUTILS_STD20_CONSTEXPR string& replace(const std::string& value, const std::size_t startIndex, const std::size_t replacedLength = 0)
             { return _replace(value.c_str(), value.size(), startIndex, replacedLength); }
-        JUTILS_STD20_CONSTEXPR string& replace(const string& value, const index_type startIndex, const index_type replacedLength = 0)
+        JUTILS_STD20_CONSTEXPR string& replace(const string& value, const std::size_t startIndex, const std::size_t replacedLength = 0)
             { return _replace(value.getData(), value.getSize(), startIndex, replacedLength); }
 
         JUTILS_STD20_CONSTEXPR string& replaceAll(const char_type searchValue, const char_type newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return _replaceAll(&searchValue, 1, &newValue, 1, startIndex, finishIndex); }
         JUTILS_STD20_CONSTEXPR string& replaceAll(const char_type searchValue, const char_type* const newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return _replaceAll(&searchValue, 1, newValue, std::char_traits<char_type>::length(newValue), startIndex, finishIndex); }
         JUTILS_STD20_CONSTEXPR string& replaceAll(const char_type searchValue, const std::string& newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return _replaceAll(&searchValue, 1, newValue.c_str(), newValue.size(), startIndex, finishIndex); }
         JUTILS_STD20_CONSTEXPR string& replaceAll(const char_type searchValue, const string& newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return _replaceAll(&searchValue, 1, newValue.getData(), newValue.getSize(), startIndex, finishIndex); }
 
         JUTILS_STD20_CONSTEXPR string& replaceAll(const char_type* const searchValue, const char_type newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return _replaceAll(searchValue, std::char_traits<char_type>::length(searchValue), &newValue, 1, startIndex, finishIndex); }
         JUTILS_STD20_CONSTEXPR string& replaceAll(const char_type* const searchValue, const char_type* const newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return _replaceAll(searchValue, std::char_traits<char_type>::length(searchValue), newValue, std::char_traits<char_type>::length(newValue), startIndex, finishIndex); }
         JUTILS_STD20_CONSTEXPR string& replaceAll(const char_type* const searchValue, const std::string& newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return _replaceAll(searchValue, std::char_traits<char_type>::length(searchValue), newValue.c_str(), newValue.size(), startIndex, finishIndex); }
         JUTILS_STD20_CONSTEXPR string& replaceAll(const char_type* const searchValue, const string& newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return _replaceAll(searchValue, std::char_traits<char_type>::length(searchValue), newValue.getData(), newValue.getSize(), startIndex, finishIndex); }
 
         JUTILS_STD20_CONSTEXPR string& replaceAll(const std::string& searchValue, const char_type newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return _replaceAll(searchValue.c_str(), searchValue.size(), &newValue, 1, startIndex, finishIndex); }
         JUTILS_STD20_CONSTEXPR string& replaceAll(const std::string& searchValue, const char_type* const newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return _replaceAll(searchValue.c_str(), searchValue.size(), newValue, std::char_traits<char_type>::length(newValue), startIndex, finishIndex); }
         JUTILS_STD20_CONSTEXPR string& replaceAll(const std::string& searchValue, const std::string& newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return _replaceAll(searchValue.c_str(), searchValue.size(), newValue.c_str(), newValue.size(), startIndex, finishIndex); }
         JUTILS_STD20_CONSTEXPR string& replaceAll(const std::string& searchValue, const string& newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return _replaceAll(searchValue.c_str(), searchValue.size(), newValue.getData(), newValue.getSize(), startIndex, finishIndex); }
 
         JUTILS_STD20_CONSTEXPR string& replaceAll(const string& searchValue, const char_type newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return replaceAll(searchValue.toBase(), newValue, startIndex, finishIndex); }
         JUTILS_STD20_CONSTEXPR string& replaceAll(const string& searchValue, const char_type* const newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return replaceAll(searchValue.toBase(), newValue, startIndex, finishIndex); }
         JUTILS_STD20_CONSTEXPR string& replaceAll(const string& searchValue, const std::string& newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return replaceAll(searchValue.toBase(), newValue, startIndex, finishIndex); }
         JUTILS_STD20_CONSTEXPR string& replaceAll(const string& searchValue, const string& newValue,
-            const index_type startIndex = 0, const index_type finishIndex = index_invalid)
+            const std::size_t startIndex = 0, const std::size_t finishIndex = index_invalid)
             { return replaceAll(searchValue.toBase(), newValue, startIndex, finishIndex); }
 
         JUTILS_STD20_CONSTEXPR string& replaceAll(const std::basic_regex<char_type>& regex, const char_type replacement)
@@ -216,12 +216,12 @@ namespace jutils
             { return replaceAll(regex, replacement.toBase()); }
 
 
-        JUTILS_STD20_CONSTEXPR void reserve(const index_type size) { _internalString.reserve(size); }
-        JUTILS_STD20_CONSTEXPR void resize(const index_type size, const char_type character = char_type()) { _internalString.resize(size, character); }
+        JUTILS_STD20_CONSTEXPR void reserve(const std::size_t size) { _internalString.reserve(size); }
+        JUTILS_STD20_CONSTEXPR void resize(const std::size_t size, const char_type character = char_type()) { _internalString.resize(size, character); }
 
         JUTILS_STD20_CONSTEXPR string& assign(const char_type character) { return this->operator=(character); }
         JUTILS_STD20_CONSTEXPR string& assign(const char_type* const str) { return this->operator=(str); }
-        JUTILS_STD20_CONSTEXPR string& assign(const char_type* str, const index_type strLength)
+        JUTILS_STD20_CONSTEXPR string& assign(const char_type* str, const std::size_t strLength)
         {
             _internalString.assign(str, strLength);
             return *this;
@@ -250,7 +250,7 @@ namespace jutils
 
         JUTILS_STD20_CONSTEXPR string& add(const char_type character) { return this->operator+=(character); }
         JUTILS_STD20_CONSTEXPR string& add(const char_type* const str) { return this->operator+=(str); }
-        JUTILS_STD20_CONSTEXPR string& add(const char_type* const str, const index_type strLength)
+        JUTILS_STD20_CONSTEXPR string& add(const char_type* const str, const std::size_t strLength)
         {
             _internalString.append(str, strLength);
             return *this;
@@ -258,29 +258,29 @@ namespace jutils
         JUTILS_STD20_CONSTEXPR string& add(const std::string& str) { return this->operator+=(str); }
         JUTILS_STD20_CONSTEXPR string& add(const string& str) { return this->operator+=(str); }
 
-        JUTILS_STD20_CONSTEXPR string& addAt(const index_type index, const char_type character)
+        JUTILS_STD20_CONSTEXPR string& addAt(const std::size_t index, const char_type character)
         {
             _internalString.insert(index, 1, character);
             return *this;
         }
-        JUTILS_STD20_CONSTEXPR string& addAt(const index_type index, const char_type* const str)
+        JUTILS_STD20_CONSTEXPR string& addAt(const std::size_t index, const char_type* const str)
         {
             _internalString.insert(index, str);
             return *this;
         }
-        JUTILS_STD20_CONSTEXPR string& addAt(const index_type index, const char_type* const str, const index_type strLength)
+        JUTILS_STD20_CONSTEXPR string& addAt(const std::size_t index, const char_type* const str, const std::size_t strLength)
         {
             _internalString.insert(index, str, strLength);
             return *this;
         }
-        JUTILS_STD20_CONSTEXPR string& addAt(const index_type index, const std::string& str)
+        JUTILS_STD20_CONSTEXPR string& addAt(const std::size_t index, const std::string& str)
         {
             _internalString.insert(index, str);
             return *this;
         }
-        JUTILS_STD20_CONSTEXPR string& addAt(const index_type index, const string& str) { return addAt(index, str.toBase()); }
+        JUTILS_STD20_CONSTEXPR string& addAt(const std::size_t index, const string& str) { return addAt(index, str.toBase()); }
 
-        JUTILS_STD20_CONSTEXPR void removeAt(const index_type index, const index_type count = 1) noexcept
+        JUTILS_STD20_CONSTEXPR void removeAt(const std::size_t index, const std::size_t count = 1) noexcept
         {
             if (isValidIndex(index) && (count > 0))
             {
@@ -294,7 +294,7 @@ namespace jutils
         std::string _internalString;
 
         template<typename T>
-        JUTILS_STD20_CONSTEXPR index_type _indexOf(const T& value, const index_type startIndex, const index_type finishIndex) const noexcept
+        JUTILS_STD20_CONSTEXPR std::size_t _indexOf(const T& value, const std::size_t startIndex, const std::size_t finishIndex) const noexcept
         {
             if ((finishIndex != index_invalid) && (finishIndex < startIndex))
             {
@@ -303,8 +303,8 @@ namespace jutils
             const auto index = _internalString.find(value, startIndex);
             return (finishIndex == index_invalid) || (finishIndex >= index) ? index : index_invalid;
         }
-        JUTILS_STD20_CONSTEXPR index_type _indexOfStr(const char_type* str, const std::size_t strLength, const index_type startIndex, 
-            const index_type finishIndex) const noexcept
+        JUTILS_STD20_CONSTEXPR std::size_t _indexOfStr(const char_type* str, const std::size_t strLength, const std::size_t startIndex, 
+            const std::size_t finishIndex) const noexcept
         {
             if ((finishIndex != index_invalid) && (finishIndex < startIndex))
             {
@@ -336,7 +336,7 @@ namespace jutils
             {
                 return false;
             }
-            const index_type offset = getSize() - strLength;
+            const std::size_t offset = getSize() - strLength;
             const char_type* data = getData();
             for (std::size_t index = 0; index < strLength; index++)
             {
@@ -348,7 +348,7 @@ namespace jutils
             return true;
         }
 
-        JUTILS_STD20_CONSTEXPR vector<string> _split(const char_type* delimiter, const index_type delimiterSize) const
+        JUTILS_STD20_CONSTEXPR vector<string> _split(const char_type* delimiter, const std::size_t delimiterSize) const
         {
             if (isEmpty())
             {
@@ -359,10 +359,10 @@ namespace jutils
                 return { *this };
             }
             vector<string> result;
-            index_type index = 0;
+            std::size_t index = 0;
             while (index < getSize())
             {
-                const index_type delimiterIndex = _indexOfStr(delimiter, delimiterSize, index, index_invalid);
+                const std::size_t delimiterIndex = _indexOfStr(delimiter, delimiterSize, index, index_invalid);
                 if (delimiterIndex == index_invalid)
                 {
                     result.add(substr(index));
@@ -377,8 +377,8 @@ namespace jutils
             return result;
         }
 
-        JUTILS_STD20_CONSTEXPR string& _replace(const char_type* value, const std::size_t valueLength, const index_type startIndex, 
-            const index_type replacedLength)
+        JUTILS_STD20_CONSTEXPR string& _replace(const char_type* value, const std::size_t valueLength, const std::size_t startIndex, 
+            const std::size_t replacedLength)
         {
             if (startIndex < getSize())
             {
@@ -388,10 +388,10 @@ namespace jutils
         }
 
         JUTILS_STD20_CONSTEXPR string& _replaceAll(const char_type* searchValue, const std::size_t searchValueLength,
-            const char_type* newValue, const index_type newValueLength, const index_type startIndex, index_type finishIndex)
+            const char_type* newValue, const std::size_t newValueLength, const std::size_t startIndex, std::size_t finishIndex)
         {
-            const index_type replacedStrDiff = newValueLength - searchValueLength;
-            index_type index = _indexOfStr(searchValue, searchValueLength, startIndex, finishIndex);
+            const std::size_t replacedStrDiff = newValueLength - searchValueLength;
+            std::size_t index = _indexOfStr(searchValue, searchValueLength, startIndex, finishIndex);
             while (index != index_invalid)
             {
                 _replace(newValue, newValueLength, index, searchValueLength);
