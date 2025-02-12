@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "jdeque.h"
 #include "jmemory.h"
+#include "math/math.h"
+#include <deque>
 
 namespace jutils
 {
@@ -39,8 +40,8 @@ namespace jutils
             internal_type data[segment_size];
         };
 
-        jdeque<segment_type> objectsPool;
-        jdeque<type*> unusedObjects;
+        std::deque<segment_type> objectsPool;
+        std::deque<type*> unusedObjects;
 
         
         template<typename... Args>
@@ -53,20 +54,20 @@ namespace jutils
     typename jpool<T, SegmentSize>::type* jpool<T, SegmentSize>::getObject(Args&&... args)
     {
         type* object;
-        if (!unusedObjects.isEmpty())
+        if (!unusedObjects.empty())
         {
-            object = unusedObjects.getFirst();
-            unusedObjects.removeFirst();
+            object = unusedObjects.front();
+            unusedObjects.pop_front();
         }
         else
         {
-            auto& segment = objectsPool.addDefault().data;
+            auto& segment = objectsPool.emplace_back()->data;
             object = reinterpret_cast<type*>(segment[0].data);
             if constexpr (segment_size > 1)
             {
                 for (uint8 index = 1; index < segment_size; index++)
                 {
-                    unusedObjects.add(reinterpret_cast<type*>(segment[index].data));
+                    unusedObjects.push_back(reinterpret_cast<type*>(segment[index].data));
                 }
             }
         }
@@ -79,7 +80,7 @@ namespace jutils
         if (object != nullptr)
         {
             this->_clearPoolObject(object);
-            unusedObjects.add(object);
+            unusedObjects.push_back(object);
         }
     }
     template<typename T, uint8 SegmentSize>
@@ -90,7 +91,7 @@ namespace jutils
             for (auto& wrapper : segment.data)
             {
                 type* object = reinterpret_cast<type*>(wrapper.data);
-                if (!unusedObjects.contains(object))
+                if (std::find(unusedObjects.begin(), unusedObjects.end(), object) == unusedObjects.end())
                 {
                     this->_clearPoolObject(object);
                 }
