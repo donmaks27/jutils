@@ -4,6 +4,7 @@
 
 #include "core.h"
 
+#include "base_types.h"
 #include "type_traits.h"
 #include "macro/formatter.h"
 #include "macro/template_condition.h"
@@ -23,30 +24,17 @@ namespace jutils
     JUTILS_TEMPLATE_CONDITION(has_string_formatter_v<T>, typename T)
     [[nodiscard]] JUTILS_STD20_CONSTEXPR std::string toString(T value) noexcept { return string_formatter<jutils::remove_cvref_t<T>>::format(value); }
 
-#if defined(JUTILS_USE_FMT)
     template<typename T>
-    using has_formatter = fmt::has_formatter<T, fmt::format_context>;
-#else
-    template<typename T>
-    using has_formatter = std::is_constructible<std::formatter<T>>;
-#endif
+    using has_formatter = std::is_constructible<JUTILS_FORMAT_NAMESPACE::formatter<T>>;
     template<typename T>
     constexpr bool has_formatter_v = has_formatter<jutils::remove_cvref_t<T>>::value;
 
     [[nodiscard]] inline std::string format(const char* str) { return str; }
-#if defined(JUTILS_USE_FMT)
-    JUTILS_TEMPLATE_CONDITION((has_formatter_v<Args> && ...), typename... Args)
-    [[nodiscard]] std::string format(const fmt::format_string<Args...> formatStr, Args&&... args)
+    JUTILS_TEMPLATE_CONDITION((has_formatter_v<Args>&&...), typename... Args)
+    [[nodiscard]] std::string format(const JUTILS_FORMAT_NAMESPACE::format_string<Args...> formatStr, Args&&... args)
     {
-        return fmt::format(formatStr, std::forward<Args>(args)...);
+        return JUTILS_FORMAT_NAMESPACE::format(formatStr, std::forward<Args>(args)...);
     }
-#else
-    JUTILS_TEMPLATE_CONDITION((has_formatter_v<Args> && ...), typename... Args)
-    [[nodiscard]] std::string format(const std::format_string<Args...> formatStr, Args&&... args)
-    {
-        return std::format(formatStr, std::forward<Args>(args)...);
-    }
-#endif
 
     JUTILS_TEMPLATE_CONDITION(has_string_formatter_v<T>, typename T)
     [[nodiscard]] JUTILS_STD20_CONSTEXPR std::string join(const std::vector<T>& values, const std::string& separator = "")
