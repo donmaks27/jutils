@@ -14,11 +14,9 @@ namespace jutils::log
 
     inline void print(const char* str) { std::printf("%s", str); }
     inline void print(const std::string& str) { print(str.c_str()); }
-    inline void print(const string& str) { print(*str); }
 
     inline void println(const char* str) { std::printf("%s\n", str); }
     inline void println(const std::string& str) { println(str.c_str()); }
-    inline void println(const string& str) { println(*str); }
 }
 
 namespace jutils_private::log

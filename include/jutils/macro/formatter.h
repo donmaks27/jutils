@@ -18,21 +18,21 @@
         };                                                                                                  \
     }
 
-#define JUTILS_STRING_FORMATTER_CONSTEXPR(type, funcName) namespace jutils                                  \
+#define JUTILS_STRING_FORMATTER_CONSTEXPR(type, funcName) namespace jutils                              \
+    {                                                                                                   \
+        template<> struct string_formatter<jutils::remove_cvref_t< type >> : std::true_type             \
+        {                                                                                               \
+            [[nodiscard]] static JUTILS_STD20_CONSTEXPR std::string format(const type& value) noexcept  \
+                { return funcName(value); }                                                             \
+        };                                                                                              \
+    }                                                                                                   \
+    JUTILS_FORMATTER(type, funcName)
+
+#define JUTILS_STRING_FORMATTER(type, funcName) namespace jutils                                            \
     {                                                                                                       \
         template<> struct string_formatter<jutils::remove_cvref_t< type >> : std::true_type                 \
         {                                                                                                   \
-            [[nodiscard]] static JUTILS_STD20_CONSTEXPR jutils::string format(const type& value) noexcept   \
-                { return funcName(value); }                                                                 \
+            [[nodiscard]] static std::string format(const type& value) noexcept { return funcName(value); } \
         };                                                                                                  \
     }                                                                                                       \
-    JUTILS_FORMATTER(type, funcName)
-
-#define JUTILS_STRING_FORMATTER(type, funcName) namespace jutils                                                \
-    {                                                                                                           \
-        template<> struct string_formatter<jutils::remove_cvref_t< type >> : std::true_type                     \
-        {                                                                                                       \
-            [[nodiscard]] static jutils::string format(const type& value) noexcept { return funcName(value); }  \
-        };                                                                                                      \
-    }                                                                                                           \
     JUTILS_FORMATTER(type, funcName)

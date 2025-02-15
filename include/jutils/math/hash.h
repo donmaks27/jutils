@@ -50,24 +50,7 @@ namespace jutils::math
 {
     using hash_t = std::size_t;
 
-    template<typename T>
-    struct hash : std::hash<T> {};
-
-    template<typename T>
-    struct has_hash
-    {
-    private:
-        template<typename T1>
-        static auto _helper(int32) -> decltype(std::declval<hash<T1>>()(std::declval<T1>()));
-        template<typename T1>
-        static void _helper(int8);
-    public:
-        static constexpr bool value = std::is_same_v<decltype(_helper<T>(0)), hash_t>;
-    };
-    template<typename T>
-    constexpr bool has_hash_v = has_hash<T>::value;
-
-    [[nodiscard]] constexpr uint64 hash_crc64(const uint8* data, const uint64 length) noexcept
+    [[nodiscard]] constexpr hash_t hash_crc64(const uint8* data, const uint64 length) noexcept
     {
         constexpr uint64 mask = 0x00000000000000FF;
 
@@ -78,7 +61,7 @@ namespace jutils::math
         }
         return result;
     }
-    [[nodiscard]] constexpr uint64 hash_crc64(const char* str, const uint64 length) noexcept
+    [[nodiscard]] constexpr hash_t hash_crc64(const char* str, const uint64 length) noexcept
     {
         constexpr uint64 mask = 0x00000000000000FF;
 
@@ -89,18 +72,20 @@ namespace jutils::math
         }
         return result;
     }
-    [[nodiscard]] constexpr uint64 hash_crc64(const char* str) noexcept
+    [[nodiscard]] constexpr hash_t hash_crc64(const char* str) noexcept
         { return str != nullptr ? hash_crc64(str, std::char_traits<char>::length(str)) : 0; }
+    [[nodiscard]] constexpr hash_t hash_crc64(const std::string& str) noexcept
+        { return !str.empty() ? hash_crc64(str.c_str(), str.size()) : 0; }
 
-    [[nodiscard]] constexpr uint64 hash_crc64(const uint8 value) noexcept { return jutils_private::hash_crc64_table[value]; }
-    [[nodiscard]] constexpr uint64 hash_crc64(const uint16 value) noexcept
+    [[nodiscard]] constexpr hash_t hash_crc64(const uint8 value) noexcept { return jutils_private::hash_crc64_table[value]; }
+    [[nodiscard]] constexpr hash_t hash_crc64(const uint16 value) noexcept
     {
         constexpr uint64 mask = 0x00000000000000FF;
 
         const uint64 preResult = jutils_private::hash_crc64_table[value & mask];
         return (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ (value >> 8)) & mask];
     }
-    [[nodiscard]] constexpr uint64 hash_crc64(const uint32 value) noexcept
+    [[nodiscard]] constexpr hash_t hash_crc64(const uint32 value) noexcept
     {
         constexpr uint64 mask = 0x00000000000000FF;
 
@@ -109,7 +94,7 @@ namespace jutils::math
         preResult = (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ ((value >> 16) & mask)) & mask];
         return (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ (value >> 24)) & mask];
     }
-    [[nodiscard]] constexpr uint64 hash_crc64(const uint64 value) noexcept
+    [[nodiscard]] constexpr hash_t hash_crc64(const uint64 value) noexcept
     {
         constexpr uint64 mask = 0x00000000000000FF;
 
@@ -120,49 +105,9 @@ namespace jutils::math
         preResult = (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ ((value >> 32) & mask)) & mask];
         preResult = (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ ((value >> 40) & mask)) & mask];
         preResult = (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ ((value >> 48) & mask)) & mask];
-        return (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ (value >> 56)) & mask];
+        return      (preResult << 8) ^ jutils_private::hash_crc64_table[((preResult >> 56) ^ (value >> 56)) & mask];
     }
 
     JUTILS_TEMPLATE_CONDITION(std::is_integral_v<T> && std::is_signed_v<T>, typename T)
-    [[nodiscard]] constexpr uint64 hash_crc64(const T value) noexcept
-        { return jutils::math::hash_crc64(static_cast<std::make_unsigned_t<T>>(value)); }
-
-    template<> struct hash<jutils::uint8>
-    {
-        [[nodiscard]] constexpr hash_t operator()(const jutils::uint8& v) const noexcept { return hash_crc64(v); }
-    };
-    template<> struct hash<jutils::int8>
-    {
-        [[nodiscard]] constexpr hash_t operator()(const jutils::int8& v) const noexcept { return hash_crc64(v); }
-    };
-    template<> struct hash<jutils::uint16>
-    {
-        [[nodiscard]] constexpr hash_t operator()(const jutils::uint16& v) const noexcept { return hash_crc64(v); }
-    };
-    template<> struct hash<jutils::int16>
-    {
-        [[nodiscard]] constexpr hash_t operator()(const jutils::int16& v) const noexcept { return hash_crc64(v); }
-    };
-    template<> struct hash<jutils::uint32>
-    {
-        [[nodiscard]] constexpr hash_t operator()(const jutils::uint32& v) const noexcept { return hash_crc64(v); }
-    };
-    template<> struct hash<jutils::int32>
-    {
-        [[nodiscard]] constexpr hash_t operator()(const jutils::int32& v) const noexcept { return hash_crc64(v); }
-    };
-    template<> struct hash<jutils::uint64>
-    {
-        [[nodiscard]] constexpr hash_t operator()(const jutils::uint64& v) const noexcept { return hash_crc64(v); }
-    };
-    template<> struct hash<jutils::int64>
-    {
-        [[nodiscard]] constexpr hash_t operator()(const jutils::int64& v) const noexcept { return hash_crc64(v); }
-    };
-
-    template<>
-    struct hash<const char*>
-    {
-        [[nodiscard]] constexpr hash_t operator()(const char* str) const noexcept { return hash_crc64(str); }
-    };
+    [[nodiscard]] constexpr hash_t hash_crc64(const T value) noexcept { return hash_crc64(static_cast<std::make_unsigned_t<T>>(value)); }
 }
