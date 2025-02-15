@@ -3,7 +3,7 @@
 #pragma once
 
 #include "delegate_multicast.h"
-#include "juid.h"
+#include "uid.h"
 
 namespace jutils
 {
@@ -42,7 +42,7 @@ namespace jutils
 	protected:
 
 		int32 descriptorIndex = -1;
-		uid_type UID = juid<uid_type>::invalidUID;
+		uid_type UID = uid<uid_type>::invalidUID;
 	};
 
 	template<typename T>
@@ -170,7 +170,7 @@ namespace jutils
 		{
 			type* object = nullptr;
 			uint64 references = 0;
-			juid<uid_type> UID;
+			uid<uid_type> UID;
 		};
 		
 		std::vector<descriptor> descriptors;
@@ -185,7 +185,7 @@ namespace jutils
 	constexpr jdescriptor_table_pointer& jdescriptor_table_pointer::operator=(std::nullptr_t)
 	{
 		descriptorIndex = -1;
-		UID = juid<uid_type>::invalidUID;
+		UID = uid<uid_type>::invalidUID;
 		return *this;
 	}
 	constexpr bool jdescriptor_table_pointer::operator<(const jdescriptor_table_pointer& otherPointer) const
@@ -211,7 +211,7 @@ namespace jutils
 	{
 		otherPointer.descriptorTable = nullptr;
 		otherPointer.descriptorIndex = -1;
-		otherPointer.UID = juid<uid_type>::invalidUID;
+		otherPointer.UID = uid<uid_type>::invalidUID;
 	}
 
 	template<typename T>
@@ -252,7 +252,7 @@ namespace jutils
 
 		otherPointer.descriptorTable = nullptr;
 		otherPointer.descriptorIndex = -1;
-		otherPointer.UID = juid<uid_type>::invalidUID;
+		otherPointer.UID = uid<uid_type>::invalidUID;
 		return *this;
 	}
 
@@ -362,7 +362,7 @@ namespace jutils
 	{
 		descriptor& descriptor = descriptors[descriptorIndex];
 		descriptor.UID.generateUID();
-		if (descriptor.UID != juid<uid_type>::invalidUID)
+		if (descriptor.UID != uid<uid_type>::invalidUID)
 		{
 			descriptor.references = static_cast<uint64>(firstEmptyDescriptor + 1);
 			firstEmptyDescriptor = descriptorIndex;

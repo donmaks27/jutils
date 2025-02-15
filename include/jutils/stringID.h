@@ -2,8 +2,10 @@
 
 #pragma once
 
-#include "math/hash.h"
+#include "core.h"
+
 #include "format.h"
+#include "math/hash.h"
 #include <unordered_set>
 #include <mutex>
 #include <shared_mutex>

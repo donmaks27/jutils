@@ -1,27 +1,31 @@
-﻿// Copyright © 2021-2024 Leonov Maksim. All Rights Reserved.
+﻿// Copyright © 2021 Leonov Maksim. All Rights Reserved.
 
 #pragma once
 
-#include "type_traits.h"
+#include "core.h"
 
+#include "base_types.h"
+#include "macro/template_condition.h"
 #include <limits>
 
 namespace jutils
 {
     JUTILS_TEMPLATE_CONDITION(std::is_integral_v<IdType>, typename IdType = uint64)
-    class juid
+    class uid
     {
     public:
 
         using uid_type = IdType;
         static constexpr uid_type invalidUID = std::numeric_limits<uid_type>::min();
 
-        constexpr juid() = default;
-        constexpr juid(const juid& value)
+        constexpr uid() noexcept = default;
+        constexpr uid(const uid& value) noexcept
             : currentUID(value.currentUID)
         {}
+        constexpr uid(uid&&) noexcept = default;
+        constexpr ~uid() = default;
 
-        constexpr juid& operator=(const juid& value) noexcept
+        constexpr uid& operator=(const uid& value) noexcept
         {
             if (this != &value)
             {
@@ -29,6 +33,7 @@ namespace jutils
             }
             return *this;
         }
+        constexpr uid& operator=(uid&&) noexcept = default;
 
         [[nodiscard]] constexpr uid_type getCurrentUID() const noexcept { return currentUID; }
         [[nodiscard]] constexpr uid_type getNextUID() const noexcept { return currentUID != maxUID ? currentUID + 1 : minUID; }
@@ -42,13 +47,6 @@ namespace jutils
         {
             currentUID = minUID;
         }
-
-        [[nodiscard]] explicit constexpr operator uid_type() const noexcept { return getCurrentUID(); }
-
-        [[nodiscard]] constexpr bool operator==(const juid& uid) const noexcept { return getCurrentUID() == uid.getCurrentUID(); }
-        [[nodiscard]] constexpr bool operator!=(const juid& uid) const noexcept { return getCurrentUID() != uid.getCurrentUID(); }
-        [[nodiscard]] constexpr bool operator==(const uid_type uid) const noexcept { return getCurrentUID() == uid; }
-        [[nodiscard]] constexpr bool operator!=(const uid_type uid) const noexcept { return getCurrentUID() != uid; }
 
     private:
 
