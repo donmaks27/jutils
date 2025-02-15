@@ -112,7 +112,7 @@ namespace jutils
             struct hash
             {
                 [[nodiscard]] jutils::math::hash_t operator()(const entry& entry) const noexcept
-                    { return jutils::math::hash<std::string>{}(entry.stringValue); }
+                    { return jutils::math::hash_crc64(entry.stringValue); }
             };
         };
         
