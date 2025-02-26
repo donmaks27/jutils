@@ -40,3 +40,5 @@
 #else
     #define JUTILS_FILENAME
 #endif
+
+#define JUTILS_HELPER_CONCAT(...) __VA_ARGS__

@@ -18,5 +18,5 @@ namespace jutils
     using int64 = std::int64_t;
     using uint64 = std::uint64_t;
 
-    constexpr std::size_t index_invalid = -1;
+    constexpr std::size_t invalid_index = -1;
 }

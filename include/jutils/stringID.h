@@ -41,7 +41,7 @@ namespace jutils
         {
             if (str.empty())
             {
-                return index_invalid;
+                return invalid_index;
             }
 
             std::size_t strIndex;
@@ -103,7 +103,7 @@ namespace jutils
             entry& operator=(entry&&) noexcept = default;
 
             std::string stringValue;
-            std::size_t pointerIndex = index_invalid;
+            std::size_t pointerIndex = invalid_index;
 
             [[nodiscard]] bool operator==(const std::string& str) const noexcept { return stringValue == str; }
             [[nodiscard]] bool operator==(const entry& entry) const noexcept { return operator==(entry.stringValue); }
@@ -140,7 +140,7 @@ namespace jutils
         constexpr stringID& operator=(stringID&&) noexcept = default;
         constexpr stringID& operator=(const stringID&) noexcept = default;
 
-        [[nodiscard]] constexpr bool isValid() const noexcept { return pointerIndex != index_invalid; }
+        [[nodiscard]] constexpr bool isValid() const noexcept { return pointerIndex != invalid_index; }
         [[nodiscard]] std::string toString() const noexcept { return jstring_hash_table::GetInstanse()->get(pointerIndex); }
 
         [[nodiscard]] constexpr bool operator==(const stringID& strID) const noexcept { return isValid() && (pointerIndex == strID.pointerIndex); }
@@ -151,7 +151,7 @@ namespace jutils
 
     private:
 
-        std::size_t pointerIndex = index_invalid;
+        std::size_t pointerIndex = invalid_index;
     };
 
     template<>

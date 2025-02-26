@@ -4,237 +4,224 @@
 
 #include "core.h"
 
-#include "base_types.h"
-#include "macro/delegate.h"
-#include <functional>
-#include <utility>
+#include "delegate_single.h"
+#include <algorithm>
+#include <vector>
 
 namespace jutils
 {
     template<typename... Args>
     class delegate
     {
-    public:
+        using delegate_type = delegate_single<Args...>;
+
+    protected:
         delegate() = default;
-        template<typename T>
-        delegate(T* object, void (T::*function)(Args...))
-        {
-            bind(object, function);
-        }
-        delegate(const std::function<void(Args...)>& function)
-        {
-            bind(function);
-        }
-        delegate(std::function<void(Args...)>&& function) noexcept
-        {
-            bind(std::move(function));
-        }
-        delegate(const delegate& otherDelegate)
-        {
-            if ((otherDelegate._delegate != nullptr) && !otherDelegate._delegate->pendingDelete)
-            {
-                _delegate = otherDelegate._delegate->copy();
-            }
-        }
-        delegate(delegate&& otherDelegate) noexcept
-        {
-            if ((otherDelegate._delegate != nullptr) && !otherDelegate._delegate->pendingDelete)
-            {
-                _delegate = otherDelegate._delegate;
-                otherDelegate._delegate = nullptr;
-            }
-        }
-        ~delegate() { clear(); }
+    public:
+        delegate(const delegate&) = delete;
+        delegate(delegate&&) = delete;
+        ~delegate() = default;
 
-        delegate& operator=(const std::function<void(Args...)>& function)
-        {
-            bind(function);
-            return *this;
-        }
-        delegate& operator=(std::function<void(Args...)>&& function) noexcept
-        {
-            bind(std::move(function));
-            return *this;
-        }
-        delegate& operator=(const delegate& otherDelegate)
-        {
-            if (this != &otherDelegate)
-            {
-                clear();
-                if ((otherDelegate._delegate != nullptr) && !otherDelegate._delegate->pendingDelete)
-                {
-                    _delegate = otherDelegate._delegate->copy();
-                }
-            }
-            return *this;
-        }
-        delegate& operator=(delegate&& otherDelegate) noexcept
-        {
-            clear();
-            if ((otherDelegate._delegate != nullptr) && !otherDelegate._delegate->pendingDelete)
-            {
-                _delegate = otherDelegate._delegate;
-                otherDelegate._delegate = nullptr;
-            }
-            return *this;
-        }
+        delegate& operator=(const delegate&) = delete;
+        delegate& operator=(delegate&&) = delete;
 
         template<typename T>
-        void bind(T* object, void (T::*function)(Args...))
+        void bind(T* object, void (T::*function)(Args...)) const
         {
-            clear();
-            if ((object != nullptr) && (function != nullptr))
+            if ((object != nullptr) && (function != nullptr) && !isBinded(object, function))
             {
-                _delegate = new container_class<T>(object, function);
+                _delegates.emplace_back(object, function);
             }
         }
-        void bind(const std::function<void(Args...)>& function)
+        void bind(const std::function<void(Args...)>& function) const
         {
-            clear();
-            if (function != nullptr)
+            if ((function != nullptr) && !isBinded(function))
             {
-                _delegate = new container_function(function);
+                _delegates.emplace_back(function);
             }
         }
-        void bind(std::function<void(Args...)>&& function)
+        void bind(std::function<void(Args...)>&& function) const
         {
-            clear();
-            if (function != nullptr)
+            if ((function != nullptr) && !isBinded(function))
             {
-                _delegate = new container_function(std::move(function));
+                _delegates.emplace_back(std::move(function));
             }
         }
 
         template<typename T>
         [[nodiscard]] bool isBinded(T* object, void (T::*function)(Args...)) const
         {
-            if ((object != nullptr) && (function != nullptr) && (_delegate != nullptr))
-            {
-                const auto* container = dynamic_cast<const container_class<T>*>(_delegate);
-                if (container != nullptr)
-                {
-                    return container->isBinded(object, function);
-                }
-            }
-            return false;
+            return _findDelegate(object, function) != invalid_index;
         }
         [[nodiscard]] bool isBinded(const std::function<void(Args...)>& function) const
         {
-            if ((function != nullptr) && (_delegate != nullptr))
-            {
-                const auto* container = dynamic_cast<const container_function*>(_delegate);
-                if (container != nullptr)
-                {
-                    return container->isBinded(function);
-                }
-            }
-            return false;
+            return _findDelegate(function) != invalid_index;
         }
 
-        void clear()
+        template<typename T>
+        void unbind(T* object, void (T::*function)(Args...)) const
         {
-            if (_delegate != nullptr)
+            const std::size_t index = _findDelegate(object, function);
+            if (index != invalid_index)
             {
-                if (_callCounter > 0)
+                if (_callCounter == 0)
                 {
-                    _delegate->pendingDelete = true;
+                    _delegates.erase(std::next(_delegates.begin(), index));
                 }
                 else
                 {
-                    delete _delegate;
+                    _delegates[index].clear();
                 }
-                _delegate = nullptr;
+            }
+        }
+        void unbind(const std::function<void(Args...)>& function) const
+        {
+            const std::size_t index = _findDelegate(function);
+            if (index != invalid_index)
+            {
+                if (_callCounter == 0)
+                {
+                    _delegates.erase(std::next(_delegates.begin(), index));
+                }
+                else
+                {
+                    _delegates[index].clear();
+                }
             }
         }
 
-        void call(Args... args) const
+        void clear() const
         {
-            if (_delegate != nullptr)
+            if (_callCounter > 0)
+            {
+                for (auto& delegate : _delegates)
+                {
+                    delegate.clear();
+                }
+            }
+            else
+            {
+                _delegates.clear();
+            }
+        }
+
+    protected:
+
+        void _call(Args... args) const
+        {
+            if (!_delegates.empty())
             {
                 _callCounter++;
-                container_interface* container = _delegate;
-                container->call(std::forward<Args>(args)...);
-                if (container->pendingDelete)
+                const std::size_t lastIndex = _delegates.size() - 1;
+                for (std::size_t index = 0; index < lastIndex; index++)
                 {
-                    delete container;
+                    _delegates[index].call(std::forward<Args>(args)...);
                 }
                 _callCounter--;
+                if (_callCounter == 0)
+                {
+                    _clearInvalidDelegates();
+                }
             }
         }
 
     private:
 
-        class container_interface
-        {
-        public:
-            virtual ~container_interface() = default;
+        mutable std::vector<delegate_type> _delegates;
+        mutable uint16 _callCounter = 0;
 
-            [[nodiscard]] virtual container_interface* copy() = 0;
 
-            virtual void call(Args...) = 0;
-
-            bool pendingDelete = false;
-        };
         template<typename T>
-        class container_class : public container_interface
+        [[nodiscard]] std::size_t _findDelegate(T* object, void (T::*function)(Args...)) const
         {
-        public:
-
-            using class_type = T;
-            using function_type = void (class_type::*)(Args...);
-
-            container_class(class_type* object, function_type func)
-                : _object(object)
-                , _function(func)
-            {}
-            virtual ~container_class() override = default;
-
-            [[nodiscard]] virtual container_interface* copy() override { return new container_class(_object, _function); }
-
-            [[nodiscard]] bool isBinded(class_type* checking_object, function_type checking_function) const { return (_object == checking_object) && (_function == checking_function); }
-
-            virtual void call(Args... args) override
+            if ((object != nullptr) && (function != nullptr))
             {
-                if (_object != nullptr)
+                for (std::size_t index = 0; index < _delegates.size(); index++)
                 {
-                    (_object->*_function)(std::forward<Args>(args)...);
+                    if (_delegates[index].isBinded(object, function))
+                    {
+                        return index;
+                    }
                 }
             }
-
-        private:
-
-            T* _object = nullptr;
-            function_type _function = nullptr;
-        };
-        class container_function : public container_interface
+            return invalid_index;
+        }
+        [[nodiscard]] std::size_t _findDelegate(const std::function<void(Args...)>& function) const
         {
-        public:
-            explicit container_function(const std::function<void(Args...)>& func)
-                : _function(func)
-            {}
-            explicit container_function(std::function<void(Args...)>&& func)
-                : _function(std::move(func))
-            {}
-            virtual ~container_function() override = default;
-
-            [[nodiscard]] virtual container_interface* copy() override { return new container_function(_function); }
-
-            [[nodiscard]] bool isBinded(const std::function<void(Args...)>& checking_function) const { return _function == checking_function; }
-
-            virtual void call(Args... args) override
+            if (function != nullptr)
             {
-                if (_function != nullptr)
+                for (std::size_t index = 0; index < _delegates.size(); index++)
                 {
-                    _function(std::forward<Args>(args)...);
+                    if (_delegates[index].isBinded(function))
+                    {
+                        return index;
+                    }
                 }
             }
-
-        private:
-
-            std::function<void(Args...)> _function = nullptr;
-        };
-
-        mutable container_interface* _delegate = nullptr;
-        mutable uint32 _callCounter = 0;
+            return invalid_index;
+        }
+        void _clearInvalidDelegates() const
+        {
+#if JUTILS_STD_VERSION >= JUTILS_STD20
+            std::erase_if(_delegates, [](const delegate_type& d){ return !d.isValid(); });
+#else
+            const auto iter = std::remove_if(_delegates.begin(), _delegates.end(), [](const delegate_type& d) { return !d.isValid(); });
+            _delegates.erase(iter, _delegates.end());
+#endif
+        }
     };
 }
+
+
+
+#define JUTILS_DELEGATE_HELPER(DelegateName, ParamTypes, ParamNames, Params)    \
+    class DelegateName : public jutils::delegate<ParamTypes>                    \
+    {                                                                           \
+        using base_class = jutils::delegate<ParamTypes>;                        \
+    public:                                                                     \
+        DelegateName() = default;                                               \
+        DelegateName(const DelegateName&) = delete;                             \
+        DelegateName(DelegateName&&) = delete;                                  \
+        DelegateName& operator=(const DelegateName&) = delete;                  \
+        DelegateName& operator=(DelegateName&&) = delete;                       \
+        void call(Params) const { _call(ParamNames); }                          \
+    }
+
+
+
+#define JUTILS_DELEGATE(DelegateName) JUTILS_DELEGATE_HELPER(DelegateName, , , )
+
+#define JUTILS_DELEGATE1(DelegateName, ArgType1, ArgName1)  \
+    JUTILS_DELEGATE_HELPER(DelegateName,                    \
+        JUTILS_HELPER_CONCAT(ArgType1),                     \
+        JUTILS_HELPER_CONCAT(ArgName1),                     \
+        JUTILS_HELPER_CONCAT(ArgType1 ArgName1)             \
+    )
+
+#define JUTILS_DELEGATE2(DelegateName, ArgType1, ArgName1, ArgType2, ArgName2)  \
+    JUTILS_DELEGATE_HELPER(DelegateName,                                        \
+        JUTILS_HELPER_CONCAT(ArgType1, ArgType2),                               \
+        JUTILS_HELPER_CONCAT(ArgName1, ArgName2),                               \
+        JUTILS_HELPER_CONCAT(ArgType1 ArgName1, ArgType2 ArgName2)              \
+    )
+
+#define JUTILS_DELEGATE3(DelegateName, ArgType1, ArgName1, ArgType2, ArgName2, ArgType3, ArgName3)  \
+    JUTILS_DELEGATE_HELPER(DelegateName,                                                            \
+        JUTILS_HELPER_CONCAT(ArgType1, ArgType2, ArgType3),                                         \
+        JUTILS_HELPER_CONCAT(ArgName1, ArgName2, ArgName3),                                         \
+        JUTILS_HELPER_CONCAT(ArgType1 ArgName1, ArgType2 ArgName2, ArgType3 ArgName3)               \
+    )
+
+#define JUTILS_DELEGATE4(DelegateName, ArgType1, ArgName1, ArgType2, ArgName2, ArgType3, ArgName3, ArgType4, ArgName4)  \
+    JUTILS_DELEGATE_HELPER(DelegateName,                                                                                \
+        JUTILS_HELPER_CONCAT(ArgType1, ArgType2, ArgType3, ArgType4),                                                   \
+        JUTILS_HELPER_CONCAT(ArgName1, ArgName2, ArgName3, ArgName4),                                                   \
+        JUTILS_HELPER_CONCAT(ArgType1 ArgName1, ArgType2 ArgName2, ArgType3 ArgName3, ArgType4 ArgName4)                \
+    )
+
+#define JUTILS_DELEGATE5(DelegateName, ArgType1, ArgName1, ArgType2, ArgName2, ArgType3, ArgName3, ArgType4, ArgName4, ArgType5, ArgName5)  \
+    JUTILS_DELEGATE_HELPER(DelegateName,                                                                                                    \
+        JUTILS_HELPER_CONCAT(ArgType1, ArgType2, ArgType3, ArgType4, ArgType5),                                                             \
+        JUTILS_HELPER_CONCAT(ArgName1, ArgName2, ArgName3, ArgName4, ArgName5),                                                             \
+        JUTILS_HELPER_CONCAT(ArgType1 ArgName1, ArgType2 ArgName2, ArgType3 ArgName3, ArgType4 ArgName4, ArgType5 ArgName5)                 \
+    )
