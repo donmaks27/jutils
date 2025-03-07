@@ -68,7 +68,7 @@ namespace jutils
 
         [[nodiscard]] bool isValid() const noexcept { return _container != nullptr; }
         JUTILS_TEMPLATE_CONDITION((std::is_function_v<std::remove_pointer_t<Func>>), typename Func)
-        [[nodiscard]] bool isBinded(Func* function) const
+        [[nodiscard]] bool isBinded(Func function) const
         {
             if (isValid() && (function != nullptr) && (_container->type == containter_type::Function))
             {
