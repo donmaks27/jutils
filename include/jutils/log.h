@@ -5,8 +5,6 @@
 #include "core.h"
 
 #include "format.h"
-#include "macro/formatter.h"
-#include "macro/log.h"
 
 namespace jutils::log
 {
@@ -35,3 +33,13 @@ namespace jutils_private::log
     }
 }
 JUTILS_STRING_FORMATTER_CONSTEXPR(jutils::log::type, jutils_private::log::typeToString)
+
+#if JUTILS_VA_OPT_SUPPORTED // __VA_OPT__
+    #define JUTILS_LOG(logType, formatStr, ...) jutils::log::print(jutils::format(                 \
+        "{} {}\n", jutils::log::type::logType, jutils::format(formatStr __VA_OPT__(,) __VA_ARGS__) \
+    ))
+#else
+    #define JUTILS_LOG(logType, ...) jutils::log::print(jutils::format(    \
+        "{} {}\n", jutils::log::type::logType, jutils::format(__VA_ARGS__) \
+    ))
+#endif

@@ -36,14 +36,10 @@
     #define JUTILS_FORMAT_NAMESPACE std
 #endif
 
-#ifndef JUTILS_LOG_DISABLED
-    #if !defined(_MSC_VER) && defined(__FILE_NAME__)
-        #define JUTILS_FILENAME __FILE_NAME__
-    #else
-        #define JUTILS_FILENAME __FILE__
-    #endif
+#if !defined(_MSC_VER) && defined(__FILE_NAME__)
+    #define JUTILS_FILENAME __FILE_NAME__
 #else
-    #define JUTILS_FILENAME
+    #define JUTILS_FILENAME __FILE__
 #endif
 
 #define JUTILS_HELPER_CONCAT(...) __VA_ARGS__
