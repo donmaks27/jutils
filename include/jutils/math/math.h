@@ -6,7 +6,6 @@
 
 #include "../base_types.h"
 #include "../type_traits.h"
-#include "../macro/template_condition.h"
 
 #include <cmath>
 #include <initializer_list>

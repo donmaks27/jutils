@@ -5,7 +5,6 @@
 #include "../core.h"
 
 #include "../base_types.h"
-#include "../macro/template_condition.h"
 #include <string>
 
 namespace jutils_private

@@ -5,7 +5,7 @@
 #include "core.h"
 
 #include "base_types.h"
-#include "macro/template_condition.h"
+#include "type_traits.h"
 #include <limits>
 
 namespace jutils
@@ -19,21 +19,24 @@ namespace jutils
         static constexpr uid_type invalidUID = std::numeric_limits<uid_type>::min();
 
         constexpr uid() noexcept = default;
-        constexpr uid(const uid& value) noexcept
-            : currentUID(value.currentUID)
-        {}
-        constexpr uid(uid&&) noexcept = default;
+        constexpr uid(const uid& other) noexcept : currentUID(other.currentUID) {}
+        constexpr uid(uid&& other) noexcept : currentUID(other.currentUID) { other.reset(); }
         constexpr ~uid() = default;
 
-        constexpr uid& operator=(const uid& value) noexcept
+        constexpr uid& operator=(const uid& other) noexcept
         {
-            if (this != &value)
+            if (this != &other)
             {
-                currentUID = value.currentUID;
+                currentUID = other.currentUID;
             }
             return *this;
         }
-        constexpr uid& operator=(uid&&) noexcept = default;
+        constexpr uid& operator=(uid&& other) noexcept
+        {
+            currentUID = other.currentUID;
+            other.reset();
+            return *this;
+        }
 
         [[nodiscard]] constexpr uid_type getCurrentUID() const noexcept { return currentUID; }
         [[nodiscard]] constexpr uid_type getNextUID() const noexcept { return currentUID != maxUID ? currentUID + 1 : minUID; }

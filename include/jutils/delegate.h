@@ -12,11 +12,10 @@
 namespace jutils
 {
     template<typename... Args>
-    class delegate
+    class delegate final
     {
     public:
 
-        using function_type = void(*)(Args...);
         template<typename T>
         using method_type = void (T::*)(Args...);
         using callable_type = std::function<void(Args...)>;
@@ -36,9 +35,9 @@ namespace jutils
             _container = otherDelegate._container;
             otherDelegate._container = nullptr;
         }
-        ~delegate() noexcept { clear(); }
+        ~delegate() { clear(); }
 
-        delegate& operator=(std::nullptr_t) noexcept
+        delegate& operator=(std::nullptr_t)
         {
             clear();
             return *this;
@@ -67,8 +66,9 @@ namespace jutils
         }
 
         [[nodiscard]] bool isValid() const noexcept { return _container != nullptr; }
+
         JUTILS_TEMPLATE_CONDITION((std::is_function_v<std::remove_pointer_t<Func>>), typename Func)
-        [[nodiscard]] bool isBinded(Func function) const
+        [[nodiscard]] bool isBinded(const Func function) const
         {
             if (isValid() && (function != nullptr) && (_container->type == containter_type::Function))
             {
@@ -87,6 +87,36 @@ namespace jutils
             }
             return false;
         }
+
+        [[nodiscard]] bool operator==(const delegate& other) const
+        {
+            if (!isValid() || !other.isValid())
+            {
+                return !isValid() && !other.isValid();
+            }
+            if (_container->type == other._container->type)
+            {
+                switch (_container->type)
+                {
+                case containter_type::Function:
+                    {
+                        const auto* function = reinterpret_cast<const container_function*>(_container)->function;
+                        const auto* otherFunction = reinterpret_cast<const container_function*>(other._container)->function;
+                        return function != otherFunction;
+                    }
+                case containter_type::Method:
+                    {
+                        const auto* container = reinterpret_cast<const container_method_base*>(_container);
+                        const auto* otherContainer = reinterpret_cast<const container_method_base*>(other._container);
+                        return container->isEquals(otherContainer);
+                    }
+                default: 
+                    return _container == other._container;
+                }
+            }
+            return false;
+        }
+        [[nodiscard]] bool operator!=(const delegate& other) const { return !operator==(other); }
 
         JUTILS_TEMPLATE_CONDITION((std::is_function_v<std::remove_pointer_t<Func>>), typename Func)
         void bind(Func function)
@@ -187,7 +217,7 @@ namespace jutils
                 }
             }
         }
-        void operator()(Args... args) const { call(std::forward<Args>(args)...); }
+        void operator()(Args&&... args) const { call(std::forward<Args>(args)...); }
 
     private:
 
@@ -199,7 +229,7 @@ namespace jutils
             container(const containter_type t) : type(t) {}
         public:
             virtual ~container() = default;
-
+            
             [[nodiscard]] virtual container* copy() = 0;
             virtual void call(Args...) = 0;
 
@@ -210,11 +240,13 @@ namespace jutils
         class container_function : public container
         {
         public:
+            using function_type = void(*)(Args...);
+
             explicit container_function(const function_type func)
                 : container(containter_type::Function), function(func)
             {}
             virtual ~container_function() override = default;
-
+            
             [[nodiscard]] virtual container* copy() override { return new container_function(function); }
             virtual void call(Args... args) override
             {
@@ -226,15 +258,29 @@ namespace jutils
 
             function_type function = nullptr;
         };
+        class container_method_base : public container
+        {
+        protected:
+            container_method_base() : container(containter_type::Method) {}
+        public:
+            virtual ~container_method_base() override = default;
+
+            [[nodiscard]] virtual bool isEquals(const container_method_base* other) const = 0;
+        };
         template<typename T>
-        class container_method : public container
+        class container_method : public container_method_base
         {
         public:
             container_method(T* obj, method_type<T> func)
-                : container(containter_type::Method), object(obj), function(func)
+                : container_method_base(), object(obj), function(func)
             {}
             virtual ~container_method() override = default;
 
+            [[nodiscard]] virtual bool isEquals(const container_method_base* other) const override
+            {
+                const container_method* otherCasted = dynamic_cast<const container_method*>(other);
+                return (otherCasted != nullptr) && (otherCasted->object == object) && (otherCasted->function == function);
+            }
             [[nodiscard]] virtual container* copy() override { return new container_method(object, function); }
             virtual void call(Args... args) override
             {
