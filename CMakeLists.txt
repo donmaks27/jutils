@@ -18,12 +18,12 @@ list(APPEND JUTILS_HEADER_FILES
     include/jutils/uid.h
     include/jutils/delegate.h
     include/jutils/multidelegate.h
+    include/jutils/defer.h
     include/jutils/format.h
     include/jutils/log.h
     include/jutils/stringID.h
 
     include/jutils/jasync_task_queue.h
-    include/jutils/jdefer.h
     include/jutils/jdescriptor_table.h
     include/jutils/jmemory.h
     include/jutils/jpool.h
